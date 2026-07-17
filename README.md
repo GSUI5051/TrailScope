@@ -52,14 +52,14 @@ An experimental online GPX tool, but a whole different animal
 
 - **🎒 Gear & Supply Recommendations**  
   Generates essential gear, recommended gear, and supplies (water, meals, snacks) based on route difficulty, altitude, and weather conditions.  
-  Supplies automatically convert between metric and imperial units; water is displayed in fluid ounces (oz) for imperial.
+  Supplies automatically convert between Metric and US Customary (imperial) units; water is displayed in fluid ounces (oz) for US Customary units.
 
 - **📋 Segment Statistics**  
   Split the route by "grade variation", "fixed distance (1 km)", or "waypoints". Each segment shows distance, ascent, descent, average grade, max grade, time, and difficulty rating.  
   Click any segment to highlight it on both the map and the elevation profile.
 
 - **🌐 Unit Switching**  
-  Toggle between metric (km, m) and imperial (mi, ft) units instantly; all displayed values update accordingly.
+  Toggle between Metric (km, m) and US Customary (mi, ft) units instantly; all displayed values update accordingly.
 
 - **📱 Mobile Optimized**  
   Touch‑friendly interactions; supports swipe gestures to explore the profile; full‑screen map mode adapts to portrait/landscape orientations.
@@ -118,12 +118,12 @@ TrailScope/
 ├── TrailScope-Chinese.html    # Chinese main page
 ├── TrailScope-English.html    # English main page
 ├── css/
-│   ├── leaflet-1.9.4.css
+│   ├── leaflet-1p9p4.css
 │   ├── fonts.css
 │   └── all.min.css            # Font Awesome
 ├── js/
-│   ├── tailwind-3.4.17.js
-│   └── leaflet-1.9.4.js
+│   ├── tailwind-3p4p17.js
+│   └── leaflet-1p9p4.js
 ├── demo.gpx                   # Chinese demo track
 ├── demo-en.gpx                # English demo track
 └── README.md                  # This file
@@ -180,7 +180,7 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 
 ## 🌟 Acknowledgements
 
-- Inspired by awesome outdoor softwares and existed gpx visualizers (Strava, Zepp, Mapy, Organic Maps, GPX Studio).
+- Inspired by awesome outdoor softwares and existed gpx visualizers (Strava, Zepp, Mapy, Organic Maps, GPX Studio, Gaia GPS).
 - Thanks to all open‑source libraries (Leaflet, Tailwind CSS, Font Awesome).
 - Thanks to OpenStreetMap and all map providers.
 - Special thanks to outdoor enthusiasts and trail runners for their track data.

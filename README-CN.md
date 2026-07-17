@@ -23,7 +23,7 @@ An experimental online GPX tool, but a whole different animal
   支持 `.gpx` 格式轨迹文件，自动提取位置和海拔信息。
 
 - **🗺️ 交互式地图**  
-  基于 Leaflet 渲染，提供多种地图源（高德、谷歌、OpenStreetMap、Windy等），按坡度或海拔着色显示路线。
+  基于 Leaflet 渲染，提供多种地图源（高德、谷歌、OpenStreetMap、Windy 等），按坡度或海拔着色显示路线。
 
 - **📈 海拔剖面图**  
   展示全程海拔变化，支持缩放、平移，鼠标悬停/触摸查看任意点的距离、海拔和坡度。  
@@ -33,7 +33,7 @@ An experimental online GPX tool, but a whole different animal
   - 总距离、累计爬升/下降、最高/最低海拔  
   - 平均坡度、上坡/下坡/平路距离  
   - 最大上坡/下坡坡度 
-  - 可切换基于原始数据/平滑数据的海拔累计，帮助减少 GPS 高度和气压高度计测量噪声导致的误差。  
+  - 可切换基于原始数据/平滑数据的累计爬升下降计算，帮助减少 GPS 高度和气压高度计测量噪声导致的误差。  
   - 针对户外徒步和越野跑的坡度统计和技术要点
 
 - **🏔️ 难度评级**  
@@ -118,15 +118,15 @@ TrailScope/
 ├── TrailScope-Chinese.html    # 中文版主页面
 ├── TrailScope-English.html    # 英文版主页面
 ├── css/
-│   ├── leaflet-1.9.4.css
+│   ├── leaflet-1p9p4.css
 │   ├── fonts.css
 │   └── all.min.css            # Font Awesome
 ├── js/
-│   ├── tailwind-3.4.17.js
-│   └── leaflet-1.9.4.js
+│   ├── tailwind-3p4p17.js
+│   └── leaflet-1p9p4.js
 ├── demo.gpx                   # 中文示例轨迹
 ├── demo-en.gpx                # 英文示例轨迹
-└── README.md                  # 本文件
+└── README-CN.md               # 本文件
 ```
 
 ---
@@ -177,9 +177,9 @@ TrailScope 提供的数据分析仅用于路线规划参考。
 
 ## 🌟 致谢
 
-- 灵感来源于各种优秀的户外软件和已有的 gpx 分析工具（Strava, Zepp, 两步路，Mapy, Organic Maps, GPX Studio）。
+- 灵感来源于各种优秀的户外软件和已有的 gpx 分析工具（Strava, Zepp, 两步路，Mapy, Organic Maps, GPX Studio, Gaia GPS）。
 - 感谢所有开源社区提供的优秀库（Leaflet, Tailwind CSS, Font Awesome）。
-- 感谢所有地图供应人员
+- 感谢所有地图和卫星图的供应人员。
 - 特别感谢广大户外徒步与越野跑爱好者提供的轨迹数据。
 
 ---
