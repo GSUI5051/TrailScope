@@ -1736,7 +1736,7 @@
     <!-- Footer -->
     <footer class="max-w-7xl mx-auto px-6 py-8 text-center">
         <p class="text-xs text-trail-mid/50">
-            TrailScope · 徒步轨迹智能分析 · 所有数据均在本地浏览器中处理<br><br><br>
+            TrailScope · 徒步轨迹智能分析 · 所有数据均在本地浏览器中处理 · <a href='https://github.com/GSUI5051/TrailScope' style="font-weight:600; color:#0000cc"><span>开源免费（GitHub）</span></a><br><br><br>
             2026 · 少女空间宇宙研究院
         </p>
     </footer>
@@ -3221,8 +3221,20 @@
 
             currentMarker = L.marker(displayLatLng(pt), { icon: currentIcon })
                 .addTo(leafletMap);
+			
+			const displayPos = displayLatLng(pt);
+            leafletMap.panTo(displayPos, { animate: false });
 
-            leafletMap.panTo([pt.lat, pt.lon], { animate: true });
+			// ★★★ 全屏模式下，再向上平移半个剖面图高度 ★★★
+			if (document.getElementById('mapContainer').classList.contains('map-fullscreen-chart')) {
+				const profile = document.querySelector('.fullscreen-profile');
+				if (profile) {
+					const profileHeight = profile.getBoundingClientRect().height;
+					const offsetY = profileHeight / 2;
+					// 使用 panBy 进行像素偏移（向上为负）
+					leafletMap.panBy([0, offsetY], { animate: false});
+				}
+			}
 
             if (!document.getElementById('mapContainer').classList.contains('map-fullscreen-chart')) {
                 const overlay = document.getElementById('mapInfoOverlay');

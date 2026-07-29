@@ -1668,7 +1668,7 @@
     <!-- Footer -->
     <footer class="max-w-7xl mx-auto px-6 py-8 text-center">
         <p class="text-xs text-trail-mid/50">
-            TrailScope · Hiking Trail Analysis · All data are handled locally<br><br><br>
+            TrailScope · Hiking Trail Analysis · All data are handled locally · <a href='https://github.com/GSUI5051/TrailScope' style="font-weight:600; color:#0000cc"><span>FOSS (GitHub)</span></a><br><br><br>
             2026 · Girls' Space and Universe Institute
         </p>
     </footer>
@@ -3443,7 +3443,19 @@
             currentMarker = L.marker(displayLatLng(pt), { icon: currentIcon })
                 .addTo(leafletMap);
 
-            leafletMap.panTo([pt.lat, pt.lon], { animate: true });
+			const displayPos = displayLatLng(pt);
+            leafletMap.panTo(displayPos, { animate: false });
+
+			// ★★★ 全屏模式下，再向上平移半个剖面图高度 ★★★
+			if (document.getElementById('mapContainer').classList.contains('map-fullscreen-chart')) {
+				const profile = document.querySelector('.fullscreen-profile');
+				if (profile) {
+					const profileHeight = profile.getBoundingClientRect().height;
+					const offsetY = profileHeight / 2;
+					// 使用 panBy 进行像素偏移（向上为负）
+					leafletMap.panBy([0, offsetY], { animate: false});
+				}
+			}
 
             if (!document.getElementById('mapContainer').classList.contains('map-fullscreen-chart')) {
                 const overlay = document.getElementById('mapInfoOverlay');
