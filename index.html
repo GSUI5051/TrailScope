@@ -324,6 +324,16 @@
             transform: scale(1.05);
         }
 
+        .map-control-btn.active-linkage {
+            background: #1a2e1f;
+            color: #f5f1e8;
+            box-shadow: 0 2px 8px rgba(26, 46, 31, 0.35);
+        }
+
+        .map-control-btn.active-linkage:hover {
+            background: #2d4a35;
+        }
+
         .map-source-select {
             background: white;
             border: none;
@@ -681,7 +691,7 @@
             transform: translateY(50%);
             pointer-events: none;
         }
-        .map-fullscreen-chart.portrait-mode .fullscreen-chart-toolbar > * {
+        .map-fullscreen-chart.portrait-mode .fullscreen-chart-toolbar>* {
             pointer-events: auto;
         }
         .map-fullscreen-chart.portrait-mode .fullscreen-profile #fullscreenProfileLegend {
@@ -708,7 +718,7 @@
             background: rgba(26, 46, 31, 0.8) !important;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 12px;
             padding: 8px 12px;
             font-size: 11px;
@@ -963,6 +973,11 @@
                 border-radius: 18px;
                 padding: 2px;
             }
+            .map-control-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 13px;
+            }
         }
 
         .chart-wrapper {
@@ -1205,6 +1220,10 @@
                         </button>
                         <button id="mapFullscreenBtn" class="map-control-btn" onclick="enterMapFullscreen()" title="地图全屏模式">
                             <i class="fa-solid fa-maximize"></i>
+                        </button>
+                        <!-- ★★★ 新增：地图联动开关 ★★★ -->
+                        <button id="mapLinkageBtn" class="map-control-btn active-linkage" onclick="toggleMapLinkage()" title="禁用地图联动">
+                            <i class="fa-solid fa-location-crosshairs"></i>
                         </button>
                     </div>
 
@@ -1802,6 +1821,9 @@
         // ★★★ 爬升/下降模式状态 ★★★
         let elevationMode = 'raw'; // 'raw' 或 'smooth'
 
+        // ★★★ 地图联动开关状态 ★★★
+        let mapLinkageEnabled = true;
+
         // Pagination state
         let currentPage = 1;
         let pageSize = 10;
@@ -1970,7 +1992,8 @@
             trackData.totalDescent = total.descent;
             // 重新计算平均坡度（使用新的总爬升）
             const totalHorizontalDistance = trackData.totalHorizontalDistance || 0;
-            trackData.avgGradient = totalHorizontalDistance > 0 ? (trackData.totalAscent / (totalHorizontalDistance * 1000)) * 100 : 0;
+            trackData.avgGradient = totalHorizontalDistance > 0 ? (trackData.totalAscent / (totalHorizontalDistance * 1000)) *
+                100 : 0;
         }
 
         // ===== 工具函数 =====
@@ -2776,7 +2799,7 @@
         function drawAnnotations(ctx, points, xScale, yScale, padding, chartW, chartH, viewStart, viewEnd) {
             const segments = [];
             let currentSeg = { type: points[1].gradient > 0 ? 'climb' : 'descent', start: 0, end: 1, ascent: 0,
-            descent: 0 };
+                descent: 0 };
 
             for (let i = 1; i < points.length; i++) {
                 const isClimb = points[i].smoothedGradient > 1;
@@ -2907,6 +2930,7 @@
         function outOfChina(lat, lon) {
             return lon < 72.004 || lon > 137.8347 || lat < 0.8293 || lat > 55.8271;
         }
+
         function transformLat(x, y) {
             let ret = -100 + 2 * x + 3 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
             ret += (20 * Math.sin(6 * x * PI) + 20 * Math.sin(2 * x * PI)) * 2 / 3;
@@ -2914,6 +2938,7 @@
             ret += (160 * Math.sin(y / 12 * PI) + 320 * Math.sin(y * PI / 30)) * 2 / 3;
             return ret;
         }
+
         function transformLon(x, y) {
             let ret = 300 + x + 2 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
             ret += (20 * Math.sin(6 * x * PI) + 20 * Math.sin(2 * x * PI)) * 2 / 3;
@@ -2921,6 +2946,7 @@
             ret += (150 * Math.sin(x / 12 * PI) + 300 * Math.sin(x / 30 * PI)) * 2 / 3;
             return ret;
         }
+
         function delta(lat, lon) {
             let dLat = transformLat(lon - 105, lat - 35);
             let dLon = transformLon(lon - 105, lat - 35);
@@ -2932,11 +2958,13 @@
             dLon = (dLon * 180) / (AXIS / sqrtMagic * Math.cos(radLat) * PI);
             return [dLat, dLon];
         }
+
         function wgs84ToGcj02(lat, lon) {
             if (outOfChina(lat, lon)) return [lat, lon];
             const d = delta(lat, lon);
             return [lat + d[0], lon + d[1]];
         }
+
         function gcj02ToWgs84(lat, lon) {
             if (outOfChina(lat, lon)) return [lat, lon];
             let wLat = lat,
@@ -2951,9 +2979,11 @@
             }
             return [wLat, wLon];
         }
+
         function displayLatLng(p) {
             return useGCJ02Display ? wgs84ToGcj02(p.lat, p.lon) : [p.lat, p.lon];
         }
+
         function displayWaypointLatLng(p) {
             return useGCJ02Display ? wgs84ToGcj02(p.lat, p.lon) : [p.lat, p.lon];
         }
@@ -3001,11 +3031,15 @@
 
             if (source === 'gaode_hybrid') {
                 const roadLayer = L.tileLayer(
-                    'https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=8&x={x}&y={y}&z={z}', { subdomains: ['1', '2', '3', '4'], maxZoom: 18,
+                    'https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=8&x={x}&y={y}&z={z}', { subdomains: ['1',
+                            '2', '3', '4'
+                        ], maxZoom: 18,
                         attribution: '© 高德地图' }
                 );
                 const satelliteLayer = L.tileLayer(
-                    'https://wprd0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}', { subdomains: ['1', '2', '3', '4'], maxZoom: 18,
+                    'https://wprd0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}', { subdomains: ['1',
+                            '2', '3', '4'
+                        ], maxZoom: 18,
                         attribution: '© 高德地图' }
                 );
                 satelliteLayer.setZIndex(5);
@@ -3195,76 +3229,62 @@
             if (leafletMap) leafletMap.zoomOut();
         }
 
-        function updateMapCurrentPoint(pointIdx) {
-            if (!trackData || !leafletMap) return;
+		function updateMapCurrentPoint(pointIdx) {
+			if (!trackData || !leafletMap) return;
 
-            if (currentMarker) {
-                leafletMap.removeLayer(currentMarker);
-                currentMarker = null;
-            }
-
-            if (pointIdx < 0 || pointIdx >= trackData.points.length) {
-                if (!document.getElementById('mapContainer').classList.contains('map-fullscreen-chart')) {
-                    document.getElementById('mapInfoOverlay').classList.add('hidden');
-                }
-                return;
-            }
-
-            const pt = trackData.points[pointIdx];
-
-            const currentIcon = L.divIcon({
-                className: '',
-                html: '<div class="custom-marker current-marker"></div>',
-                iconSize: [18, 18],
-                iconAnchor: [9, 9]
-            });
-
-            currentMarker = L.marker(displayLatLng(pt), { icon: currentIcon })
-                .addTo(leafletMap);
-			
-			const displayPos = displayLatLng(pt);
-            leafletMap.panTo(displayPos, { animate: false });
-
-			// ★★★ 全屏模式下，再向上平移半个剖面图高度 ★★★
-			if (document.getElementById('mapContainer').classList.contains('map-fullscreen-chart')) {
-				const profile = document.querySelector('.fullscreen-profile');
-				if (profile) {
-					const profileHeight = profile.getBoundingClientRect().height;
-					const offsetY = profileHeight / 2;
-					// 使用 panBy 进行像素偏移（向上为负）
-					leafletMap.panBy([0, offsetY], { animate: false});
+			// 1. 处理无效索引：清除标记并隐藏信息（无论联动状态）
+			if (pointIdx < 0 || pointIdx >= trackData.points.length) {
+				if (currentMarker) {
+					leafletMap.removeLayer(currentMarker);
+					currentMarker = null;
 				}
+				document.getElementById('mapInfoOverlay').classList.add('hidden');
+				return;
 			}
 
-            if (!document.getElementById('mapContainer').classList.contains('map-fullscreen-chart')) {
-                const overlay = document.getElementById('mapInfoOverlay');
-                overlay.classList.remove('hidden');
+			const pt = trackData.points[pointIdx];
 
-                document.getElementById('mapInfoDist').textContent = pt.distance.toFixed(2) + ' km';
+			// 2. 创建或更新当前位置标记（始终执行）
+			if (currentMarker) {
+				leafletMap.removeLayer(currentMarker);
+				currentMarker = null;
+			}
+			const currentIcon = L.divIcon({
+				className: '',
+				html: '<div class="custom-marker current-marker"></div>',
+				iconSize: [18, 18],
+				iconAnchor: [9, 9]
+			});
+			currentMarker = L.marker(displayLatLng(pt), { icon: currentIcon })
+				.addTo(leafletMap);
 
-                const eleSpan = document.getElementById('mapInfoEle');
-                eleSpan.textContent = Math.round(pt.ele) + ' m';
-                eleSpan.style.color = getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation);
+			// 3. 更新信息覆盖层（始终显示）
+			const overlay = document.getElementById('mapInfoOverlay');
+			overlay.classList.remove('hidden');
+			document.getElementById('mapInfoDist').textContent = pt.distance.toFixed(2) + ' km';
+			const eleSpan = document.getElementById('mapInfoEle');
+			eleSpan.textContent = Math.round(pt.ele) + ' m';
+			eleSpan.style.color = getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation);
+			const gradSpan = document.getElementById('mapInfoGrad');
+			const gradLabel = getGradientLabel(pt.smoothedGradient);
+			gradSpan.textContent = (pt.smoothedGradient > 0 ? '+' : '') + pt.smoothedGradient.toFixed(1) + '% （' + gradLabel + '）';
+			gradSpan.style.color = getGradientColor(pt.smoothedGradient);
 
-                const gradSpan = document.getElementById('mapInfoGrad');
-                const gradLabel = getGradientLabel(pt.smoothedGradient);
-                gradSpan.textContent = (pt.smoothedGradient > 0 ? '+' : '') + pt.smoothedGradient.toFixed(1) + '% （' + gradLabel +
-                    '）';
-                gradSpan.style.color = getGradientColor(pt.smoothedGradient);
-            } else {
-                const overlay = document.getElementById('mapInfoOverlay');
-                overlay.classList.remove('hidden');
-                document.getElementById('mapInfoDist').textContent = pt.distance.toFixed(2) + ' km';
-                const eleSpan = document.getElementById('mapInfoEle');
-                eleSpan.textContent = Math.round(pt.ele) + ' m';
-                eleSpan.style.color = getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation);
-                const gradSpan = document.getElementById('mapInfoGrad');
-                const gradLabel = getGradientLabel(pt.smoothedGradient);
-                gradSpan.textContent = (pt.smoothedGradient > 0 ? '+' : '') + pt.smoothedGradient.toFixed(1) + '% （' + gradLabel +
-                    '）';
-                gradSpan.style.color = getGradientColor(pt.smoothedGradient);
-            }
-        }
+			// 4. 地图平移动作只受联动开关控制
+			if (mapLinkageEnabled) {
+				const displayPos = displayLatLng(pt);
+				leafletMap.panTo(displayPos, { animate: false });
+				// 全屏模式下的额外偏移
+				if (document.getElementById('mapContainer').classList.contains('map-fullscreen-chart')) {
+					const profile = document.querySelector('.fullscreen-profile');
+					if (profile) {
+						const profileHeight = profile.getBoundingClientRect().height;
+						const offsetY = profileHeight / 2;
+						leafletMap.panBy([0, offsetY], { animate: false });
+					}
+				}
+			}
+		}
 
         function highlightSegmentOnMap(segmentIdx) {
             segmentHighlightLayers.forEach(layer => leafletMap.removeLayer(layer));
@@ -3638,7 +3658,8 @@
                 document.addEventListener('click', function(e) {
                     const chartWrapper = document.getElementById('chartWrapper');
                     const canvasEl = chartCanvas;
-                    if (chartWrapper && canvasEl && !chartWrapper.contains(e.target) && !canvasEl.contains(e.target)) {
+                    if (chartWrapper && canvasEl && !chartWrapper.contains(e.target) && !canvasEl.contains(e
+                        .target)) {
                         clearMobileVLine();
                     }
                 });
@@ -3646,7 +3667,8 @@
                 document.addEventListener('touchstart', function(e) {
                     const chartWrapper = document.getElementById('chartWrapper');
                     const canvasEl = chartCanvas;
-                    if (chartWrapper && canvasEl && !chartWrapper.contains(e.target) && !canvasEl.contains(e.target)) {
+                    if (chartWrapper && canvasEl && !chartWrapper.contains(e.target) && !canvasEl.contains(e
+                        .target)) {
                         clearMobileVLine();
                     }
                 }, { passive: true });
@@ -3906,7 +3928,8 @@
             const info = document.getElementById('waypointInfo');
             info.classList.remove('hidden');
             document.getElementById('wpName').textContent = wp.name;
-            document.getElementById('wpDetails').textContent = `距离 ${wp.distance.toFixed(2)} km · 海拔 ${Math.round(wp.elevation)} m${wp.desc ? ' · ' + wp.desc : ''}`;
+            document.getElementById('wpDetails').textContent =
+                `距离 ${wp.distance.toFixed(2)} km · 海拔 ${Math.round(wp.elevation)} m${wp.desc ? ' · ' + wp.desc : ''}`;
         }
 
         function closeWaypointInfo() {
@@ -4071,7 +4094,8 @@
             };
 
             if (heatIndex >= 35) {
-                tips.push(makeTip('fa-temperature-full', '极端高温天气（体感温度 ≥ 35℃）：不建议进行长距离徒步，请避开高温时段，并加强补水和防暑措施。', 'text-accent-red'));
+                tips.push(makeTip('fa-temperature-full', '极端高温天气（体感温度 ≥ 35℃）：不建议进行长距离徒步，请避开高温时段，并加强补水和防暑措施。',
+                    'text-accent-red'));
             } else if (heatIndex >= 30) {
                 tips.push(makeTip('fa-temperature-full', '高温高湿环境（体感温度 ≥ 30℃）：增加饮水和电解质补充，注意中暑风险。', 'text-accent-amber'));
             }
@@ -4141,15 +4165,15 @@
                     }
                     if (wb > temp) {
                         errors.push('湿球温度不应高于干球温度（当前湿球温度 ' + wb.toFixed(1) + '℃ > 干球温度 ' + temp.toFixed(1) +
-                        '℃）');
+                            '℃）');
                     }
                     if (dp > temp) {
                         errors.push('露点温度不应高于干球温度（当前露点温度 ' + dp.toFixed(1) + '℃ > 干球温度 ' + temp.toFixed(1) +
-                        '℃）');
+                            '℃）');
                     }
                     if (dp > wb) {
                         errors.push('露点温度不应高于湿球温度（当前露点温度 ' + dp.toFixed(1) + '℃ > 湿球温度 ' + wb.toFixed(1) +
-                        '℃）');
+                            '℃）');
                     }
                     if (dr < 0 || dr > 1) {
                         errors.push('直接辐射比例的取值范围在 0 和 1 之间');
@@ -4214,7 +4238,9 @@
                         wbgtIcon = 'fa-temperature-full';
                     }
 
-                    rows.push(`<div class="weather-tip-row"><span class="weather-tip-icon" style="color:${wbgtColor}"><i class="fa-solid ${wbgtIcon}"></i></span><span class="weather-tip-text" style="font-weight:600; color:${wbgtColor};">WBGT ≈ ${WBGT.toFixed(1)}℃，${wbgtAdvice}</span></div>`);
+                    rows.push(
+                        `<div class="weather-tip-row"><span class="weather-tip-icon" style="color:${wbgtColor}"><i class="fa-solid ${wbgtIcon}"></i></span><span class="weather-tip-text" style="font-weight:600; color:${wbgtColor};">WBGT ≈ ${WBGT.toFixed(1)}℃，${wbgtAdvice}</span></div>`
+                        );
                 }
             }
 
@@ -4302,36 +4328,36 @@
             return { essential, recommended, supplies };
         }
 
-		function estimateTime(data) {
-			const { totalDistance, totalAscent, totalDescent, points } = data;
+        function estimateTime(data) {
+            const { totalDistance, totalAscent, totalDescent, points } = data;
 
-			const baseTime = (totalDistance / 5) * 60;
-			const ascentTime = (totalAscent / 10);
-			const descentTime = (totalDescent / 15);
+            const baseTime = (totalDistance / 5) * 60;
+            const ascentTime = (totalAscent / 10);
+            const descentTime = (totalDescent / 15);
 
-			// ★★★ 修正后的陡坡修正：按距离累加 ★★★
-			let steepDistance = 0; // 单位：公里
-			for (let i = 1; i < points.length; i++) {
-				if (Math.abs(points[i].smoothedGradient) > 15) {
-					steepDistance += points[i].distance - points[i - 1].distance;
-				}
-			}
-			const STEEP_PACE_PENALTY = 4; // 分钟/公里，可根据体感调整
-			const steepAdjust = steepDistance * STEEP_PACE_PENALTY;
+            // ★★★ 修正后的陡坡修正：按距离累加 ★★★
+            let steepDistance = 0; // 单位：公里
+            for (let i = 1; i < points.length; i++) {
+                if (Math.abs(points[i].smoothedGradient) > 15) {
+                    steepDistance += points[i].distance - points[i - 1].distance;
+                }
+            }
+            const STEEP_PACE_PENALTY = 4; // 分钟/公里，可根据体感调整
+            const steepAdjust = steepDistance * STEEP_PACE_PENALTY;
 
-			const totalWalkMin = baseTime + ascentTime + descentTime + steepAdjust;
-			const restMin = totalWalkMin * 0.15;
-			const totalMin = totalWalkMin + restMin;
+            const totalWalkMin = baseTime + ascentTime + descentTime + steepAdjust;
+            const restMin = totalWalkMin * 0.15;
+            const totalMin = totalWalkMin + restMin;
 
-			return {
-				totalHours: totalMin / 60,
-				walkHours: totalWalkMin / 60,
-				restHours: restMin / 60,
-				avgPace: totalMin / totalDistance,
-				// 70 kg, 每公里每千克 0.7, 每米爬升每千克 0.0106
-				calories: Math.round(70*(totalDistance * 0.7 + totalAscent * 0.0106))
-			};
-		}
+            return {
+                totalHours: totalMin / 60,
+                walkHours: totalWalkMin / 60,
+                restHours: restMin / 60,
+                avgPace: totalMin / totalDistance,
+                // 70 kg, 每公里每千克 0.7, 每米爬升每千克 0.0106
+                calories: Math.round(70 * (totalDistance * 0.7 + totalAscent * 0.0106))
+            };
+        }
 
         // ================================================================
         // 风险提示
@@ -4343,44 +4369,56 @@
                     desc: '高温环境，注意中暑和脱水。' });
                 if (weatherData.temp <= 0) risks.push({ level: 'high', icon: 'fa-snowflake', title: '低温风险',
                     desc: '低温环境，注意失温。' });
-                if (weatherData.type.includes('中雨')) risks.push({ level: 'high', icon: 'fa-cloud-showers-heavy', title: '降雨风险',
+                if (weatherData.type.includes('中雨')) risks.push({ level: 'high', icon: 'fa-cloud-showers-heavy',
+                    title: '降雨风险',
                     desc: '大雨天气，请取消户外徒步计划。' });
-                if (weatherData.type.includes('阵雨') || weatherData.type.includes('小雨')) risks.push({ level: 'medium', icon: 'fa-cloud-rain', title: '降雨风险',
+                if (weatherData.type.includes('阵雨') || weatherData.type.includes('小雨')) risks.push({ level: 'medium',
+                    icon: 'fa-cloud-rain', title: '降雨风险',
                     desc: '雨天路滑，注意防滑和路线安全。' });
             }
             const { totalDistance, totalAscent, totalDescent, maxElevation, points, uphillMaxGradient,
-            downhillMaxGradient } = data;
+                downhillMaxGradient } = data;
 
             if (maxElevation > 3000) {
-                risks.push({ level: 'high', icon: 'fa-mountain', title: '高海拔风险', desc: `最高点海拔 ${Math.round(maxElevation)} m，存在高原反应风险，建议提前适应海拔。` });
+                risks.push({ level: 'high', icon: 'fa-mountain', title: '高海拔风险',
+                    desc: `最高点海拔 ${Math.round(maxElevation)} m，存在高原反应风险，建议提前适应海拔。` });
             } else if (maxElevation > 2000) {
-                risks.push({ level: 'medium', icon: 'fa-mountain', title: '中高海拔', desc: `最高点海拔 ${Math.round(maxElevation)} m，注意紫外线防护和温度变化。` });
+                risks.push({ level: 'medium', icon: 'fa-mountain', title: '中高海拔',
+                    desc: `最高点海拔 ${Math.round(maxElevation)} m，注意紫外线防护和温度变化。` });
             }
 
             if (uphillMaxGradient > 35) {
-                risks.push({ level: 'high', icon: 'fa-arrow-trend-up', title: '极陡上坡', desc: `最大上坡坡度达 ${uphillMaxGradient.toFixed(1)}%，攀爬困难，建议使用登山杖。` });
+                risks.push({ level: 'high', icon: 'fa-arrow-trend-up', title: '极陡上坡',
+                    desc: `最大上坡坡度达 ${uphillMaxGradient.toFixed(1)}%，攀爬困难，建议使用登山杖。` });
             } else if (uphillMaxGradient > 25) {
-                risks.push({ level: 'medium', icon: 'fa-arrow-trend-up', title: '陡峭上坡', desc: `最大上坡坡度 ${uphillMaxGradient.toFixed(1)}%，需要较好体能。` });
+                risks.push({ level: 'medium', icon: 'fa-arrow-trend-up', title: '陡峭上坡',
+                    desc: `最大上坡坡度 ${uphillMaxGradient.toFixed(1)}%，需要较好体能。` });
             }
 
             if (downhillMaxGradient < -35) {
-                risks.push({ level: 'high', icon: 'fa-arrow-trend-down', title: '极陡下坡', desc: `最大下坡坡度达 ${Math.abs(downhillMaxGradient).toFixed(1)}%，存在滑坠风险，注意安全。` });
+                risks.push({ level: 'high', icon: 'fa-arrow-trend-down', title: '极陡下坡',
+                    desc: `最大下坡坡度达 ${Math.abs(downhillMaxGradient).toFixed(1)}%，存在滑坠风险，注意安全。` });
             } else if (downhillMaxGradient < -25) {
-                risks.push({ level: 'medium', icon: 'fa-arrow-trend-down', title: '陡峭下坡', desc: `最大下坡坡度 ${Math.abs(downhillMaxGradient).toFixed(1)}%，下坡时注意保护膝盖。` });
+                risks.push({ level: 'medium', icon: 'fa-arrow-trend-down', title: '陡峭下坡',
+                    desc: `最大下坡坡度 ${Math.abs(downhillMaxGradient).toFixed(1)}%，下坡时注意保护膝盖。` });
             }
 
             if (totalDistance > 25) {
-                risks.push({ level: 'high', icon: 'fa-route', title: '长距离', desc: `总距离 ${totalDistance.toFixed(1)} km，需要良好体能储备，建议携带充足补给。` });
+                risks.push({ level: 'high', icon: 'fa-route', title: '长距离',
+                    desc: `总距离 ${totalDistance.toFixed(1)} km，需要良好体能储备，建议携带充足补给。` });
             } else if (totalDistance > 15) {
-                risks.push({ level: 'medium', icon: 'fa-route', title: '中长距离', desc: `总距离 ${totalDistance.toFixed(1)} km，建议提前规划补给点。` });
+                risks.push({ level: 'medium', icon: 'fa-route', title: '中长距离',
+                    desc: `总距离 ${totalDistance.toFixed(1)} km，建议提前规划补给点。` });
             }
 
             if (totalAscent > 1500) {
-                risks.push({ level: 'high', icon: 'fa-mountain', title: '大爬升量', desc: `累计爬升 ${Math.round(totalAscent)} m，对心肺功能要求较高。` });
+                risks.push({ level: 'high', icon: 'fa-mountain', title: '大爬升量',
+                    desc: `累计爬升 ${Math.round(totalAscent)} m，对心肺功能要求较高。` });
             }
 
             if (totalDescent > 1200) {
-                risks.push({ level: 'medium', icon: 'fa-arrow-trend-down', title: '大下降量', desc: `累计下降 ${Math.round(totalDescent)} m，注意膝关节保护。` });
+                risks.push({ level: 'medium', icon: 'fa-arrow-trend-down', title: '大下降量',
+                    desc: `累计下降 ${Math.round(totalDescent)} m，注意膝关节保护。` });
             }
 
             risks.sort((a, b) => {
@@ -4912,7 +4950,7 @@
                 { label: '平均坡度', value: trackData.avgGradient.toFixed(2) + '%', icon: 'fa-percentage' },
                 { label: '上坡距离', value: trackData.uphillDistance.toFixed(1) + ' km', icon: 'fa-arrow-trend-up' },
                 { label: '下坡距离', value: trackData.downhillDistance.toFixed(1) + ' km',
-                icon: 'fa-arrow-trend-down' },
+                    icon: 'fa-arrow-trend-down' },
                 { label: '平路距离', value: trackData.flatDistance.toFixed(1) + ' km', icon: 'fa-minus' },
                 { label: '最大上坡', value: trackData.uphillMaxGradient.toFixed(1) + '%', icon: 'fa-angle-up' },
                 { label: '最大下坡', value: trackData.downhillMaxGradient.toFixed(1) + '%', icon: 'fa-angle-down' },
@@ -5347,6 +5385,56 @@
             }
         }
 
+        // ================================================================
+        // ★★★ 地图联动开关 ★★★
+        // ================================================================
+        function toggleMapLinkage() {
+            mapLinkageEnabled = !mapLinkageEnabled;
+
+            // 更新普通模式按钮
+            const btn = document.getElementById('mapLinkageBtn');
+            if (btn) {
+                if (mapLinkageEnabled) {
+                    btn.classList.add('active-linkage');
+                    btn.title = '禁用地图联动';
+                } else {
+                    btn.classList.remove('active-linkage');
+                    btn.title = '启用地图联动';
+                }
+            }
+
+            // 更新全屏模式按钮
+            const fsBtn = document.getElementById('fullscreenMapLinkageBtn');
+            if (fsBtn) {
+                if (mapLinkageEnabled) {
+                    fsBtn.classList.add('active-linkage');
+                    fsBtn.title = '禁用地图联动';
+                } else {
+                    fsBtn.classList.remove('active-linkage');
+                    fsBtn.title = '启用地图联动';
+                }
+            }
+
+            // 如果禁用联动，清除地图标记和覆盖层
+            if (!mapLinkageEnabled) {
+                if (currentMarker) {
+                    leafletMap.removeLayer(currentMarker);
+                    currentMarker = null;
+                }
+                document.getElementById('mapInfoOverlay').classList.add('hidden');
+            } else {
+                // 启用联动：如果有高亮点则更新地图
+                if (hoveredPointIdx >= 0) {
+                    updateMapCurrentPoint(hoveredPointIdx);
+                } else if (touchState.vlineIdx >= 0) {
+                    updateMapCurrentPoint(touchState.vlineIdx);
+                } else {
+                    // 没有高亮点，清除标记（安全）
+                    updateMapCurrentPoint(-1);
+                }
+            }
+        }
+
         function enterMapFullscreen() {
             const map = document.getElementById('mapContainer');
 
@@ -5369,24 +5457,31 @@
             const toolbar = document.createElement('div');
             toolbar.className = 'fullscreen-chart-toolbar';
             toolbar.id = 'fullscreenChartToolbar';
+
+            // ★★★ 全屏工具栏：左 → 联动按钮 + 选择器 ★★★
+            const linkageBtnClass = mapLinkageEnabled ? 'map-control-btn active-linkage' : 'map-control-btn';
+            const linkageBtnTitle = mapLinkageEnabled ? '禁用地图联动' : '启用地图联动';
+
             toolbar.innerHTML = `
-            <div class="flex items-center gap-2 justify-end w-full">
-              <select id="fullscreenColorModeSelect" class="color-mode-select" title="切换颜色模式" onchange="document.getElementById('colorModeSelect').value=this.value; changeColorMode();">
-                <option value="gradient">坡度分析</option>
-                <option value="elevation">海拔分析</option>
-              </select>
-              <select id="fullscreenMapSourceSelect" class="map-source-select" title="切换图源" onchange="document.getElementById('mapSourceSelect').value=this.value; changeMapSource();">
-                <option value="amaproad" selected>高德路网图</option>
-                <option value="amapsatellite">高德卫星图</option>
-                <option value="gaode_hybrid">高德混合图</option>
-                <option value="googlesatellite">谷歌卫星图</option>
-                <option value="googlehybrid">谷歌混合图</option>
-                <option value="osm">OpenStreetMap</option>
-                <option value="windy">Windy</option>
-                <option value="opentopomap">OpenTopoMap</option>
-                <option value="opencyclemap">OpenCycleMap</option>
-                <option value="cyclosm">CyclOSM</option>
-              </select>
+            <div class="flex items-center gap-2 justify-between w-full">
+              <div class="flex items-center gap-2 ml-auto">
+                <select id="fullscreenColorModeSelect" class="color-mode-select" title="切换颜色模式" onchange="document.getElementById('colorModeSelect').value=this.value; changeColorMode();">
+                  <option value="gradient">坡度分析</option>
+                  <option value="elevation">海拔分析</option>
+                </select>
+                <select id="fullscreenMapSourceSelect" class="map-source-select" title="切换图源" onchange="document.getElementById('mapSourceSelect').value=this.value; changeMapSource();">
+                  <option value="amaproad" selected>高德路网图</option>
+                  <option value="amapsatellite">高德卫星图</option>
+                  <option value="gaode_hybrid">高德混合图</option>
+                  <option value="googlesatellite">谷歌卫星图</option>
+                  <option value="googlehybrid">谷歌混合图</option>
+                  <option value="osm">OpenStreetMap</option>
+                  <option value="windy">Windy</option>
+                  <option value="opentopomap">OpenTopoMap</option>
+                  <option value="opencyclemap">OpenCycleMap</option>
+                  <option value="cyclosm">CyclOSM</option>
+                </select>
+              </div>
             </div>
           `;
             map.appendChild(toolbar);
@@ -5602,6 +5697,18 @@
                     }
                 });
             });
+
+            // ★★★ 初始化联动按钮状态 ★★★
+            const initLinkageBtn = document.getElementById('mapLinkageBtn');
+            if (initLinkageBtn) {
+                if (mapLinkageEnabled) {
+                    initLinkageBtn.classList.add('active-linkage');
+                    initLinkageBtn.title = '禁用地图联动';
+                } else {
+                    initLinkageBtn.classList.remove('active-linkage');
+                    initLinkageBtn.title = '启用地图联动';
+                }
+            }
         });
 
         if (!CanvasRenderingContext2D.prototype.roundRect) {
@@ -5621,6 +5728,7 @@
 
         console.log('设备类型:', DEVICE_TYPE, IS_MOBILE ? '手机端' : '电脑端');
         console.log('爬升/下降模式:', elevationMode);
+        console.log('地图联动状态:', mapLinkageEnabled ? '启用' : '禁用');
     </script>
 
 </body>

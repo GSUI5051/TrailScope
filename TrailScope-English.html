@@ -281,6 +281,14 @@
             background: #f5f1e8;
             transform: scale(1.05);
         }
+        .map-control-btn.active-linkage {
+            background: #1a2e1f;
+            color: #f5f1e8;
+            box-shadow: 0 2px 8px rgba(26, 46, 31, 0.35);
+        }
+        .map-control-btn.active-linkage:hover {
+            background: #2d4a35;
+        }
         .map-source-select {
             background: white;
             border: none;
@@ -1126,6 +1134,9 @@
                         </button>
                         <button id="mapFullscreenBtn" class="map-control-btn" onclick="enterMapFullscreen()" title="Fullscreen">
                             <i class="fa-solid fa-maximize"></i>
+                        </button>
+                        <button id="mapLinkageBtn" class="map-control-btn active-linkage" onclick="toggleMapLinkage()" title="Disable Follow Cursor">
+                            <i class="fa-solid fa-location-crosshairs"></i>
                         </button>
                     </div>
 
@@ -2020,6 +2031,9 @@
         // ★★★ 爬升/下降 模式管理 ★★★
         // ================================================================
         let elevationMode = 'raw';
+
+        // Map follow cursor (profile ↔ map linkage)
+        let mapLinkageEnabled = true;
 
         function setElevationMode(mode) {
             if (mode === 'raw' || mode === 'smooth') {
@@ -3443,19 +3457,21 @@
             currentMarker = L.marker(displayLatLng(pt), { icon: currentIcon })
                 .addTo(leafletMap);
 
-			const displayPos = displayLatLng(pt);
-            leafletMap.panTo(displayPos, { animate: false });
+            // Map pan is controlled by Follow Cursor switch
+            if (mapLinkageEnabled) {
+                const displayPos = displayLatLng(pt);
+                leafletMap.panTo(displayPos, { animate: false });
 
-			// ★★★ 全屏模式下，再向上平移半个剖面图高度 ★★★
-			if (document.getElementById('mapContainer').classList.contains('map-fullscreen-chart')) {
-				const profile = document.querySelector('.fullscreen-profile');
-				if (profile) {
-					const profileHeight = profile.getBoundingClientRect().height;
-					const offsetY = profileHeight / 2;
-					// 使用 panBy 进行像素偏移（向上为负）
-					leafletMap.panBy([0, offsetY], { animate: false});
-				}
-			}
+                // In fullscreen, offset upward by half the profile panel height
+                if (document.getElementById('mapContainer').classList.contains('map-fullscreen-chart')) {
+                    const profile = document.querySelector('.fullscreen-profile');
+                    if (profile) {
+                        const profileHeight = profile.getBoundingClientRect().height;
+                        const offsetY = profileHeight / 2;
+                        leafletMap.panBy([0, offsetY], { animate: false });
+                    }
+                }
+            }
 
             if (!document.getElementById('mapContainer').classList.contains('map-fullscreen-chart')) {
                 const overlay = document.getElementById('mapInfoOverlay');
@@ -5787,6 +5803,51 @@
                 '<i class="fa-solid fa-maximize"></i>';
         }
 
+        // ================================================================
+        // Follow Cursor (map ↔ elevation profile linkage)
+        // ================================================================
+        function toggleMapLinkage() {
+            mapLinkageEnabled = !mapLinkageEnabled;
+
+            const btn = document.getElementById('mapLinkageBtn');
+            if (btn) {
+                if (mapLinkageEnabled) {
+                    btn.classList.add('active-linkage');
+                    btn.title = 'Disable Follow Cursor';
+                } else {
+                    btn.classList.remove('active-linkage');
+                    btn.title = 'Enable Follow Cursor';
+                }
+            }
+
+            const fsBtn = document.getElementById('fullscreenMapLinkageBtn');
+            if (fsBtn) {
+                if (mapLinkageEnabled) {
+                    fsBtn.classList.add('active-linkage');
+                    fsBtn.title = 'Disable Follow Cursor';
+                } else {
+                    fsBtn.classList.remove('active-linkage');
+                    fsBtn.title = 'Enable Follow Cursor';
+                }
+            }
+
+            if (!mapLinkageEnabled) {
+                if (currentMarker) {
+                    leafletMap.removeLayer(currentMarker);
+                    currentMarker = null;
+                }
+                document.getElementById('mapInfoOverlay').classList.add('hidden');
+            } else {
+                if (typeof hoveredPointIdx !== 'undefined' && hoveredPointIdx >= 0) {
+                    updateMapCurrentPoint(hoveredPointIdx);
+                } else if (typeof touchState !== 'undefined' && touchState.vlineIdx >= 0) {
+                    updateMapCurrentPoint(touchState.vlineIdx);
+                } else {
+                    updateMapCurrentPoint(-1);
+                }
+            }
+        }
+
         function exitMapFullscreen() {
             const map = document.getElementById('mapContainer');
 
@@ -5835,24 +5896,29 @@
             const toolbar = document.createElement('div');
             toolbar.className = 'fullscreen-chart-toolbar';
             toolbar.id = 'fullscreenChartToolbar';
+            const linkageBtnClass = mapLinkageEnabled ? 'map-control-btn active-linkage' : 'map-control-btn';
+            const linkageBtnTitle = mapLinkageEnabled ? 'Disable Follow Cursor' : 'Enable Follow Cursor';
+
             toolbar.innerHTML = `
-            <div class="flex items-center gap-2 justify-end w-full">
-              <select id="fullscreenColorModeSelect" class="color-mode-select" title="Coloring Mode" onchange="document.getElementById('colorModeSelect').value=this.value; changeColorMode();">
-                <option value="gradient">Grade</option>
-                <option value="elevation">Elevation</option>
-              </select>
-              <select id="fullscreenMapSourceSelect" class="map-source-select" title="Map Source" onchange="document.getElementById('mapSourceSelect').value=this.value; changeMapSource();">
-                <option value="osm"  selected>OpenStreetMap</option>
-                <option value="windy">Windy</option>
-                <option value="opentopomap">OpenTopoMap</option>
-                <option value="opencyclemap">OpenCycleMap</option>
-                <option value="cyclosm">CyclOSM</option>
-                <option value="googlesatellite">Google Satellite</option>
-                <option value="googlehybrid">Google Hybrid</option>
-                <option value="amaproad">Amap Road</option>
-                <option value="amapsatellite">Amap Satellite</option>
-                <option value="gaode_hybrid">Amap Hybrid</option>
-              </select>
+            <div class="flex items-center gap-2 justify-between w-full">
+              <div class="flex items-center gap-2 ml-auto">
+                <select id="fullscreenColorModeSelect" class="color-mode-select" title="Coloring Mode" onchange="document.getElementById('colorModeSelect').value=this.value; changeColorMode();">
+                  <option value="gradient">Grade</option>
+                  <option value="elevation">Elevation</option>
+                </select>
+                <select id="fullscreenMapSourceSelect" class="map-source-select" title="Map Source" onchange="document.getElementById('mapSourceSelect').value=this.value; changeMapSource();">
+                  <option value="osm" selected>OpenStreetMap</option>
+                  <option value="windy">Windy</option>
+                  <option value="opentopomap">OpenTopoMap</option>
+                  <option value="opencyclemap">OpenCycleMap</option>
+                  <option value="cyclosm">CyclOSM</option>
+                  <option value="googlesatellite">Google Satellite</option>
+                  <option value="googlehybrid">Google Hybrid</option>
+                  <option value="amaproad">Amap Road</option>
+                  <option value="amapsatellite">Amap Satellite</option>
+                  <option value="gaode_hybrid">Amap Hybrid</option>
+                </select>
+              </div>
             </div>
           `;
             map.appendChild(toolbar);
@@ -5992,9 +6058,21 @@
                 }
             }
 
-            // 初始化单位按钮状态
+            // Initialize unit and elevation mode buttons
             setUnitSystem('metric');
             setElevationMode('raw');
+
+            // Initialize Follow Cursor button state
+            const initLinkageBtn = document.getElementById('mapLinkageBtn');
+            if (initLinkageBtn) {
+                if (mapLinkageEnabled) {
+                    initLinkageBtn.classList.add('active-linkage');
+                    initLinkageBtn.title = 'Disable Follow Cursor';
+                } else {
+                    initLinkageBtn.classList.remove('active-linkage');
+                    initLinkageBtn.title = 'Enable Follow Cursor';
+                }
+            }
 
             // 初始化天气输入框标签
             updateWeatherUnitLabelsAndPlaceholders();
@@ -6092,6 +6170,7 @@
         console.log('Device Type', DEVICE_TYPE, IS_MOBILE ? 'Mobile' : 'Computer');
         console.log('Unit System:', unitSystem);
         console.log('Elevation Mode:', elevationMode);
+        console.log('Follow Cursor:', mapLinkageEnabled ? 'enabled' : 'disabled');
     </script>
 </body>
 </html>
