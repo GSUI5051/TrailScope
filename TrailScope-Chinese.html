@@ -38,6 +38,7 @@
     <link href="css/fonts.css" rel="stylesheet">
     <link rel="stylesheet" href="css/all.min.css">
     <style>
+        /* 样式全部保留，与原来一致 */
         body {
             font-family: 'Inter', sans-serif;
         }
@@ -572,7 +573,7 @@
             margin: 0 !important;
         }
 
-        /* ===== 地图全屏模式 - 横屏（电脑端） ===== */
+        /* 地图全屏模式 */
         .map-fullscreen-chart {
             position: fixed !important;
             inset: 0;
@@ -624,7 +625,6 @@
             z-index: 10002;
         }
 
-        /* ===== 地图全屏模式 - 竖屏（手机端） - 纯绝对定位兼容低版本 ===== */
         .map-fullscreen-chart.portrait-mode {
             position: fixed !important;
             top: 0;
@@ -708,7 +708,6 @@
             justify-content: space-between;
         }
 
-        /* 手机全屏模式 - 信息框左上角显示 */
         .map-fullscreen-chart.portrait-mode #mapInfoOverlay {
             display: block !important;
             position: absolute !important;
@@ -899,7 +898,6 @@
             color: #2d4a35;
         }
 
-        /* 单位切换按钮样式 */
         .unit-toggle-btn {
             padding: 6px 14px;
             border-radius: 20px;
@@ -929,7 +927,6 @@
             -webkit-backdrop-filter: blur(4px);
         }
 
-        /* 移动端触摸优化 */
         @media (max-width: 768px) {
             .stat-card {
                 padding: 0.75rem;
@@ -983,7 +980,6 @@
         .chart-wrapper {
             position: relative;
         }
-        /* 移除手机端黑线 */
         .chart-vline {
             display: none !important;
         }
@@ -991,7 +987,7 @@
 </head>
 <body class="gradient-bg min-h-screen mountain-bg">
 
-    <!-- Navigation -->
+    <!-- Navigation (不变) -->
     <nav class="nav-blur sticky top-0 z-50 border-b border-trail-sage/20">
         <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
             <div class="flex items-center gap-3">
@@ -1045,7 +1041,6 @@
                     <a href='TrailScope-English.html'><span>Click here for English version!</span></a>
                 </p>
 
-                <!-- ★★★ 新增：累计爬升下降计算 切换开关 ★★★ -->
                 <div class="flex items-center justify-center gap-3 mt-3 flex-wrap">
                     <span class="text-sm font-medium text-trail-mid/70">累计爬升下降计算</span>
                     <div class="unit-toggle-group">
@@ -1221,7 +1216,6 @@
                         <button id="mapFullscreenBtn" class="map-control-btn" onclick="enterMapFullscreen()" title="地图全屏模式">
                             <i class="fa-solid fa-maximize"></i>
                         </button>
-                        <!-- ★★★ 新增：地图联动开关 ★★★ -->
                         <button id="mapLinkageBtn" class="map-control-btn active-linkage" onclick="toggleMapLinkage()" title="禁用地图联动">
                             <i class="fa-solid fa-location-crosshairs"></i>
                         </button>
@@ -1281,9 +1275,10 @@
                             <i class="fa-solid fa-eye"></i>
                             <span id="annotationLabel">隐藏标注</span>
                         </button>
-                        <button onclick="toggleWaypointNames()" id="waypointNameBtn" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">
+                        <!-- ★★★ 修改：单一按钮，三状态切换 ★★★ -->
+                        <button onclick="toggleWaypointDisplay()" id="waypointToggleBtn" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">
                             <i class="fa-solid fa-tag"></i>
-                            <span id="waypointNameLabel">隐藏航路点名称</span>
+                            <span id="waypointToggleLabel">隐藏航路点名称</span>
                         </button>
                         <button onclick="clearHighlight()" id="clearHighlightBtn" class="btn-sm-uniform hidden bg-accent-amber/20 text-accent-amber hover:bg-accent-amber/30">
                             <i class="fa-solid fa-eraser"></i>
@@ -1407,7 +1402,7 @@
                 <div class="space-y-3">
                     <div>
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-trail-mid/70">距离难度</span>
+                            <span class="text-trail-mid/70">距离</span>
                             <span id="distScore" class="font-medium text-trail-dark">—</span>
                         </div>
                         <div class="h-1.5 rounded-full bg-trail-sage/15 overflow-hidden">
@@ -1416,7 +1411,7 @@
                     </div>
                     <div>
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-trail-mid/70">爬升难度</span>
+                            <span class="text-trail-mid/70">爬升</span>
                             <span id="ascentScore" class="font-medium text-trail-dark">—</span>
                         </div>
                         <div class="h-1.5 rounded-full bg-trail-sage/15 overflow-hidden">
@@ -1425,7 +1420,7 @@
                     </div>
                     <div>
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-trail-mid/70">坡度难度</span>
+                            <span class="text-trail-mid/70">坡度</span>
                             <span id="gradScore" class="font-medium text-trail-dark">—</span>
                         </div>
                         <div class="h-1.5 rounded-full bg-trail-sage/15 overflow-hidden">
@@ -1790,7 +1785,6 @@
             return isMobile ? 'mobile' : 'desktop';
         }
 
-        // ===== 全局设备标志 =====
         const DEVICE_TYPE = detectDevice();
         const IS_MOBILE = DEVICE_TYPE === 'mobile';
 
@@ -1805,7 +1799,8 @@
         let waypointMarkers = [];
         let segmentHighlightLayers = [];
         let showAnnotations = true;
-        let showWaypointNames = true;
+        // ★★★ 航路点显示模式：'show-names', 'hide-names', 'hide-all' ★★★
+        let waypointDisplayMode = 'show-names'; // 默认显示名称
         let segmentMode = 'auto';
         let hoveredPointIdx = -1;
         let selectedWaypoint = null;
@@ -1817,11 +1812,7 @@
         let isWaypointInfoPinned = false;
         let weatherData = null;
         let advancedPanelOpen = false;
-
-        // ★★★ 爬升/下降模式状态 ★★★
-        let elevationMode = 'raw'; // 'raw' 或 'smooth'
-
-        // ★★★ 地图联动开关状态 ★★★
+        let elevationMode = 'raw';
         let mapLinkageEnabled = true;
 
         // Pagination state
@@ -1840,7 +1831,7 @@
         let dragStartViewStart = 0;
         let dragStartViewEnd = 0;
 
-        // ===== 触摸状态（手机端） =====
+        // Touch state
         let touchState = {
             isTouching: false,
             isDragging: false,
@@ -1884,22 +1875,13 @@
         ];
 
         const elevationColorBreakpoints = UPHILL_GRADIENT_COLORS;
-
         const MAX_GRADIENT = 50;
 
         // ================================================================
-        // ★★★ 独立阈值爬升/下降计算模块（从英文版移植） ★★★
+        // ★★★ 独立阈值爬升/下降计算模块 ★★★
         // ================================================================
         const ElevationCalculator = {
-            // 阈值（米）
             THRESHOLD: 4,
-
-            /**
-             * 计算总爬升和总下降（支持原始/平滑模式）
-             * @param {Array} points - 轨迹点数组，每个点需有 ele 属性
-             * @param {string} mode - 'raw' 或 'smooth'
-             * @returns {Object} { ascent, descent }
-             */
             computeTotal(points, mode) {
                 if (mode === 'raw') {
                     return this._computeRaw(points);
@@ -1907,15 +1889,6 @@
                     return this._computeSmooth(points);
                 }
             },
-
-            /**
-             * 计算分段爬升和下降（支持原始/平滑模式）
-             * @param {Array} points - 轨迹点数组
-             * @param {number} startIdx - 起始索引
-             * @param {number} endIdx - 结束索引
-             * @param {string} mode - 'raw' 或 'smooth'
-             * @returns {Object} { ascent, descent }
-             */
             computeSegment(points, startIdx, endIdx, mode) {
                 const segPoints = points.slice(startIdx, endIdx + 1);
                 if (mode === 'raw') {
@@ -1924,8 +1897,6 @@
                     return this._computeSmooth(segPoints);
                 }
             },
-
-            // 原始算法：逐点累加（不含阈值）
             _computeRaw(pts) {
                 let ascent = 0,
                     descent = 0;
@@ -1936,8 +1907,6 @@
                 }
                 return { ascent, descent };
             },
-
-            // 平滑算法：累计余量法（阈值 4m）
             _computeSmooth(pts) {
                 let ascent = 0,
                     descent = 0;
@@ -1956,16 +1925,11 @@
             }
         };
 
-        // ================================================================
-        // ★★★ 爬升/下降模式切换 ★★★
-        // ================================================================
         function setElevationMode(mode) {
             if (mode === 'raw' || mode === 'smooth') {
                 elevationMode = mode;
                 document.getElementById('rawElevBtn').classList.toggle('active', mode === 'raw');
                 document.getElementById('smoothElevBtn').classList.toggle('active', mode === 'smooth');
-
-                // 如果已有轨迹数据，重新计算并刷新界面
                 if (trackData) {
                     recalculateElevations();
                     updateUI();
@@ -1990,7 +1954,6 @@
             const total = ElevationCalculator.computeTotal(points, mode);
             trackData.totalAscent = total.ascent;
             trackData.totalDescent = total.descent;
-            // 重新计算平均坡度（使用新的总爬升）
             const totalHorizontalDistance = trackData.totalHorizontalDistance || 0;
             trackData.avgGradient = totalHorizontalDistance > 0 ? (trackData.totalAscent / (totalHorizontalDistance * 1000)) *
                 100 : 0;
@@ -2222,7 +2185,7 @@
         }
 
         // ================================================================
-        // processTrack — 使用独立模块计算爬升/下降
+        // processTrack
         // ================================================================
         function processTrack(points, waypoints) {
             if (points.length < 2) return null;
@@ -2285,7 +2248,6 @@
                 points[i].distance = totalDistance;
                 points[i].horizontalDistance = totalHorizontalDistance;
 
-                // 更新最大最小海拔（不受阈值影响）
                 if (points[i].ele > maxElevation) maxElevation = points[i].ele;
                 if (points[i].ele < minElevation) minElevation = points[i].ele;
 
@@ -2334,7 +2296,6 @@
                 }
             }
 
-            // ★★★ 使用独立模块计算总爬升/下降（依据当前模式） ★★★
             const mode = elevationMode || 'raw';
             const totalElev = ElevationCalculator.computeTotal(points, mode);
 
@@ -2432,7 +2393,7 @@
         }
 
         // ============================================================
-        // drawChart — 手机端左右边距缩小
+        // drawChart — 整合三状态
         // ============================================================
         function drawChart() {
             if (!trackData) return;
@@ -2476,6 +2437,7 @@
             const xScale = (d) => padding.left + ((d - viewStart) / (viewEnd - viewStart)) * chartW;
             const yScale = (e) => padding.top + chartH - ((e - minEle + elePadding) / (eleRange + 2 * elePadding)) * chartH;
 
+            // Grid lines
             ctx.strokeStyle = 'rgba(122, 148, 113, 0.12)';
             ctx.lineWidth = 1;
             ctx.font = '11px Inter, sans-serif';
@@ -2511,6 +2473,7 @@
                 ctx.fillText(dist.toFixed(1) + 'km', x, H - padding.bottom + 18);
             }
 
+            // Highlight active segment
             if (activeSegmentIdx >= 0) {
                 const segments = analyzeSegments(trackData, segmentMode);
                 if (activeSegmentIdx < segments.length) {
@@ -2550,6 +2513,7 @@
                 }
             }
 
+            // Profile line
             ctx.save();
             ctx.beginPath();
             ctx.rect(padding.left, padding.top, chartW, chartH);
@@ -2629,8 +2593,13 @@
 
             drawStartEndMarkers(ctx, points, xScale, yScale, viewStart, viewEnd);
 
-            drawWaypoints(ctx, trackData.waypoints, xScale, yScale, viewStart, viewEnd);
+            // ★★★ 航路点绘制：根据三状态决定 ★★★
+            if (waypointDisplayMode !== 'hide-all') {
+                const showNames = (waypointDisplayMode === 'show-names');
+                drawWaypoints(ctx, trackData.waypoints, xScale, yScale, viewStart, viewEnd, showNames);
+            }
 
+            // 触摸和鼠标悬停指示
             if (IS_MOBILE && touchState.vlineActive && touchState.vlineIdx >= 0) {
                 const pt = points[touchState.vlineIdx];
                 if (pt && pt.distance >= viewStart && pt.distance <= viewEnd) {
@@ -2758,13 +2727,15 @@
             }
         }
 
-        function drawWaypoints(ctx, waypoints, xScale, yScale, viewStart, viewEnd) {
+        // ★★★ 修改：drawWaypoints 增加 showNames 参数 ★★★
+        function drawWaypoints(ctx, waypoints, xScale, yScale, viewStart, viewEnd, showNames) {
             waypoints.forEach((wp) => {
                 if (wp.distance < viewStart || wp.distance > viewEnd) return;
 
                 const x = xScale(wp.distance);
                 const y = yScale(wp.elevation);
 
+                // 总是绘制标记
                 ctx.fillStyle = '#8b7355';
                 ctx.strokeStyle = '#fff';
                 ctx.lineWidth = 2;
@@ -2778,7 +2749,7 @@
                 ctx.fill();
                 ctx.stroke();
 
-                if (showWaypointNames) {
+                if (showNames) {
                     const shortName = wp.name.length > 8 ? wp.name.substring(0, 7) + '…' : wp.name;
                     ctx.font = '500 10px Inter, sans-serif';
                     ctx.textAlign = 'center';
@@ -2918,7 +2889,6 @@
                 ctx.fillText(labelText, x, y + offset + 4);
             });
         }
-
 
         // ===== GCJ-02 / WGS-84 转换 =====
         let useGCJ02Display = false;
@@ -3070,6 +3040,7 @@
             if (trackData) drawMap(true);
         }
 
+        // ★★★ 修改 drawMap：根据三状态绘制航路点 ★★★
         function drawMap(skipFit = false) {
             if (!trackData || !leafletMap) return;
 
@@ -3134,59 +3105,65 @@
                 .addTo(leafletMap);
             trackLayers.push(endMarker);
 
-            trackData.waypoints.forEach((wp) => {
-                const wpIcon = L.divIcon({
-                    className: '',
-                    html: '<div class="custom-marker"><i class="fa-solid fa-map-pin" style="font-size: 10px;"></i></div>',
-                    iconSize: [20, 20],
-                    iconAnchor: [10, 10]
-                });
+            // ★★★ 只有在非 hide-all 状态下才绘制航路点 ★★★
+            if (waypointDisplayMode !== 'hide-all') {
+                const showNames = (waypointDisplayMode === 'show-names');
+                trackData.waypoints.forEach((wp) => {
+                    const wpIcon = L.divIcon({
+                        className: '',
+                        html: '<div class="custom-marker"><i class="fa-solid fa-map-pin" style="font-size: 10px;"></i></div>',
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 10]
+                    });
 
-                const marker = L.marker(displayWaypointLatLng(wp), { icon: wpIcon })
-                    .addTo(leafletMap);
+                    const marker = L.marker(displayWaypointLatLng(wp), { icon: wpIcon })
+                        .addTo(leafletMap);
 
-                const popupContent = `
-              <div class="waypoint-popup-content">
-                <strong>${wp.name}</strong><br/>
-                <span class="waypoint-info-line">距离：${wp.distance.toFixed(2)} km</span><br/>
-                <span class="waypoint-info-line">海拔：${Math.round(wp.elevation)} m</span><br/>
-              </div>
-            `;
+                    // 只有显示名称时才绑定弹出窗（显示名称信息）
+                    if (showNames) {
+                        const popupContent = `
+                            <div class="waypoint-popup-content">
+                              <strong>${wp.name}</strong><br/>
+                              <span class="waypoint-info-line">距离：${wp.distance.toFixed(2)} km</span><br/>
+                              <span class="waypoint-info-line">海拔：${Math.round(wp.elevation)} m</span><br/>
+                            </div>
+                          `;
+                        marker.bindPopup(popupContent, {
+                            closeButton: false,
+                            offset: [0, -10],
+                            autoClose: false,
+                            closeOnClick: false
+                        });
 
-                marker.bindPopup(popupContent, {
-                    closeButton: false,
-                    offset: [0, -10],
-                    autoClose: false,
-                    closeOnClick: false
-                });
+                        marker.on('mouseover', function(e) {
+                            if (!isWaypointInfoPinned) {
+                                marker.openPopup();
+                            }
+                        });
 
-                marker.on('mouseover', function(e) {
-                    if (!isWaypointInfoPinned) {
-                        marker.openPopup();
+                        marker.on('mouseout', function(e) {
+                            if (!isWaypointInfoPinned) {
+                                marker.closePopup();
+                            }
+                        });
+
+                        marker.on('click', function(e) {
+                            L.DomEvent.stopPropagation(e);
+                            if (isWaypointInfoPinned && selectedWaypointMarker === marker) {
+                                marker.closePopup();
+                                isWaypointInfoPinned = false;
+                                selectedWaypointMarker = null;
+                            } else {
+                                marker.openPopup();
+                                isWaypointInfoPinned = true;
+                                selectedWaypointMarker = marker;
+                            }
+                        });
                     }
-                });
 
-                marker.on('mouseout', function(e) {
-                    if (!isWaypointInfoPinned) {
-                        marker.closePopup();
-                    }
+                    waypointMarkers.push(marker);
                 });
-
-                marker.on('click', function(e) {
-                    L.DomEvent.stopPropagation(e);
-                    if (isWaypointInfoPinned && selectedWaypointMarker === marker) {
-                        marker.closePopup();
-                        isWaypointInfoPinned = false;
-                        selectedWaypointMarker = null;
-                    } else {
-                        marker.openPopup();
-                        isWaypointInfoPinned = true;
-                        selectedWaypointMarker = marker;
-                    }
-                });
-
-                waypointMarkers.push(marker);
-            });
+            }
 
             if (!skipFit) {
                 fitMapToTrack();
@@ -3229,62 +3206,58 @@
             if (leafletMap) leafletMap.zoomOut();
         }
 
-		function updateMapCurrentPoint(pointIdx) {
-			if (!trackData || !leafletMap) return;
+        function updateMapCurrentPoint(pointIdx) {
+            if (!trackData || !leafletMap) return;
 
-			// 1. 处理无效索引：清除标记并隐藏信息（无论联动状态）
-			if (pointIdx < 0 || pointIdx >= trackData.points.length) {
-				if (currentMarker) {
-					leafletMap.removeLayer(currentMarker);
-					currentMarker = null;
-				}
-				document.getElementById('mapInfoOverlay').classList.add('hidden');
-				return;
-			}
+            if (pointIdx < 0 || pointIdx >= trackData.points.length) {
+                if (currentMarker) {
+                    leafletMap.removeLayer(currentMarker);
+                    currentMarker = null;
+                }
+                document.getElementById('mapInfoOverlay').classList.add('hidden');
+                return;
+            }
 
-			const pt = trackData.points[pointIdx];
+            const pt = trackData.points[pointIdx];
 
-			// 2. 创建或更新当前位置标记（始终执行）
-			if (currentMarker) {
-				leafletMap.removeLayer(currentMarker);
-				currentMarker = null;
-			}
-			const currentIcon = L.divIcon({
-				className: '',
-				html: '<div class="custom-marker current-marker"></div>',
-				iconSize: [18, 18],
-				iconAnchor: [9, 9]
-			});
-			currentMarker = L.marker(displayLatLng(pt), { icon: currentIcon })
-				.addTo(leafletMap);
+            if (currentMarker) {
+                leafletMap.removeLayer(currentMarker);
+                currentMarker = null;
+            }
+            const currentIcon = L.divIcon({
+                className: '',
+                html: '<div class="custom-marker current-marker"></div>',
+                iconSize: [18, 18],
+                iconAnchor: [9, 9]
+            });
+            currentMarker = L.marker(displayLatLng(pt), { icon: currentIcon })
+                .addTo(leafletMap);
 
-			// 3. 更新信息覆盖层（始终显示）
-			const overlay = document.getElementById('mapInfoOverlay');
-			overlay.classList.remove('hidden');
-			document.getElementById('mapInfoDist').textContent = pt.distance.toFixed(2) + ' km';
-			const eleSpan = document.getElementById('mapInfoEle');
-			eleSpan.textContent = Math.round(pt.ele) + ' m';
-			eleSpan.style.color = getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation);
-			const gradSpan = document.getElementById('mapInfoGrad');
-			const gradLabel = getGradientLabel(pt.smoothedGradient);
-			gradSpan.textContent = (pt.smoothedGradient > 0 ? '+' : '') + pt.smoothedGradient.toFixed(1) + '% （' + gradLabel + '）';
-			gradSpan.style.color = getGradientColor(pt.smoothedGradient);
+            const overlay = document.getElementById('mapInfoOverlay');
+            overlay.classList.remove('hidden');
+            document.getElementById('mapInfoDist').textContent = pt.distance.toFixed(2) + ' km';
+            const eleSpan = document.getElementById('mapInfoEle');
+            eleSpan.textContent = Math.round(pt.ele) + ' m';
+            eleSpan.style.color = getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation);
+            const gradSpan = document.getElementById('mapInfoGrad');
+            const gradLabel = getGradientLabel(pt.smoothedGradient);
+            gradSpan.textContent = (pt.smoothedGradient > 0 ? '+' : '') + pt.smoothedGradient.toFixed(1) + '% （' + gradLabel +
+                '）';
+            gradSpan.style.color = getGradientColor(pt.smoothedGradient);
 
-			// 4. 地图平移动作只受联动开关控制
-			if (mapLinkageEnabled) {
-				const displayPos = displayLatLng(pt);
-				leafletMap.panTo(displayPos, { animate: false });
-				// 全屏模式下的额外偏移
-				if (document.getElementById('mapContainer').classList.contains('map-fullscreen-chart')) {
-					const profile = document.querySelector('.fullscreen-profile');
-					if (profile) {
-						const profileHeight = profile.getBoundingClientRect().height;
-						const offsetY = profileHeight / 2;
-						leafletMap.panBy([0, offsetY], { animate: false });
-					}
-				}
-			}
-		}
+            if (mapLinkageEnabled) {
+                const displayPos = displayLatLng(pt);
+                leafletMap.panTo(displayPos, { animate: false });
+                if (document.getElementById('mapContainer').classList.contains('map-fullscreen-chart')) {
+                    const profile = document.querySelector('.fullscreen-profile');
+                    if (profile) {
+                        const profileHeight = profile.getBoundingClientRect().height;
+                        const offsetY = profileHeight / 2;
+                        leafletMap.panBy([0, offsetY], { animate: false });
+                    }
+                }
+            }
+        }
 
         function highlightSegmentOnMap(segmentIdx) {
             segmentHighlightLayers.forEach(layer => leafletMap.removeLayer(layer));
@@ -3431,13 +3404,13 @@
         }
 
         // ================================================================
-        // setupChartInteraction — 同时支持鼠标 + 触摸
+        // setupChartInteraction — 三状态航路点悬停检测
         // ================================================================
         function setupChartInteraction() {
             const canvas = chartCanvas;
             const tooltip = canvas._tooltip || document.getElementById('chartTooltip');
 
-            // ===== 鼠标事件（电脑端保留原有逻辑） =====
+            // 鼠标事件
             canvas.addEventListener('mousemove', function(e) {
                 if (IS_MOBILE) return;
                 if (!trackData || !canvas._scale) return;
@@ -3495,28 +3468,31 @@
                 hoveredPointIdx = nearestIdx;
                 const pt = points[nearestIdx];
 
+                // 航路点悬停：只有在显示航路点（非 hide-all）时检测
                 let waypointHover = null;
-                for (let i = 0; i < trackData.waypoints.length; i++) {
-                    const wp = trackData.waypoints[i];
-                    if (Math.abs(wp.distance - pt.distance) < (trackData.totalDistance / points.length) * 3) {
-                        waypointHover = wp;
-                        break;
+                if (waypointDisplayMode !== 'hide-all') {
+                    for (let i = 0; i < trackData.waypoints.length; i++) {
+                        const wp = trackData.waypoints[i];
+                        if (Math.abs(wp.distance - pt.distance) < (trackData.totalDistance / points.length) * 3) {
+                            waypointHover = wp;
+                            break;
+                        }
                     }
                 }
 
                 if (waypointHover) {
                     tooltip.innerHTML = `
-                <div style="font-weight: 700; margin-bottom: 4px; color: #d4a017;">📍 ${waypointHover.name}</div>
-                <div>距离：<span style="font-weight: 600;">${pt.distance.toFixed(2)} km</span></div>
-                <div>海拔：<span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${Math.round(pt.ele)} m</span></div>
-                <div>坡度：<span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
-              `;
+                        <div style="font-weight: 700; margin-bottom: 4px; color: #d4a017;">📍 ${waypointHover.name}</div>
+                        <div>距离：<span style="font-weight: 600;">${pt.distance.toFixed(2)} km</span></div>
+                        <div>海拔：<span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${Math.round(pt.ele)} m</span></div>
+                        <div>坡度：<span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
+                      `;
                 } else {
                     tooltip.innerHTML = `
-                <div>距离：<span style="font-weight: 600;">${pt.distance.toFixed(2)} km</span></div>
-                <div>海拔：<span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${Math.round(pt.ele)} m</span></div>
-                <div>坡度：<span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
-              `;
+                        <div>距离：<span style="font-weight: 600;">${pt.distance.toFixed(2)} km</span></div>
+                        <div>海拔：<span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${Math.round(pt.ele)} m</span></div>
+                        <div>坡度：<span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
+                      `;
                 }
 
                 tooltip.classList.add('visible');
@@ -3550,6 +3526,8 @@
             canvas.addEventListener('click', function(e) {
                 if (IS_MOBILE) return;
                 if (!trackData || !canvas._scale || isDragging) return;
+                // 只有在非 hide-all 状态且显示名称时才响应点击显示航路点信息
+                if (waypointDisplayMode !== 'show-names') return;
 
                 const rect = canvas.getBoundingClientRect();
                 const x = e.clientX - rect.left;
@@ -3645,9 +3623,7 @@
                 drawChart();
             }, { passive: false });
 
-            // ================================================================
-            // 触摸事件（手机端专用）
-            // ================================================================
+            // 触摸事件（手机端）
             if (IS_MOBILE) {
                 canvas.addEventListener('touchstart', handleTouchStartMobile, { passive: false });
                 canvas.addEventListener('touchmove', handleTouchMoveMobile, { passive: false });
@@ -3674,9 +3650,7 @@
                 }, { passive: true });
             }
 
-            // ================================================================
             // 手机端触摸处理函数
-            // ================================================================
             function handleTouchStartMobile(e) {
                 if (!trackData || !canvas._scale) return;
                 e.preventDefault();
@@ -3749,13 +3723,14 @@
                 if (!trackData || !canvas._scale) return;
                 e.preventDefault();
 
-                if (touchState.isTouching && !touchState.isDragging && touchState.isTap && !touchState.isPinching) {
+                // 只有显示名称时才处理点击航路点
+                if (waypointDisplayMode === 'show-names' && touchState.isTouching && !touchState.isDragging && touchState
+                    .isTap && !touchState.isPinching) {
                     const x = touchState.startX;
                     const y = touchState.startY;
 
                     const { xScale, yScale, padding, chartW, chartH, W, H, viewStart, viewEnd } = canvas._scale;
 
-                    let waypointFound = false;
                     for (let i = 0; i < trackData.waypoints.length; i++) {
                         const wp = trackData.waypoints[i];
                         if (wp.distance < viewStart || wp.distance > viewEnd) continue;
@@ -3766,7 +3741,6 @@
 
                         if (dist < 16) {
                             showWaypointInfo(wp);
-                            waypointFound = true;
                             break;
                         }
                     }
@@ -3778,27 +3752,32 @@
                     if (touchState.vlineIdx >= 0 && touchState.vlineIdx < trackData.points.length) {
                         const pt = trackData.points[touchState.vlineIdx];
                         const points = trackData.points;
+
                         let waypointHover = null;
-                        for (let i = 0; i < trackData.waypoints.length; i++) {
-                            const wp = trackData.waypoints[i];
-                            if (Math.abs(wp.distance - pt.distance) < (trackData.totalDistance / points.length) * 3) {
-                                waypointHover = wp;
-                                break;
+                        if (waypointDisplayMode !== 'hide-all') {
+                            for (let i = 0; i < trackData.waypoints.length; i++) {
+                                const wp = trackData.waypoints[i];
+                                if (Math.abs(wp.distance - pt.distance) < (trackData.totalDistance / points.length) *
+                                    3) {
+                                    waypointHover = wp;
+                                    break;
+                                }
                             }
                         }
+
                         if (waypointHover) {
                             tooltip.innerHTML = `
-                        <div style="font-weight: 700; margin-bottom: 4px; color: #d4a017;">📍 ${waypointHover.name}</div>
-                        <div>距离：<span style="font-weight: 600;">${pt.distance.toFixed(2)} km</span></div>
-                        <div>海拔：<span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${Math.round(pt.ele)} m</span></div>
-                        <div>坡度：<span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
-                      `;
+                                <div style="font-weight: 700; margin-bottom: 4px; color: #d4a017;">📍 ${waypointHover.name}</div>
+                                <div>距离：<span style="font-weight: 600;">${pt.distance.toFixed(2)} km</span></div>
+                                <div>海拔：<span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${Math.round(pt.ele)} m</span></div>
+                                <div>坡度：<span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
+                              `;
                         } else {
                             tooltip.innerHTML = `
-                        <div>距离：<span style="font-weight: 600;">${pt.distance.toFixed(2)} km</span></div>
-                        <div>海拔：<span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${Math.round(pt.ele)} m</span></div>
-                        <div>坡度：<span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
-                      `;
+                                <div>距离：<span style="font-weight: 600;">${pt.distance.toFixed(2)} km</span></div>
+                                <div>海拔：<span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${Math.round(pt.ele)} m</span></div>
+                                <div>坡度：<span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
+                              `;
                         }
                         tooltip.classList.add('visible');
                         const canvasRect = canvas.getBoundingClientRect();
@@ -3834,7 +3813,6 @@
                 canvas.style.cursor = 'crosshair';
             }
 
-            // ===== 手机端竖线更新函数 =====
             function updateMobileVLine(x, y) {
                 if (!trackData || !canvas._scale) return;
 
@@ -3870,27 +3848,29 @@
                 const pt = points[nearestIdx];
 
                 let waypointHover = null;
-                for (let i = 0; i < trackData.waypoints.length; i++) {
-                    const wp = trackData.waypoints[i];
-                    if (Math.abs(wp.distance - pt.distance) < (trackData.totalDistance / points.length) * 3) {
-                        waypointHover = wp;
-                        break;
+                if (waypointDisplayMode !== 'hide-all') {
+                    for (let i = 0; i < trackData.waypoints.length; i++) {
+                        const wp = trackData.waypoints[i];
+                        if (Math.abs(wp.distance - pt.distance) < (trackData.totalDistance / points.length) * 3) {
+                            waypointHover = wp;
+                            break;
+                        }
                     }
                 }
 
                 if (waypointHover) {
                     tooltip.innerHTML = `
-                <div style="font-weight: 700; margin-bottom: 4px; color: #d4a017;">📍 ${waypointHover.name}</div>
-                <div>距离：<span style="font-weight: 600;">${pt.distance.toFixed(2)} km</span></div>
-                <div>海拔：<span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${Math.round(pt.ele)} m</span></div>
-                <div>坡度：<span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
-              `;
+                        <div style="font-weight: 700; margin-bottom: 4px; color: #d4a017;">📍 ${waypointHover.name}</div>
+                        <div>距离：<span style="font-weight: 600;">${pt.distance.toFixed(2)} km</span></div>
+                        <div>海拔：<span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${Math.round(pt.ele)} m</span></div>
+                        <div>坡度：<span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
+                      `;
                 } else {
                     tooltip.innerHTML = `
-                <div>距离：<span style="font-weight: 600;">${pt.distance.toFixed(2)} km</span></div>
-                <div>海拔：<span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${Math.round(pt.ele)} m</span></div>
-                <div>坡度：<span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
-              `;
+                        <div>距离：<span style="font-weight: 600;">${pt.distance.toFixed(2)} km</span></div>
+                        <div>海拔：<span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${Math.round(pt.ele)} m</span></div>
+                        <div>坡度：<span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
+                      `;
                 }
 
                 tooltip.classList.add('visible');
@@ -3921,9 +3901,8 @@
         }
 
         // ================================================================
-        // 其他功能函数（保持原有逻辑）
+        // 航路点信息
         // ================================================================
-
         function showWaypointInfo(wp) {
             const info = document.getElementById('waypointInfo');
             info.classList.remove('hidden');
@@ -3936,6 +3915,69 @@
             document.getElementById('waypointInfo').classList.add('hidden');
         }
 
+        // ================================================================
+        // ★★★ 三状态切换函数 ★★★
+        // ================================================================
+        function toggleWaypointDisplay() {
+            // 循环状态：'show-names' -> 'hide-names' -> 'hide-all' -> 'show-names'
+            if (waypointDisplayMode === 'show-names') {
+                waypointDisplayMode = 'hide-names';
+            } else if (waypointDisplayMode === 'hide-names') {
+                waypointDisplayMode = 'hide-all';
+            } else {
+                waypointDisplayMode = 'show-names';
+            }
+
+            // 如果切换为 hide-all，关闭可能打开的航路点信息
+            if (waypointDisplayMode === 'hide-all') {
+                closeWaypointInfo();
+                // 关闭地图上的弹窗
+                waypointMarkers.forEach(marker => {
+                    try { marker.closePopup(); } catch (e) {}
+                });
+                // 取消固定状态
+                if (selectedWaypointMarker) {
+                    selectedWaypointMarker.closePopup();
+                    selectedWaypointMarker = null;
+                }
+                isWaypointInfoPinned = false;
+            }
+
+            // 更新按钮文本和图标
+            updateWaypointButton();
+
+            // 重绘地图和图表
+            if (trackData) {
+                drawMap(true);
+                drawChart();
+            }
+        }
+
+		function updateWaypointButton() {
+			const btn = document.getElementById('waypointToggleBtn');
+			const label = document.getElementById('waypointToggleLabel');
+			const fsBtn = document.getElementById('fullscreenWaypointToggleBtn');
+			const fsLabel = document.getElementById('fullscreenWaypointToggleLabel');
+
+			let icon, text;
+			if (waypointDisplayMode === 'show-names') {
+				icon = 'fa-tag';
+				text = '隐藏航路点名称';
+			} else if (waypointDisplayMode === 'hide-names') {
+				icon = 'fa-eye-slash';
+				text = '隐藏所有航路点';
+			} else {
+				icon = 'fa-tag';
+				text = '显示航路点名称';
+			}
+
+			if (btn) btn.innerHTML = `<i class="fa-solid ${icon}"></i> <span id="waypointToggleLabel">${text}</span>`;
+			if (fsBtn) fsBtn.innerHTML = `<i class="fa-solid ${icon}"></i> <span id="fullscreenWaypointToggleLabel">${text}</span>`;
+		}
+
+        // ================================================================
+        // 其他功能函数
+        // ================================================================
         function clearHighlight() {
             activeSegmentIdx = -1;
             highlightSegmentOnMap(-1);
@@ -4012,9 +4054,6 @@
             return { overall, label, color, distScore, ascentScore, gradScore };
         }
 
-        // ================================================================
-        // 进阶气象分析折叠控制
-        // ================================================================
         function toggleAdvancedPanel() {
             const panel = document.getElementById('advancedPanel');
             const toggleLabel = document.getElementById('toggleLabel');
@@ -4033,9 +4072,6 @@
             }
         }
 
-        // ================================================================
-        // 增强的气象分析
-        // ================================================================
         function analyzeWeather() {
             const t = document.getElementById('weatherTemp').value.trim();
             const h = document.getElementById('weatherHumidity').value.trim();
@@ -4335,14 +4371,13 @@
             const ascentTime = (totalAscent / 10);
             const descentTime = (totalDescent / 15);
 
-            // ★★★ 修正后的陡坡修正：按距离累加 ★★★
-            let steepDistance = 0; // 单位：公里
+            let steepDistance = 0;
             for (let i = 1; i < points.length; i++) {
                 if (Math.abs(points[i].smoothedGradient) > 15) {
                     steepDistance += points[i].distance - points[i - 1].distance;
                 }
             }
-            const STEEP_PACE_PENALTY = 4; // 分钟/公里，可根据体感调整
+            const STEEP_PACE_PENALTY = 4;
             const steepAdjust = steepDistance * STEEP_PACE_PENALTY;
 
             const totalWalkMin = baseTime + ascentTime + descentTime + steepAdjust;
@@ -4354,14 +4389,10 @@
                 walkHours: totalWalkMin / 60,
                 restHours: restMin / 60,
                 avgPace: totalMin / totalDistance,
-                // 70 kg, 每公里每千克 0.7, 每米爬升每千克 0.0106
                 calories: Math.round(70 * (totalDistance * 0.7 + totalAscent * 0.0106))
             };
         }
 
-        // ================================================================
-        // 风险提示
-        // ================================================================
         function assessRisks(data) {
             const risks = [];
             if (weatherData) {
@@ -4440,7 +4471,9 @@
             return { risks, riskLevel, riskPercent };
         }
 
-        // ★★★ 修改：analyzeSegments 和 createSegment 使用独立模块 ★★★
+        // ================================================================
+        // analyzeSegments 和 createSegment
+        // ================================================================
         function analyzeSegments(data, mode) {
             const points = data.points;
             const segments = [];
@@ -4523,7 +4556,6 @@
             const distance = endPt.distance - startPt.distance;
             const horizontalDistance = (endPt.horizontalDistance || 0) - (startPt.horizontalDistance || 0);
 
-            // ★★★ 使用独立模块计算分段爬升/下降 ★★★
             const mode = elevationMode || 'raw';
             const elevResult = ElevationCalculator.computeSegment(points, startIdx, endIdx, mode);
             const ascent = elevResult.ascent;
@@ -4731,6 +4763,9 @@
             goToPage(totalPages);
         }
 
+        // ================================================================
+        // updateUI
+        // ================================================================
         function updateUI() {
             if (!trackData) return;
 
@@ -4807,11 +4842,11 @@
 
             if (risk.risks.length === 0) {
                 riskList.innerHTML = `
-              <div class="flex items-center gap-3 p-3 rounded-xl bg-trail-moss/10">
-                <i class="fa-solid fa-circle-check text-trail-moss"></i>
-                <p class="text-sm text-trail-mid">未检测到显著风险，路线相对安全</p>
-              </div>
-            `;
+                    <div class="flex items-center gap-3 p-3 rounded-xl bg-trail-moss/10">
+                      <i class="fa-solid fa-circle-check text-trail-moss"></i>
+                      <p class="text-sm text-trail-mid">未检测到显著风险，路线相对安全</p>
+                    </div>
+                  `;
             } else {
                 risk.risks.forEach(r => {
                     const colors = {
@@ -4826,12 +4861,12 @@
                     item.style.background = c.bg;
                     item.style.border = `1px solid ${c.border}`;
                     item.innerHTML = `
-                        <i class="fa-solid ${r.icon} mt-0.5 w-5 text-center flex-shrink-0" style="color: ${c.text}"></i>
-                        <div class="flex-1">
-                          <p class="text-sm font-semibold text-trail-dark">${r.title}</p>
-                          <p class="text-xs text-trail-mid/70 mt-0.5">${r.desc}</p>
-                        </div>
-                      `;
+                              <i class="fa-solid ${r.icon} mt-0.5 w-5 text-center flex-shrink-0" style="color: ${c.text}"></i>
+                              <div class="flex-1">
+                                <p class="text-sm font-semibold text-trail-dark">${r.title}</p>
+                                <p class="text-xs text-trail-mid/70 mt-0.5">${r.desc}</p>
+                              </div>
+                            `;
                     riskList.appendChild(item);
                 });
             }
@@ -4847,91 +4882,91 @@
 
             const essentialContainer = document.getElementById('essentialEquipment');
             essentialContainer.innerHTML = equipment.essential.map(item => `
-            <div class="equipment-item">
-              <span class="equipment-icon text-trail-moss"><i class="fa-solid ${item.icon}"></i></span>
-              <div class="equipment-content">
-                <p class="equipment-name">${item.name}</p>
-                <p class="equipment-desc">${item.desc}</p>
-              </div>
-            </div>
-          `).join('');
+                  <div class="equipment-item">
+                    <span class="equipment-icon text-trail-moss"><i class="fa-solid ${item.icon}"></i></span>
+                    <div class="equipment-content">
+                      <p class="equipment-name">${item.name}</p>
+                      <p class="equipment-desc">${item.desc}</p>
+                    </div>
+                  </div>
+                `).join('');
 
             const recommendedContainer = document.getElementById('recommendedEquipment');
             recommendedContainer.innerHTML = equipment.recommended.map(item => `
-            <div class="equipment-item">
-              <span class="equipment-icon text-accent-amber"><i class="fa-solid ${item.icon}"></i></span>
-              <div class="equipment-content">
-                <p class="equipment-name">${item.name}</p>
-                <p class="equipment-desc">${item.desc}</p>
-              </div>
-            </div>
-          `).join('');
+                  <div class="equipment-item">
+                    <span class="equipment-icon text-accent-amber"><i class="fa-solid ${item.icon}"></i></span>
+                    <div class="equipment-content">
+                      <p class="equipment-name">${item.name}</p>
+                      <p class="equipment-desc">${item.desc}</p>
+                    </div>
+                  </div>
+                `).join('');
 
             const suppliesContainer = document.getElementById('suppliesRecommendation');
             suppliesContainer.innerHTML = equipment.supplies.map(item => `
-            <div class="equipment-item">
-              <span class="equipment-icon text-accent-blue"><i class="fa-solid ${item.icon}"></i></span>
-              <div class="equipment-content">
-                <p class="equipment-name">${item.name}</p>
-                <p class="equipment-desc">${item.desc}</p>
-              </div>
-            </div>
-          `).join('');
+                  <div class="equipment-item">
+                    <span class="equipment-icon text-accent-blue"><i class="fa-solid ${item.icon}"></i></span>
+                    <div class="equipment-content">
+                      <p class="equipment-name">${item.name}</p>
+                      <p class="equipment-desc">${item.desc}</p>
+                    </div>
+                  </div>
+                `).join('');
 
             updateSegments();
 
             const dist = calculateGradientDistribution(trackData);
             const distContainer = document.getElementById('gradientDistribution');
             distContainer.innerHTML = `
-            <div>
-              <div class="flex items-center gap-2 mb-3">
-                <i class="fa-solid fa-arrow-trend-up text-accent-red text-sm"></i>
-                <span class="text-sm font-semibold text-trail-dark">上坡分布</span>
-                <span class="text-xs text-trail-mid/50">(${trackData.uphillDistance.toFixed(1)}km)</span>
-              </div>
-              <div class="space-y-3">
-                ${dist.uphill.map(d => `
-                  <div class="tech-tip">
-                    <div class="flex items-center justify-between mb-1">
-                      <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded" style="background: ${d.color}"></div>
-                        <span class="text-xs text-trail-mid">${d.name}</span>
-                      </div>
-                      <span class="text-xs font-medium text-trail-dark">${d.percentage.toFixed(1)}%</span>
+                  <div>
+                    <div class="flex items-center gap-2 mb-3">
+                      <i class="fa-solid fa-arrow-trend-up text-accent-red text-sm"></i>
+                      <span class="text-sm font-semibold text-trail-dark">上坡分布</span>
+                      <span class="text-xs text-trail-mid/50">(${trackData.uphillDistance.toFixed(1)}km)</span>
                     </div>
-                    <div class="h-1.5 rounded-full bg-trail-sage/10 overflow-hidden mb-1">
-                      <div class="h-full rounded-full transition-all duration-700" style="width: 0%; background: ${d.color}" data-target="${d.percentage}"></div>
+                    <div class="space-y-3">
+                      ${dist.uphill.map(d => `
+                        <div class="tech-tip">
+                          <div class="flex items-center justify-between mb-1">
+                            <div class="flex items-center gap-2">
+                              <div class="w-3 h-3 rounded" style="background: ${d.color}"></div>
+                              <span class="text-xs text-trail-mid">${d.name}</span>
+                            </div>
+                            <span class="text-xs font-medium text-trail-dark">${d.percentage.toFixed(1)}%</span>
+                          </div>
+                          <div class="h-1.5 rounded-full bg-trail-sage/10 overflow-hidden mb-1">
+                            <div class="h-full rounded-full transition-all duration-700" style="width: 0%; background: ${d.color}" data-target="${d.percentage}"></div>
+                          </div>
+                          <div class="text-xs text-trail-mid/60 pl-5">${d.tip}</div>
+                        </div>
+                      `).join('')}
                     </div>
-                    <div class="text-xs text-trail-mid/60 pl-5">${d.tip}</div>
                   </div>
-                `).join('')}
-              </div>
-            </div>
-            <div>
-              <div class="flex items-center gap-2 mb-3">
-                <i class="fa-solid fa-arrow-trend-down text-accent-blue text-sm"></i>
-                <span class="text-sm font-semibold text-trail-dark">下坡分布</span>
-                <span class="text-xs text-trail-mid/50">(${trackData.downhillDistance.toFixed(1)}km)</span>
-              </div>
-              <div class="space-y-3">
-                ${dist.downhill.map(d => `
-                  <div class="tech-tip">
-                    <div class="flex items-center justify-between mb-1">
-                      <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded" style="background: ${d.color}"></div>
-                        <span class="text-xs text-trail-mid">${d.name}</span>
-                      </div>
-                      <span class="text-xs font-medium text-trail-dark">${d.percentage.toFixed(1)}%</span>
+                  <div>
+                    <div class="flex items-center gap-2 mb-3">
+                      <i class="fa-solid fa-arrow-trend-down text-accent-blue text-sm"></i>
+                      <span class="text-sm font-semibold text-trail-dark">下坡分布</span>
+                      <span class="text-xs text-trail-mid/50">(${trackData.downhillDistance.toFixed(1)}km)</span>
                     </div>
-                    <div class="h-1.5 rounded-full bg-trail-sage/10 overflow-hidden mb-1">
-                      <div class="h-full rounded-full transition-all duration-700" style="width: 0%; background: ${d.color}" data-target="${d.percentage}"></div>
+                    <div class="space-y-3">
+                      ${dist.downhill.map(d => `
+                        <div class="tech-tip">
+                          <div class="flex items-center justify-between mb-1">
+                            <div class="flex items-center gap-2">
+                              <div class="w-3 h-3 rounded" style="background: ${d.color}"></div>
+                              <span class="text-xs text-trail-mid">${d.name}</span>
+                            </div>
+                            <span class="text-xs font-medium text-trail-dark">${d.percentage.toFixed(1)}%</span>
+                          </div>
+                          <div class="h-1.5 rounded-full bg-trail-sage/10 overflow-hidden mb-1">
+                            <div class="h-full rounded-full transition-all duration-700" style="width: 0%; background: ${d.color}" data-target="${d.percentage}"></div>
+                          </div>
+                          <div class="text-xs text-trail-mid/60 pl-5">${d.tip}</div>
+                        </div>
+                      `).join('')}
                     </div>
-                    <div class="text-xs text-trail-mid/60 pl-5">${d.tip}</div>
                   </div>
-                `).join('')}
-              </div>
-            </div>
-          `;
+                `;
 
             setTimeout(() => {
                 distContainer.querySelectorAll('[data-target]').forEach(bar => {
@@ -4960,16 +4995,16 @@
             ];
 
             summaryContainer.innerHTML = summaryItems.map(item => `
-            <div class="flex items-center justify-between py-2 border-b border-trail-sage/10 last:border-0">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-trail-sage/10 flex items-center justify-center">
-                  <i class="fa-solid ${item.icon} text-xs text-trail-moss"></i>
-                </div>
-                <span class="text-trail-mid/70">${item.label}</span>
-              </div>
-              <span class="font-semibold text-trail-dark">${item.value}</span>
-            </div>
-          `).join('');
+                  <div class="flex items-center justify-between py-2 border-b border-trail-sage/10 last:border-0">
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 rounded-lg bg-trail-sage/10 flex items-center justify-center">
+                        <i class="fa-solid ${item.icon} text-xs text-trail-moss"></i>
+                      </div>
+                      <span class="text-trail-mid/70">${item.label}</span>
+                    </div>
+                    <span class="font-semibold text-trail-dark">${item.value}</span>
+                  </div>
+                `).join('');
         }
 
         function updateSegments() {
@@ -5006,31 +5041,31 @@
                     row.classList.add('active');
                 }
                 row.innerHTML = `
-              <td class="py-3 px-2 text-center">
-                <span class="segment-number inline-flex items-center justify-center w-6 h-6 rounded-lg bg-trail-sage/15 text-xs font-bold text-trail-mid" data-segment-idx="${globalIdx}">${globalIdx + 1}</span>
-              </td>
-              <td class="py-3 px-2 text-center">
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium" style="background: ${tc.bg}; color: ${tc.color}">
-                  <i class="fa-solid ${tc.icon} text-xs"></i>
-                  ${tc.label}
-                </span>
-              </td>
-              <td class="py-3 px-2 text-center font-medium text-trail-dark">${seg.distance.toFixed(2)} km</td>
-              <td class="py-3 px-2 text-center text-accent-red">${Math.round(seg.ascent)}m</td>
-              <td class="py-3 px-2 text-center text-accent-blue">${Math.round(seg.descent)}m</td>
-              <td class="py-3 px-2 text-center font-medium" style="color: ${getUphillColor(Math.max(0, seg.uphillAvg))};">+${seg.uphillAvg.toFixed(1)}%</td>
-              <td class="py-3 px-2 text-center font-medium" style="color: ${getDownhillColor(Math.min(0, seg.downhillAvg))};">-${seg.downhillAvg.toFixed(1)}%</td>
-              <td class="py-3 px-2 text-center font-medium" style="color: ${getUphillColor(Math.max(0, seg.maxUphillGrad))};">+${seg.maxUphillGrad.toFixed(1)}%</td>
-              <td class="py-3 px-2 text-center font-medium" style="color: ${getDownhillColor(Math.min(0, seg.maxDownhillGrad))};">${seg.maxDownhillGrad.toFixed(1)}%</td>
-              <td class="py-3 px-2 text-center font-medium text-trail-dark">${seg.time.toFixed(1)}h</td>
-              <td class="py-3 px-2 text-center">
-                <div class="inline-flex items-center gap-2">
-                  <div class="w-12 h-1.5 rounded-full bg-trail-sage/15 overflow-hidden">
-                    <div class="h-full rounded-full" style="width: ${seg.difficulty}%; background: ${diffColor}"></div>
-                  </div>
-                </div>
-              </td>
-            `;
+                    <td class="py-3 px-2 text-center">
+                      <span class="segment-number inline-flex items-center justify-center w-6 h-6 rounded-lg bg-trail-sage/15 text-xs font-bold text-trail-mid" data-segment-idx="${globalIdx}">${globalIdx + 1}</span>
+                    </td>
+                    <td class="py-3 px-2 text-center">
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium" style="background: ${tc.bg}; color: ${tc.color}">
+                        <i class="fa-solid ${tc.icon} text-xs"></i>
+                        ${tc.label}
+                      </span>
+                    </td>
+                    <td class="py-3 px-2 text-center font-medium text-trail-dark">${seg.distance.toFixed(2)} km</td>
+                    <td class="py-3 px-2 text-center text-accent-red">${Math.round(seg.ascent)}m</td>
+                    <td class="py-3 px-2 text-center text-accent-blue">${Math.round(seg.descent)}m</td>
+                    <td class="py-3 px-2 text-center font-medium" style="color: ${getUphillColor(Math.max(0, seg.uphillAvg))};">+${seg.uphillAvg.toFixed(1)}%</td>
+                    <td class="py-3 px-2 text-center font-medium" style="color: ${getDownhillColor(Math.min(0, seg.downhillAvg))};">-${seg.downhillAvg.toFixed(1)}%</td>
+                    <td class="py-3 px-2 text-center font-medium" style="color: ${getUphillColor(Math.max(0, seg.maxUphillGrad))};">+${seg.maxUphillGrad.toFixed(1)}%</td>
+                    <td class="py-3 px-2 text-center font-medium" style="color: ${getDownhillColor(Math.min(0, seg.maxDownhillGrad))};">${seg.maxDownhillGrad.toFixed(1)}%</td>
+                    <td class="py-3 px-2 text-center font-medium text-trail-dark">${seg.time.toFixed(1)}h</td>
+                    <td class="py-3 px-2 text-center">
+                      <div class="inline-flex items-center gap-2">
+                        <div class="w-12 h-1.5 rounded-full bg-trail-sage/15 overflow-hidden">
+                          <div class="h-full rounded-full" style="width: ${seg.difficulty}%; background: ${diffColor}"></div>
+                        </div>
+                      </div>
+                    </td>
+                  `;
 
                 row.addEventListener('click', () => {
                     selectSegment(globalIdx);
@@ -5161,6 +5196,10 @@
                         clearMobileVLine();
                     }
 
+                    // ★★★ 重置航路点显示状态为 show-names ★★★
+                    waypointDisplayMode = 'show-names';
+                    updateWaypointButton();
+
                     updateUI();
                     showToast('轨迹分析完成！', 'success');
                 } catch (err) {
@@ -5212,6 +5251,10 @@
                 segmentHighlightLayers.forEach(layer => leafletMap.removeLayer(layer));
                 segmentHighlightLayers = [];
             }
+
+            // 重置状态
+            waypointDisplayMode = 'show-names';
+            updateWaypointButton();
         }
 
         function toggleAnnotations() {
@@ -5219,14 +5262,6 @@
             document.getElementById('annotationLabel').textContent = showAnnotations ? '隐藏标注' : '显示标注';
             const fullLabel = document.getElementById('fullscreenAnnotationLabel');
             if (fullLabel) fullLabel.textContent = showAnnotations ? '隐藏标注' : '显示标注';
-            drawChart();
-        }
-
-        function toggleWaypointNames() {
-            showWaypointNames = !showWaypointNames;
-            document.getElementById('waypointNameLabel').textContent = showWaypointNames ? '隐藏航路点名称' : '显示航路点名称';
-            const fullLabel = document.getElementById('fullscreenWaypointNameLabel');
-            if (fullLabel) fullLabel.textContent = showWaypointNames ? '隐藏航路点名称' : '显示航路点名称';
             drawChart();
         }
 
@@ -5319,6 +5354,10 @@
                         document.getElementById('fileName').textContent = 'demo.gpx';
                         document.getElementById('fileInfo').classList.remove('hidden');
 
+                        // 重置状态
+                        waypointDisplayMode = 'show-names';
+                        updateWaypointButton();
+
                         updateUI();
 
                         showToast('已加载示例徒步轨迹', 'success');
@@ -5385,13 +5424,9 @@
             }
         }
 
-        // ================================================================
-        // ★★★ 地图联动开关 ★★★
-        // ================================================================
         function toggleMapLinkage() {
             mapLinkageEnabled = !mapLinkageEnabled;
 
-            // 更新普通模式按钮
             const btn = document.getElementById('mapLinkageBtn');
             if (btn) {
                 if (mapLinkageEnabled) {
@@ -5403,7 +5438,6 @@
                 }
             }
 
-            // 更新全屏模式按钮
             const fsBtn = document.getElementById('fullscreenMapLinkageBtn');
             if (fsBtn) {
                 if (mapLinkageEnabled) {
@@ -5415,7 +5449,6 @@
                 }
             }
 
-            // 如果禁用联动，清除地图标记和覆盖层
             if (!mapLinkageEnabled) {
                 if (currentMarker) {
                     leafletMap.removeLayer(currentMarker);
@@ -5423,18 +5456,19 @@
                 }
                 document.getElementById('mapInfoOverlay').classList.add('hidden');
             } else {
-                // 启用联动：如果有高亮点则更新地图
                 if (hoveredPointIdx >= 0) {
                     updateMapCurrentPoint(hoveredPointIdx);
                 } else if (touchState.vlineIdx >= 0) {
                     updateMapCurrentPoint(touchState.vlineIdx);
                 } else {
-                    // 没有高亮点，清除标记（安全）
                     updateMapCurrentPoint(-1);
                 }
             }
         }
 
+        // ================================================================
+        // 全屏模式 — 添加三状态按钮
+        // ================================================================
         function enterMapFullscreen() {
             const map = document.getElementById('mapContainer');
 
@@ -5458,91 +5492,109 @@
             toolbar.className = 'fullscreen-chart-toolbar';
             toolbar.id = 'fullscreenChartToolbar';
 
-            // ★★★ 全屏工具栏：左 → 联动按钮 + 选择器 ★★★
             const linkageBtnClass = mapLinkageEnabled ? 'map-control-btn active-linkage' : 'map-control-btn';
             const linkageBtnTitle = mapLinkageEnabled ? '禁用地图联动' : '启用地图联动';
 
             toolbar.innerHTML = `
-            <div class="flex items-center gap-2 justify-between w-full">
-              <div class="flex items-center gap-2 ml-auto">
-                <select id="fullscreenColorModeSelect" class="color-mode-select" title="切换颜色模式" onchange="document.getElementById('colorModeSelect').value=this.value; changeColorMode();">
-                  <option value="gradient">坡度分析</option>
-                  <option value="elevation">海拔分析</option>
-                </select>
-                <select id="fullscreenMapSourceSelect" class="map-source-select" title="切换图源" onchange="document.getElementById('mapSourceSelect').value=this.value; changeMapSource();">
-                  <option value="amaproad" selected>高德路网图</option>
-                  <option value="amapsatellite">高德卫星图</option>
-                  <option value="gaode_hybrid">高德混合图</option>
-                  <option value="googlesatellite">谷歌卫星图</option>
-                  <option value="googlehybrid">谷歌混合图</option>
-                  <option value="osm">OpenStreetMap</option>
-                  <option value="windy">Windy</option>
-                  <option value="opentopomap">OpenTopoMap</option>
-                  <option value="opencyclemap">OpenCycleMap</option>
-                  <option value="cyclosm">CyclOSM</option>
-                </select>
-              </div>
-            </div>
-          `;
+                  <div class="flex items-center gap-2 justify-between w-full">
+                    <div class="flex items-center gap-2 ml-auto">
+                      <select id="fullscreenColorModeSelect" class="color-mode-select" title="切换颜色模式" onchange="document.getElementById('colorModeSelect').value=this.value; changeColorMode();">
+                        <option value="gradient">坡度分析</option>
+                        <option value="elevation">海拔分析</option>
+                      </select>
+                      <select id="fullscreenMapSourceSelect" class="map-source-select" title="切换图源" onchange="document.getElementById('mapSourceSelect').value=this.value; changeMapSource();">
+                        <option value="amaproad" selected>高德路网图</option>
+                        <option value="amapsatellite">高德卫星图</option>
+                        <option value="gaode_hybrid">高德混合图</option>
+                        <option value="googlesatellite">谷歌卫星图</option>
+                        <option value="googlehybrid">谷歌混合图</option>
+                        <option value="osm">OpenStreetMap</option>
+                        <option value="windy">Windy</option>
+                        <option value="opentopomap">OpenTopoMap</option>
+                        <option value="opencyclemap">OpenCycleMap</option>
+                        <option value="cyclosm">CyclOSM</option>
+                      </select>
+                    </div>
+                  </div>
+                `;
             map.appendChild(toolbar);
 
             const panel = document.createElement('div');
             panel.className = 'fullscreen-profile';
             panel.id = 'fullscreenProfile';
             panel.innerHTML = `
-            <div class="flex items-center justify-between gap-2 mb-2">
-              <div id="fullscreenProfileLegend" class="flex-1"></div>
-              <div class="flex items-center gap-2 flex-shrink-0">
-                <button onclick="toggleAnnotations()" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">
-                  <i class="fa-solid fa-eye"></i> <span id="fullscreenAnnotationLabel">${showAnnotations ? '隐藏标注' : '显示标注'}</span>
-                </button>
-                <button onclick="toggleWaypointNames()" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">
-                  <i class="fa-solid fa-tag"></i> <span id="fullscreenWaypointNameLabel">${showWaypointNames ? '隐藏航路点名称' : '显示航路点名称'}</span>
-                </button>
-              </div>
-            </div>
-            <div class="relative flex-1 chart-area">
-              <canvas id="fullscreenElevationChart"></canvas>
-              <div id="fullscreenChartTooltip" class="tooltip"></div>
-            </div>
-          `;
+                  <div class="flex items-center justify-between gap-2 mb-2">
+                    <div id="fullscreenProfileLegend" class="flex-1"></div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                      <button onclick="toggleAnnotations()" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">
+                        <i class="fa-solid fa-eye"></i> <span id="fullscreenAnnotationLabel">${showAnnotations ? '隐藏标注' : '显示标注'}</span>
+                      </button>
+                      <!-- ★★★ 全屏模式下的三状态按钮 ★★★ -->
+                      <button onclick="toggleWaypointDisplay()" id="fullscreenWaypointToggleBtn" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">
+                        <i class="fa-solid fa-tag"></i> <span id="fullscreenWaypointToggleLabel">隐藏航路点名称</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="relative flex-1 chart-area">
+                    <canvas id="fullscreenElevationChart"></canvas>
+                    <div id="fullscreenChartTooltip" class="tooltip"></div>
+                  </div>
+                `;
             map.appendChild(panel);
 
+            // 更新全屏按钮文字
+            const fsToggleBtn = document.getElementById('fullscreenWaypointToggleBtn');
+            const fsToggleLabel = document.getElementById('fullscreenWaypointToggleLabel');
+            if (fsToggleBtn && fsToggleLabel) {
+                let icon, text;
+                if (waypointDisplayMode === 'show-names') {
+                    icon = 'fa-tag';
+                    text = '隐藏航路点名称';
+                } else if (waypointDisplayMode === 'hide-names') {
+                    icon = 'fa-eye-slash';
+                    text = '隐藏所有航路点';
+                } else {
+                    icon = 'fa-tag';
+                    text = '显示航路点名称';
+                }
+                fsToggleBtn.innerHTML = `<i class="fa-solid ${icon}"></i> <span id="fullscreenWaypointToggleLabel">${text}</span>`;
+            }
+
             const legendHtml = `
-            <div class="flex items-center gap-4 flex-wrap" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-              <div id="fs-gradientLegend" class="flex items-center gap-4">
-                <div class="flex items-center gap-2">
-                  <span class="font-medium text-trail-mid/70 text-xs">上坡：</span>
-                  <div class="w-24 h-3 rounded grad-bar-up"></div>
-                  <span class="text-xs text-trail-mid/70">缓→陡</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="font-medium text-trail-mid/70 text-xs">下坡：</span>
-                  <div class="w-24 h-3 rounded grad-bar-down"></div>
-                  <span class="text-xs text-trail-mid/70">缓→陡</span>
-                </div>
-              </div>
-              <div id="fs-elevationLegend" class="hidden flex items-center gap-2">
-                <span class="font-medium text-trail-mid/70 text-xs">海拔：</span>
-                <div class="w-24 h-3 rounded grad-bar-elevation"></div>
-                <span class="text-xs text-trail-mid/70">低→高</span>
-              </div>
-              <div class="flex items-center gap-3" style="display: flex; align-items: center; gap: 10px; margin-left: 4px;">
-                <div class="flex items-center gap-1.5">
-                  <div class="w-2.5 h-2.5 rounded-full" style="background: #c54b3c; flex-shrink: 0;"></div>
-                  <span class="text-xs text-trail-mid/70">当前位置</span>
-                </div>
-                <div class="flex items-center gap-1.5">
-                  <div class="w-2.5 h-2.5 rounded-full" style="background: #5c7a52; flex-shrink: 0;"></div>
-                  <span class="text-xs text-trail-mid/70">起点</span>
-                </div>
-                <div class="flex items-center gap-1.5">
-                  <div class="w-2.5 h-2.5 rounded-full" style="background: #c54b3c; flex-shrink: 0;"></div>
-                  <span class="text-xs text-trail-mid/70">终点</span>
-                </div>
-              </div>
-            </div>
-          `;
+                  <div class="flex items-center gap-4 flex-wrap" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <div id="fs-gradientLegend" class="flex items-center gap-4">
+                      <div class="flex items-center gap-2">
+                        <span class="font-medium text-trail-mid/70 text-xs">上坡：</span>
+                        <div class="w-24 h-3 rounded grad-bar-up"></div>
+                        <span class="text-xs text-trail-mid/70">缓→陡</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="font-medium text-trail-mid/70 text-xs">下坡：</span>
+                        <div class="w-24 h-3 rounded grad-bar-down"></div>
+                        <span class="text-xs text-trail-mid/70">缓→陡</span>
+                      </div>
+                    </div>
+                    <div id="fs-elevationLegend" class="hidden flex items-center gap-2">
+                      <span class="font-medium text-trail-mid/70 text-xs">海拔：</span>
+                      <div class="w-24 h-3 rounded grad-bar-elevation"></div>
+                      <span class="text-xs text-trail-mid/70">低→高</span>
+                    </div>
+                    <div class="flex items-center gap-3" style="display: flex; align-items: center; gap: 10px; margin-left: 4px;">
+                      <div class="flex items-center gap-1.5">
+                        <div class="w-2.5 h-2.5 rounded-full" style="background: #c54b3c; flex-shrink: 0;"></div>
+                        <span class="text-xs text-trail-mid/70">当前位置</span>
+                      </div>
+                      <div class="flex items-center gap-1.5">
+                        <div class="w-2.5 h-2.5 rounded-full" style="background: #5c7a52; flex-shrink: 0;"></div>
+                        <span class="text-xs text-trail-mid/70">起点</span>
+                      </div>
+                      <div class="flex items-center gap-1.5">
+                        <div class="w-2.5 h-2.5 rounded-full" style="background: #c54b3c; flex-shrink: 0;"></div>
+                        <span class="text-xs text-trail-mid/70">终点</span>
+                      </div>
+                    </div>
+                  </div>
+                `;
 
             document.getElementById('fullscreenProfileLegend').innerHTML = legendHtml;
 
@@ -5621,7 +5673,6 @@
                 }
             }
 
-            // ★★★ 初始化爬升模式（默认原始数据） ★★★
             setElevationMode('raw');
 
             document.getElementById('fileInput').addEventListener('change', (e) => {
@@ -5698,7 +5749,10 @@
                 });
             });
 
-            // ★★★ 初始化联动按钮状态 ★★★
+            // 初始化航路点按钮
+            updateWaypointButton();
+
+            // 联动按钮状态
             const initLinkageBtn = document.getElementById('mapLinkageBtn');
             if (initLinkageBtn) {
                 if (mapLinkageEnabled) {
@@ -5729,6 +5783,7 @@
         console.log('设备类型:', DEVICE_TYPE, IS_MOBILE ? '手机端' : '电脑端');
         console.log('爬升/下降模式:', elevationMode);
         console.log('地图联动状态:', mapLinkageEnabled ? '启用' : '禁用');
+        console.log('航路点显示模式:', waypointDisplayMode);
     </script>
 
 </body>

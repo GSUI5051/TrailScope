@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>TrailScope · GPX Trail Analysis</title>
+    <title>TrailScope · GPX Trail Analyzer</title>
     <script src="js/tailwind-3p4p17.js">
     </script>
     <link rel="stylesheet" href="css/leaflet-1p9p4.css" />
@@ -38,7 +38,7 @@
     <link href="css/fonts.css" rel="stylesheet">
     <link rel="stylesheet" href="css/all.min.css">
     <style>
-        /* 样式基本保持不变，只修改天气部分相关样式，这里省略原有样式重复，仅保留关键新增样式 */
+        /* 样式保持不变 */
         body {
             font-family: 'Inter', sans-serif;
         }
@@ -1194,9 +1194,10 @@
                             <i class="fa-solid fa-eye"></i>
                             <span id="annotationLabel">Hide Annotations</span>
                         </button>
-                        <button onclick="toggleWaypointNames()" id="waypointNameBtn" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">
+                        <!-- ★★★ 三状态按钮 ★★★ -->
+                        <button onclick="toggleWaypointDisplay()" id="waypointToggleBtn" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">
                             <i class="fa-solid fa-tag"></i>
-                            <span id="waypointNameLabel">Hide Waypoint Names</span>
+                            <span id="waypointToggleLabel">Hide Waypoint Names</span>
                         </button>
                         <button onclick="clearHighlight()" id="clearHighlightBtn" class="btn-sm-uniform hidden bg-accent-amber/20 text-accent-amber hover:bg-accent-amber/30">
                             <i class="fa-solid fa-eraser"></i>
@@ -1730,9 +1731,7 @@
                     unitSystem = sys;
                     document.getElementById('metricUnitBtn').classList.toggle('active', sys === 'metric');
                     document.getElementById('imperialUnitBtn').classList.toggle('active', sys === 'imperial');
-                    // 更新天气输入框的标签和placeholder
                     updateWeatherUnitLabelsAndPlaceholders();
-                    // 转换天气输入框中的数值
                     convertWeatherInputValues();
                     if (trackData) {
                         updateUI();
@@ -1792,7 +1791,6 @@
                 return this.pace(minPerKm, decimals) + ' ' + this.paceUnit();
             },
 
-            // 普通容积（用于非Water物品）
             volume(liters, decimals) {
                 decimals = decimals !== undefined ? decimals : 1;
                 if (unitSystem === 'imperial') {
@@ -1814,7 +1812,6 @@
                 return this.volume(liters, decimals) + ' ' + this.volumeUnit(liters);
             },
 
-            // ★★★ Water专用：始终使用oz（美制）★★★
             waterVolumeOz(liters) {
                 return (liters * 33.814).toFixed(1);
             },
@@ -1838,12 +1835,10 @@
 
         function inHgToHPa(inHg) { return inHg / 0.02952998; }
 
-        // 温度显示：保留整数
         function formatTempC(c) { return Math.round(c); }
 
         function formatTempF(f) { return Math.round(f); }
 
-        // 气压显示：保留两位小数
         function formatPressureInHg(inHg) { return inHg.toFixed(2); }
 
         // ================================================================
@@ -1852,119 +1847,38 @@
         function updateWeatherUnitLabelsAndPlaceholders() {
             const isMetric = unitSystem === 'metric';
 
-            // Temperature
             const tempLabel = document.getElementById('weatherTempLabel');
             const tempInput = document.getElementById('weatherTemp');
             if (tempLabel) tempLabel.textContent = 'Temperature / ' + (isMetric ? '°C' : '°F');
             if (tempInput) tempInput.placeholder = 'Unit: ' + (isMetric ? '℃' : '℉');
 
-            // Wind Speed
             const windLabel = document.getElementById('weatherWindLabel');
             const windInput = document.getElementById('weatherWind');
             if (windLabel) windLabel.textContent = 'Wind Speed / ' + (isMetric ? '(m·s⁻¹)' : '(mph)');
             if (windInput) windInput.placeholder = 'Unit: ' + (isMetric ? 'm/s' : 'mph');
 
-            // Wet Bulb Temperature
             const wbLabel = document.getElementById('wetBulbLabel');
             const wbInput = document.getElementById('wetBulbTemp');
             if (wbLabel) wbLabel.textContent = 'Wet Bulb Temperature / ' + (isMetric ? '°C' : '°F');
             if (wbInput) wbInput.placeholder = 'Unit: ' + (isMetric ? '℃' : '℉');
 
-            // Dew Point
             const dpLabel = document.getElementById('dewPointLabel');
             const dpInput = document.getElementById('dewPoint');
             if (dpLabel) dpLabel.textContent = 'Dew Point / ' + (isMetric ? '℃' : '℉');
             if (dpInput) dpInput.placeholder = 'Unit: ' + (isMetric ? '℃' : '℉');
 
-            // Pressure
             const pressureLabel = document.getElementById('pressureLabel');
             const pressureInput = document.getElementById('pressure');
             if (pressureLabel) pressureLabel.textContent = 'Air Pressure / ' + (isMetric ? 'hPa' : 'inHg');
             if (pressureInput) pressureInput.placeholder = 'Unit: ' + (isMetric ? 'hPa' : 'inHg');
         }
 
-        // ================================================================
-        // ★★★ 切换单位时转换天气输入框的数值 ★★★
-        // ================================================================
-        function convertWeatherInputValues() {
-            const isMetric = unitSystem === 'metric';
-
-            // 温度类：weatherTemp, wetBulbTemp, dewPoint
-            const tempIds = ['weatherTemp', 'wetBulbTemp', 'dewPoint'];
-            tempIds.forEach(id => {
-                const el = document.getElementById(id);
-                if (el && el.value !== '') {
-                    const val = parseFloat(el.value);
-                    if (!isNaN(val)) {
-                        // 当前显示的是公制还是英制？取决于当前单位制
-                        // 我们是在切换时调用，所以需要根据目标单位制转换
-                        // 但这里我们不知道之前是什么单位制，所以用存储的原始值？
-                        // 更好的方式：存储原始公制值
-                        // 但我们用简单方式：如果当前是metric，则输入值应为公制；如果是imperial，则输入值应为英制
-                        // 切换时，我们从当前值转换到目标值
-                        // 但我们没有存储原始值，所以直接用当前值转换
-                        // 问题：如果用户手动输入了数值，切换时我们假设当前值是当前单位制下的值
-                        // 但我们无法知道用户输入时是哪种单位制，所以用当前单位制作为基准
-                        // 更好的做法是存储一个"公制值"的备份，但为了简化，我们在切换时基于当前单位制转换
-                        // 但这里我们无法知道之前是什么单位制，所以用当前单位制作为源
-                        // 实际上，在setUnitSystem中，我们知道切换前的单位制
-                        // 所以我们可以把切换前的单位制作为参数传递
-                        // 但为了简化，我们用当前单位制作为目标，从当前值转换到目标值
-                        // 但这里我们不知道源单位制，所以用当前单位制作为源
-                        // 实际上，我们是在setUnitSystem中调用此函数，我们可以传递源单位制
-                        // 但为了简化，我们在setUnitSystem中直接处理
-                        // 我们重新设计：在setUnitSystem中，先获取当前值，然后转换
-                        // 但这里我们无法获取源单位制，所以用另一种方式
-                        // 我们存储一个数据属性来记录当前值的单位制
-                        // 但更简单的方式：在setUnitSystem中直接处理
-                        // 所以我们把这个函数改为在setUnitSystem中调用，并传递源单位制
-                        // 但为了保持接口简单，我们在setUnitSystem中直接处理
-                        // 好吧，我们重构一下
-                    }
-                }
-            });
-
-            // 实际上，我们应该在setUnitSystem中处理数值转换，而不是在这个函数中
-            // 这个函数只负责更新标签和placeholder
-            // 数值转换在setUnitSystem中完成
-        }
-
-        // ================================================================
-        // ★★★ 修改setUnitSystem以处理天气输入框 ★★★
-        // ================================================================
-        function setUnitSystem(sys) {
-            const oldSys = unitSystem;
-            if (sys === 'metric' || sys === 'imperial') {
-                // 如果单位制没有变化，直接返回
-                if (oldSys === sys) return;
-
-                // 转换天气输入框的数值
-                convertWeatherInputs(oldSys, sys);
-
-                // 更新单位制
-                UnitHelper.setSystem(sys);
-				const tempInput = document.getElementById('weatherTemp');
-				const humidityInput = document.getElementById('weatherHumidity');
-				if (tempInput && tempInput.value !== '' && humidityInput && humidityInput.value !== '') {
-					analyzeWeather();
-				}
-
-                // 更新标签和placeholder（在UnitHelper.setSystem中已经调用了updateWeatherUnitLabelsAndPlaceholders）
-                // 但我们需要确保标签和placeholder更新
-                updateWeatherUnitLabelsAndPlaceholders();
-            }
-        }
-
-        // ================================================================
-        // ★★★ 转换天气输入框的数值（从源单位制到目标单位制） ★★★
-        // ================================================================
         function convertWeatherInputs(fromSys, toSys) {
             if (fromSys === toSys) return;
 
             const isFromMetric = fromSys === 'metric';
             const isToMetric = toSys === 'metric';
 
-            // 温度类：weatherTemp, wetBulbTemp, dewPoint
             const tempIds = ['weatherTemp', 'wetBulbTemp', 'dewPoint'];
             tempIds.forEach(id => {
                 const el = document.getElementById(id);
@@ -1973,31 +1887,25 @@
                     if (!isNaN(val)) {
                         let newVal;
                         if (isFromMetric && !isToMetric) {
-                            // 公制 → 英制：℃ → ℉
                             newVal = celsiusToFahrenheit(val);
                         } else if (!isFromMetric && isToMetric) {
-                            // 英制 → 公制：℉ → ℃
                             newVal = fahrenheitToCelsius(val);
                         } else {
                             newVal = val;
                         }
-                        // 温度保留整数
                         el.value = Math.round(newVal);
                     }
                 }
             });
 
-            // 风速：weatherWind
             const windEl = document.getElementById('weatherWind');
             if (windEl && windEl.value !== '') {
                 const val = parseFloat(windEl.value);
                 if (!isNaN(val)) {
                     let newVal;
                     if (isFromMetric && !isToMetric) {
-                        // m/s → mph
                         newVal = mpsToMph(val);
                     } else if (!isFromMetric && isToMetric) {
-                        // mph → m/s
                         newVal = mphToMps(val);
                     } else {
                         newVal = val;
@@ -2006,20 +1914,17 @@
                 }
             }
 
-            // 气压：pressure
             const pressureEl = document.getElementById('pressure');
             if (pressureEl && pressureEl.value !== '') {
                 const val = parseFloat(pressureEl.value);
                 if (!isNaN(val)) {
                     let newVal;
                     if (isFromMetric && !isToMetric) {
-                        // hPa → inHg
                         newVal = hPaToInHg(val);
-						pressureEl.value = newVal.toFixed(2);
+                        pressureEl.value = newVal.toFixed(2);
                     } else if (!isFromMetric && isToMetric) {
-                        // inHg → hPa
                         newVal = inHgToHPa(val);
-						pressureEl.value = Math.round(newVal);
+                        pressureEl.value = Math.round(newVal);
                     } else {
                         pressureEl.value = val;
                     }
@@ -2031,8 +1936,6 @@
         // ★★★ 爬升/下降 模式管理 ★★★
         // ================================================================
         let elevationMode = 'raw';
-
-        // Map follow cursor (profile ↔ map linkage)
         let mapLinkageEnabled = true;
 
         function setElevationMode(mode) {
@@ -2120,7 +2023,8 @@
         let waypointMarkers = [];
         let segmentHighlightLayers = [];
         let showAnnotations = true;
-        let showWaypointNames = true;
+        // ★★★ 三状态变量 ★★★
+        let waypointDisplayMode = 'show-names'; // 'show-names', 'hide-names', 'hide-all'
         let segmentMode = 'auto';
         let hoveredPointIdx = -1;
         let selectedWaypoint = null;
@@ -2429,160 +2333,159 @@
             const total = ElevationCalculator.computeTotal(points, mode);
             trackData.totalAscent = total.ascent;
             trackData.totalDescent = total.descent;
-			// 重新计算平均坡度（使用新的总爬升）
             const totalHorizontalDistance = trackData.totalHorizontalDistance || 0;
-            trackData.avgGradient = totalHorizontalDistance > 0 ? (trackData.totalAscent / (totalHorizontalDistance * 1000)) * 100 : 0;
+            trackData.avgGradient = totalHorizontalDistance > 0 ? (trackData.totalAscent / (totalHorizontalDistance * 1000)) *
+                100 : 0;
         }
 
-		function processTrack(points, waypoints) {
-			if (points.length < 2) return null;
+        function processTrack(points, waypoints) {
+            if (points.length < 2) return null;
 
-			let hasElevation = points.some(p => p.ele !== null);
-			if (!hasElevation) {
-				points.forEach((p, i) => {
-					p.ele = 800 + Math.sin(i * 0.05) * 200 + Math.sin(i * 0.15) * 100 + Math.random() * 20;
-				});
-			} else {
-				for (let i = 0; i < points.length; i++) {
-					if (points[i].ele === null) {
-						let prev = i - 1,
-							next = i + 1;
-						while (prev >= 0 && points[prev].ele === null) prev--;
-						while (next < points.length && points[next].ele === null) next++;
-						if (prev >= 0 && next < points.length) {
-							points[i].ele = (points[prev].ele + points[next].ele) / 2;
-						} else if (prev >= 0) {
-							points[i].ele = points[prev].ele;
-						} else if (next < points.length) {
-							points[i].ele = points[next].ele;
-						}
-					}
-				}
-			}
+            let hasElevation = points.some(p => p.ele !== null);
+            if (!hasElevation) {
+                points.forEach((p, i) => {
+                    p.ele = 800 + Math.sin(i * 0.05) * 200 + Math.sin(i * 0.15) * 100 + Math.random() * 20;
+                });
+            } else {
+                for (let i = 0; i < points.length; i++) {
+                    if (points[i].ele === null) {
+                        let prev = i - 1,
+                            next = i + 1;
+                        while (prev >= 0 && points[prev].ele === null) prev--;
+                        while (next < points.length && points[next].ele === null) next++;
+                        if (prev >= 0 && next < points.length) {
+                            points[i].ele = (points[prev].ele + points[next].ele) / 2;
+                        } else if (prev >= 0) {
+                            points[i].ele = points[prev].ele;
+                        } else if (next < points.length) {
+                            points[i].ele = points[next].ele;
+                        }
+                    }
+                }
+            }
 
-			let totalDistance = 0;
-			let totalHorizontalDistance = 0;
-			let maxElevation = -Infinity;
-			let minElevation = Infinity;
+            let totalDistance = 0;
+            let totalHorizontalDistance = 0;
+            let maxElevation = -Infinity;
+            let minElevation = Infinity;
 
-			let uphillDistance = 0;
-			let downhillDistance = 0;
-			let flatDistance = 0;
-			let uphillMaxGradient = 0;
-			let downhillMaxGradient = 0;
-			let uphillAvgGradient = 0;
-			let downhillAvgGradient = 0;
-			let uphillGradientSum = 0;
-			let downhillGradientSum = 0;
-			let uphillCount = 0;
-			let downhillCount = 0;
+            let uphillDistance = 0;
+            let downhillDistance = 0;
+            let flatDistance = 0;
+            let uphillMaxGradient = 0;
+            let downhillMaxGradient = 0;
+            let uphillAvgGradient = 0;
+            let downhillAvgGradient = 0;
+            let uphillGradientSum = 0;
+            let downhillGradientSum = 0;
+            let uphillCount = 0;
+            let downhillCount = 0;
 
-			points[0].distance = 0;
-			points[0].horizontalDistance = 0;
-			points[0].gradient = 0;
+            points[0].distance = 0;
+            points[0].horizontalDistance = 0;
+            points[0].gradient = 0;
 
-			for (let i = 1; i < points.length; i++) {
-				const horizontalDist = haversine(points[i - 1].lat, points[i - 1].lon, points[i].lat, points[i].lon);
-				const elevDiff = points[i].ele - points[i - 1].ele;
+            for (let i = 1; i < points.length; i++) {
+                const horizontalDist = haversine(points[i - 1].lat, points[i - 1].lon, points[i].lat, points[i].lon);
+                const elevDiff = points[i].ele - points[i - 1].ele;
 
-				const dist3D = calculate3DDistance(
-					points[i - 1].lat, points[i - 1].lon, points[i - 1].ele,
-					points[i].lat, points[i].lon, points[i].ele
-				);
+                const dist3D = calculate3DDistance(
+                    points[i - 1].lat, points[i - 1].lon, points[i - 1].ele,
+                    points[i].lat, points[i].lon, points[i].ele
+                );
 
-				totalDistance += dist3D;
-				totalHorizontalDistance += horizontalDist;
-				points[i].distance = totalDistance;
-				points[i].horizontalDistance = totalHorizontalDistance;
+                totalDistance += dist3D;
+                totalHorizontalDistance += horizontalDist;
+                points[i].distance = totalDistance;
+                points[i].horizontalDistance = totalHorizontalDistance;
 
-				if (points[i].ele > maxElevation) maxElevation = points[i].ele;
-				if (points[i].ele < minElevation) minElevation = points[i].ele;
+                if (points[i].ele > maxElevation) maxElevation = points[i].ele;
+                if (points[i].ele < minElevation) minElevation = points[i].ele;
 
-				const gradient = horizontalDist > 0 ? (elevDiff / (horizontalDist * 1000)) * 100 : 0;
-				points[i].gradient = gradient;
+                const gradient = horizontalDist > 0 ? (elevDiff / (horizontalDist * 1000)) * 100 : 0;
+                points[i].gradient = gradient;
 
-				if (gradient > 1) {
-					uphillDistance += dist3D;
-					uphillGradientSum += gradient;
-					uphillCount++;
-				} else if (gradient < -1) {
-					downhillDistance += dist3D;
-					downhillGradientSum += gradient;
-					downhillCount++;
-				} else {
-					flatDistance += dist3D;
-				}
-			}
+                if (gradient > 1) {
+                    uphillDistance += dist3D;
+                    uphillGradientSum += gradient;
+                    uphillCount++;
+                } else if (gradient < -1) {
+                    downhillDistance += dist3D;
+                    downhillGradientSum += gradient;
+                    downhillCount++;
+                } else {
+                    flatDistance += dist3D;
+                }
+            }
 
-			uphillAvgGradient = uphillCount > 0 ? uphillGradientSum / uphillCount : 0;
-			downhillAvgGradient = downhillCount > 0 ? downhillGradientSum / downhillCount : 0;
+            uphillAvgGradient = uphillCount > 0 ? uphillGradientSum / uphillCount : 0;
+            downhillAvgGradient = downhillCount > 0 ? downhillGradientSum / downhillCount : 0;
 
-			const windowSize = Math.min(5, Math.floor(points.length / 10));
-			if (windowSize > 1) {
-				for (let i = 0; i < points.length; i++) {
-					let sum = 0,
-						count = 0;
-					for (let j = Math.max(0, i - windowSize); j <= Math.min(points.length - 1, i + windowSize); j++) {
-						sum += points[j].gradient;
-						count++;
-					}
-					points[i].smoothedGradient = sum / count;
-				}
-			} else {
-				points.forEach(p => p.smoothedGradient = p.gradient);
-			}
+            const windowSize = Math.min(5, Math.floor(points.length / 10));
+            if (windowSize > 1) {
+                for (let i = 0; i < points.length; i++) {
+                    let sum = 0,
+                        count = 0;
+                    for (let j = Math.max(0, i - windowSize); j <= Math.min(points.length - 1, i + windowSize); j++) {
+                        sum += points[j].gradient;
+                        count++;
+                    }
+                    points[i].smoothedGradient = sum / count;
+                }
+            } else {
+                points.forEach(p => p.smoothedGradient = p.gradient);
+            }
 
-			uphillMaxGradient = 0;
-			downhillMaxGradient = 0;
+            uphillMaxGradient = 0;
+            downhillMaxGradient = 0;
 
-			for (let i = 1; i < points.length; i++) {
-				if (points[i].smoothedGradient > 0) {
-					uphillMaxGradient = Math.max(uphillMaxGradient, points[i].smoothedGradient);
-				} else if (points[i].smoothedGradient < 0) {
-					downhillMaxGradient = Math.min(downhillMaxGradient, points[i].smoothedGradient);
-				}
-			}
+            for (let i = 1; i < points.length; i++) {
+                if (points[i].smoothedGradient > 0) {
+                    uphillMaxGradient = Math.max(uphillMaxGradient, points[i].smoothedGradient);
+                } else if (points[i].smoothedGradient < 0) {
+                    downhillMaxGradient = Math.min(downhillMaxGradient, points[i].smoothedGradient);
+                }
+            }
 
-			// ★★★ 修复点：先计算总爬升，再计算平均坡度 ★★★
-			const mode = elevationMode || 'raw';
-			const totalElev = ElevationCalculator.computeTotal(points, mode);
-			const avgGradient = totalHorizontalDistance > 0 ? (totalElev.ascent / (totalHorizontalDistance * 1000)) * 100 : 0;
+            const mode = elevationMode || 'raw';
+            const totalElev = ElevationCalculator.computeTotal(points, mode);
+            const avgGradient = totalHorizontalDistance > 0 ? (totalElev.ascent / (totalHorizontalDistance * 1000)) * 100 : 0;
 
-			const matchedWaypoints = waypoints.map(wp => {
-				const nearestIdx = findNearestPointIndex(points, wp.lat, wp.lon);
-				return {
-					...wp,
-					trackIdx: nearestIdx,
-					distance: points[nearestIdx].distance,
-					elevation: wp.ele || points[nearestIdx].ele
-				};
-			});
+            const matchedWaypoints = waypoints.map(wp => {
+                const nearestIdx = findNearestPointIndex(points, wp.lat, wp.lon);
+                return {
+                    ...wp,
+                    trackIdx: nearestIdx,
+                    distance: points[nearestIdx].distance,
+                    elevation: wp.ele || points[nearestIdx].ele
+                };
+            });
 
-			matchedWaypoints.sort((a, b) => a.distance - b.distance);
+            matchedWaypoints.sort((a, b) => a.distance - b.distance);
 
-			const maxZoom = Math.max(1, totalDistance / 1);
+            const maxZoom = Math.max(1, totalDistance / 1);
 
-			return {
-				points,
-				waypoints: matchedWaypoints,
-				totalDistance,
-				totalHorizontalDistance,
-				totalAscent: totalElev.ascent,
-				totalDescent: totalElev.descent,
-				maxElevation,
-				minElevation,
-				elevationRange: maxElevation - minElevation,
-				uphillDistance,
-				downhillDistance,
-				flatDistance,
-				uphillMaxGradient,
-				downhillMaxGradient,
-				uphillAvgGradient,
-				downhillAvgGradient,
-				avgGradient,
-				maxZoomLevel: maxZoom
-			};
-		}
+            return {
+                points,
+                waypoints: matchedWaypoints,
+                totalDistance,
+                totalHorizontalDistance,
+                totalAscent: totalElev.ascent,
+                totalDescent: totalElev.descent,
+                maxElevation,
+                minElevation,
+                elevationRange: maxElevation - minElevation,
+                uphillDistance,
+                downhillDistance,
+                flatDistance,
+                uphillMaxGradient,
+                downhillMaxGradient,
+                uphillAvgGradient,
+                downhillAvgGradient,
+                avgGradient,
+                maxZoomLevel: maxZoom
+            };
+        }
 
         function getGradientLabel(gradient) {
             const absGrad = Math.abs(gradient);
@@ -2639,7 +2542,7 @@
             }
         }
 
-        // ===== drawChart (unchanged except unit labels) =====
+        // ===== drawChart — 修改航路点绘制逻辑 =====
         function drawChart() {
             if (!trackData) return;
 
@@ -2834,7 +2737,12 @@
             }
 
             drawStartEndMarkers(ctx, points, xScale, yScale, viewStart, viewEnd);
-            drawWaypoints(ctx, trackData.waypoints, xScale, yScale, viewStart, viewEnd);
+
+            // ★★★ 航路点绘制：根据三状态决定 ★★★
+            if (waypointDisplayMode !== 'hide-all') {
+                const showNames = (waypointDisplayMode === 'show-names');
+                drawWaypoints(ctx, trackData.waypoints, xScale, yScale, viewStart, viewEnd, showNames);
+            }
 
             if (IS_MOBILE && touchState.vlineActive && touchState.vlineIdx >= 0) {
                 const pt = points[touchState.vlineIdx];
@@ -2963,7 +2871,7 @@
             }
         }
 
-        function drawWaypoints(ctx, waypoints, xScale, yScale, viewStart, viewEnd) {
+        function drawWaypoints(ctx, waypoints, xScale, yScale, viewStart, viewEnd, showNames) {
             waypoints.forEach((wp) => {
                 if (wp.distance < viewStart || wp.distance > viewEnd) return;
 
@@ -2983,7 +2891,7 @@
                 ctx.fill();
                 ctx.stroke();
 
-                if (showWaypointNames) {
+                if (showNames) {
                     const shortName = wp.name.length > 8 ? wp.name.substring(0, 7) + '…' : wp.name;
                     ctx.font = '500 10px Inter, sans-serif';
                     ctx.textAlign = 'center';
@@ -3271,6 +3179,7 @@
             if (trackData) drawMap(true);
         }
 
+        // ★★★ drawMap — 根据三状态绘制航路点 ★★★
         function drawMap(skipFit = false) {
             if (!trackData || !leafletMap) return;
 
@@ -3335,59 +3244,64 @@
                 .addTo(leafletMap);
             trackLayers.push(endMarker);
 
-            trackData.waypoints.forEach((wp) => {
-                const wpIcon = L.divIcon({
-                    className: '',
-                    html: '<div class="custom-marker"><i class="fa-solid fa-map-pin" style="font-size: 10px;"></i></div>',
-                    iconSize: [20, 20],
-                    iconAnchor: [10, 10]
-                });
+            // ★★★ 只有在非 hide-all 状态下才绘制航路点 ★★★
+            if (waypointDisplayMode !== 'hide-all') {
+                const showNames = (waypointDisplayMode === 'show-names');
+                trackData.waypoints.forEach((wp) => {
+                    const wpIcon = L.divIcon({
+                        className: '',
+                        html: '<div class="custom-marker"><i class="fa-solid fa-map-pin" style="font-size: 10px;"></i></div>',
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 10]
+                    });
 
-                const marker = L.marker(displayWaypointLatLng(wp), { icon: wpIcon })
-                    .addTo(leafletMap);
+                    const marker = L.marker(displayWaypointLatLng(wp), { icon: wpIcon })
+                        .addTo(leafletMap);
 
-                const popupContent = `
-              <div class="waypoint-popup-content">
-                <strong>${wp.name}</strong><br/>
-                <span class="waypoint-info-line">Distance: ${UnitHelper.distanceLabel(wp.distance, 2)}</span><br/>
-                <span class="waypoint-info-line">Elevation: ${UnitHelper.elevationLabel(wp.elevation, 0)}</span><br/>
-              </div>
-            `;
+                    if (showNames) {
+                        const popupContent = `
+                            <div class="waypoint-popup-content">
+                              <strong>${wp.name}</strong><br/>
+                              <span class="waypoint-info-line">Distance: ${UnitHelper.distanceLabel(wp.distance, 2)}</span><br/>
+                              <span class="waypoint-info-line">Elevation: ${UnitHelper.elevationLabel(wp.elevation, 0)}</span><br/>
+                            </div>
+                          `;
+                        marker.bindPopup(popupContent, {
+                            closeButton: false,
+                            offset: [0, -10],
+                            autoClose: false,
+                            closeOnClick: false
+                        });
 
-                marker.bindPopup(popupContent, {
-                    closeButton: false,
-                    offset: [0, -10],
-                    autoClose: false,
-                    closeOnClick: false
-                });
+                        marker.on('mouseover', function(e) {
+                            if (!isWaypointInfoPinned) {
+                                marker.openPopup();
+                            }
+                        });
 
-                marker.on('mouseover', function(e) {
-                    if (!isWaypointInfoPinned) {
-                        marker.openPopup();
+                        marker.on('mouseout', function(e) {
+                            if (!isWaypointInfoPinned) {
+                                marker.closePopup();
+                            }
+                        });
+
+                        marker.on('click', function(e) {
+                            L.DomEvent.stopPropagation(e);
+                            if (isWaypointInfoPinned && selectedWaypointMarker === marker) {
+                                marker.closePopup();
+                                isWaypointInfoPinned = false;
+                                selectedWaypointMarker = null;
+                            } else {
+                                marker.openPopup();
+                                isWaypointInfoPinned = true;
+                                selectedWaypointMarker = marker;
+                            }
+                        });
                     }
-                });
 
-                marker.on('mouseout', function(e) {
-                    if (!isWaypointInfoPinned) {
-                        marker.closePopup();
-                    }
+                    waypointMarkers.push(marker);
                 });
-
-                marker.on('click', function(e) {
-                    L.DomEvent.stopPropagation(e);
-                    if (isWaypointInfoPinned && selectedWaypointMarker === marker) {
-                        marker.closePopup();
-                        isWaypointInfoPinned = false;
-                        selectedWaypointMarker = null;
-                    } else {
-                        marker.openPopup();
-                        isWaypointInfoPinned = true;
-                        selectedWaypointMarker = marker;
-                    }
-                });
-
-                waypointMarkers.push(marker);
-            });
+            }
 
             if (!skipFit) {
                 fitMapToTrack();
@@ -3457,12 +3371,10 @@
             currentMarker = L.marker(displayLatLng(pt), { icon: currentIcon })
                 .addTo(leafletMap);
 
-            // Map pan is controlled by Follow Cursor switch
             if (mapLinkageEnabled) {
                 const displayPos = displayLatLng(pt);
                 leafletMap.panTo(displayPos, { animate: false });
 
-                // In fullscreen, offset upward by half the profile panel height
                 if (document.getElementById('mapContainer').classList.contains('map-fullscreen-chart')) {
                     const profile = document.querySelector('.fullscreen-profile');
                     if (profile) {
@@ -3647,7 +3559,7 @@
             drawChart();
         }
 
-        // ===== setupChartInteraction (unchanged) =====
+        // ===== setupChartInteraction — 修改航路点悬停/点击逻辑 =====
         function setupChartInteraction() {
             const canvas = chartCanvas;
             const tooltip = canvas._tooltip || document.getElementById('chartTooltip');
@@ -3709,28 +3621,31 @@
                 hoveredPointIdx = nearestIdx;
                 const pt = points[nearestIdx];
 
+                // ★★★ 航路点悬停检测 ★★★
                 let waypointHover = null;
-                for (let i = 0; i < trackData.waypoints.length; i++) {
-                    const wp = trackData.waypoints[i];
-                    if (Math.abs(wp.distance - pt.distance) < (trackData.totalDistance / points.length) * 3) {
-                        waypointHover = wp;
-                        break;
+                if (waypointDisplayMode !== 'hide-all') {
+                    for (let i = 0; i < trackData.waypoints.length; i++) {
+                        const wp = trackData.waypoints[i];
+                        if (Math.abs(wp.distance - pt.distance) < (trackData.totalDistance / points.length) * 3) {
+                            waypointHover = wp;
+                            break;
+                        }
                     }
                 }
 
                 if (waypointHover) {
                     tooltip.innerHTML = `
-                <div style="font-weight: 700; margin-bottom: 4px; color: #d4a017;">📍 ${waypointHover.name}</div>
-                <div>Distance: <span style="font-weight: 600;">${UnitHelper.distanceLabel(pt.distance, 2)}</span></div>
-                <div>Elevation: <span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${UnitHelper.elevationLabel(pt.ele, 0)}</span></div>
-                <div>Grade: <span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
-              `;
+                        <div style="font-weight: 700; margin-bottom: 4px; color: #d4a017;">📍 ${waypointHover.name}</div>
+                        <div>Distance: <span style="font-weight: 600;">${UnitHelper.distanceLabel(pt.distance, 2)}</span></div>
+                        <div>Elevation: <span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${UnitHelper.elevationLabel(pt.ele, 0)}</span></div>
+                        <div>Grade: <span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
+                      `;
                 } else {
                     tooltip.innerHTML = `
-                <div>Distance: <span style="font-weight: 600;">${UnitHelper.distanceLabel(pt.distance, 2)}</span></div>
-                <div>Elevation: <span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${UnitHelper.elevationLabel(pt.ele, 0)}</span></div>
-                <div>Grade: <span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
-              `;
+                        <div>Distance: <span style="font-weight: 600;">${UnitHelper.distanceLabel(pt.distance, 2)}</span></div>
+                        <div>Elevation: <span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${UnitHelper.elevationLabel(pt.ele, 0)}</span></div>
+                        <div>Grade: <span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
+                      `;
                 }
 
                 tooltip.classList.add('visible');
@@ -3764,6 +3679,8 @@
             canvas.addEventListener('click', function(e) {
                 if (IS_MOBILE) return;
                 if (!trackData || !canvas._scale || isDragging) return;
+                // ★★★ 只有在显示名称时才响应点击 ★★★
+                if (waypointDisplayMode !== 'show-names') return;
 
                 const rect = canvas.getBoundingClientRect();
                 const x = e.clientX - rect.left;
@@ -3957,13 +3874,14 @@
                 if (!trackData || !canvas._scale) return;
                 e.preventDefault();
 
-                if (touchState.isTouching && !touchState.isDragging && touchState.isTap && !touchState.isPinching) {
+                // ★★★ 只有在显示名称时才处理点击航路点 ★★★
+                if (waypointDisplayMode === 'show-names' && touchState.isTouching && !touchState.isDragging && touchState
+                    .isTap && !touchState.isPinching) {
                     const x = touchState.startX;
                     const y = touchState.startY;
 
                     const { xScale, yScale, padding, chartW, chartH, W, H, viewStart, viewEnd } = canvas._scale;
 
-                    let waypointFound = false;
                     for (let i = 0; i < trackData.waypoints.length; i++) {
                         const wp = trackData.waypoints[i];
                         if (wp.distance < viewStart || wp.distance > viewEnd) continue;
@@ -3974,7 +3892,6 @@
 
                         if (dist < 16) {
                             showWaypointInfo(wp);
-                            waypointFound = true;
                             break;
                         }
                     }
@@ -3986,27 +3903,33 @@
                     if (touchState.vlineIdx >= 0 && touchState.vlineIdx < trackData.points.length) {
                         const pt = trackData.points[touchState.vlineIdx];
                         const points = trackData.points;
+
+                        // ★★★ 航路点悬停检测 ★★★
                         let waypointHover = null;
-                        for (let i = 0; i < trackData.waypoints.length; i++) {
-                            const wp = trackData.waypoints[i];
-                            if (Math.abs(wp.distance - pt.distance) < (trackData.totalDistance / points.length) * 3) {
-                                waypointHover = wp;
-                                break;
+                        if (waypointDisplayMode !== 'hide-all') {
+                            for (let i = 0; i < trackData.waypoints.length; i++) {
+                                const wp = trackData.waypoints[i];
+                                if (Math.abs(wp.distance - pt.distance) < (trackData.totalDistance / points.length) *
+                                    3) {
+                                    waypointHover = wp;
+                                    break;
+                                }
                             }
                         }
+
                         if (waypointHover) {
                             tooltip.innerHTML = `
-                        <div style="font-weight: 700; margin-bottom: 4px; color: #d4a017;">📍 ${waypointHover.name}</div>
-                        <div>Distance: <span style="font-weight: 600;">${UnitHelper.distanceLabel(pt.distance, 2)}</span></div>
-                        <div>Elevation: <span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${UnitHelper.elevationLabel(pt.ele, 0)}</span></div>
-                        <div>Grade: <span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
-                      `;
+                                <div style="font-weight: 700; margin-bottom: 4px; color: #d4a017;">📍 ${waypointHover.name}</div>
+                                <div>Distance: <span style="font-weight: 600;">${UnitHelper.distanceLabel(pt.distance, 2)}</span></div>
+                                <div>Elevation: <span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${UnitHelper.elevationLabel(pt.ele, 0)}</span></div>
+                                <div>Grade: <span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
+                              `;
                         } else {
                             tooltip.innerHTML = `
-                        <div>Distance: <span style="font-weight: 600;">${UnitHelper.distanceLabel(pt.distance, 2)}</span></div>
-                        <div>Elevation: <span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${UnitHelper.elevationLabel(pt.ele, 0)}</span></div>
-                        <div>Grade: <span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
-                      `;
+                                <div>Distance: <span style="font-weight: 600;">${UnitHelper.distanceLabel(pt.distance, 2)}</span></div>
+                                <div>Elevation: <span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${UnitHelper.elevationLabel(pt.ele, 0)}</span></div>
+                                <div>Grade: <span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
+                              `;
                         }
                         tooltip.classList.add('visible');
                         const canvasRect = canvas.getBoundingClientRect();
@@ -4081,28 +4004,31 @@
 
                 const pt = points[nearestIdx];
 
+                // ★★★ 航路点悬停检测 ★★★
                 let waypointHover = null;
-                for (let i = 0; i < trackData.waypoints.length; i++) {
-                    const wp = trackData.waypoints[i];
-                    if (Math.abs(wp.distance - pt.distance) < (trackData.totalDistance / points.length) * 3) {
-                        waypointHover = wp;
-                        break;
+                if (waypointDisplayMode !== 'hide-all') {
+                    for (let i = 0; i < trackData.waypoints.length; i++) {
+                        const wp = trackData.waypoints[i];
+                        if (Math.abs(wp.distance - pt.distance) < (trackData.totalDistance / points.length) * 3) {
+                            waypointHover = wp;
+                            break;
+                        }
                     }
                 }
 
                 if (waypointHover) {
                     tooltip.innerHTML = `
-                <div style="font-weight: 700; margin-bottom: 4px; color: #d4a017;">📍 ${waypointHover.name}</div>
-                <div>Distance: <span style="font-weight: 600;">${UnitHelper.distanceLabel(pt.distance, 2)}</span></div>
-                <div>Elevation: <span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${UnitHelper.elevationLabel(pt.ele, 0)}</span></div>
-                <div>Grade: <span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
-              `;
+                        <div style="font-weight: 700; margin-bottom: 4px; color: #d4a017;">📍 ${waypointHover.name}</div>
+                        <div>Distance: <span style="font-weight: 600;">${UnitHelper.distanceLabel(pt.distance, 2)}</span></div>
+                        <div>Elevation: <span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${UnitHelper.elevationLabel(pt.ele, 0)}</span></div>
+                        <div>Grade: <span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
+                      `;
                 } else {
                     tooltip.innerHTML = `
-                <div>Distance: <span style="font-weight: 600;">${UnitHelper.distanceLabel(pt.distance, 2)}</span></div>
-                <div>Elevation: <span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${UnitHelper.elevationLabel(pt.ele, 0)}</span></div>
-                <div>Grade: <span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
-              `;
+                        <div>Distance: <span style="font-weight: 600;">${UnitHelper.distanceLabel(pt.distance, 2)}</span></div>
+                        <div>Elevation: <span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${UnitHelper.elevationLabel(pt.ele, 0)}</span></div>
+                        <div>Grade: <span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
+                      `;
                 }
 
                 tooltip.classList.add('visible');
@@ -4132,6 +4058,63 @@
             window.clearMobileVLine = clearMobileVLine;
         }
 
+        // ================================================================
+        // ★★★ 三状态切换函数 ★★★
+        // ================================================================
+        function toggleWaypointDisplay() {
+            if (waypointDisplayMode === 'show-names') {
+                waypointDisplayMode = 'hide-names';
+            } else if (waypointDisplayMode === 'hide-names') {
+                waypointDisplayMode = 'hide-all';
+            } else {
+                waypointDisplayMode = 'show-names';
+            }
+
+            if (waypointDisplayMode === 'hide-all') {
+                closeWaypointInfo();
+                waypointMarkers.forEach(marker => {
+                    try { marker.closePopup(); } catch (e) {}
+                });
+                if (selectedWaypointMarker) {
+                    selectedWaypointMarker.closePopup();
+                    selectedWaypointMarker = null;
+                }
+                isWaypointInfoPinned = false;
+            }
+
+            updateWaypointButton();
+
+            if (trackData) {
+                drawMap(true);
+                drawChart();
+            }
+        }
+
+        function updateWaypointButton() {
+            const btn = document.getElementById('waypointToggleBtn');
+            const label = document.getElementById('waypointToggleLabel');
+			const fsBtn = document.getElementById('fullscreenWaypointToggleBtn');
+			const fsLabel = document.getElementById('fullscreenWaypointToggleLabel');
+
+            let icon, text;
+            if (waypointDisplayMode === 'show-names') {
+                icon = 'fa-tag';
+                text = 'Hide Waypoint Names';
+            } else if (waypointDisplayMode === 'hide-names') {
+                icon = 'fa-eye-slash';
+                text = 'Hide All Waypoints';
+            } else {
+                icon = 'fa-tag';
+                text = 'Show Waypoint Names';
+            }
+
+			if (btn) btn.innerHTML = `<i class="fa-solid ${icon}"></i> <span id="waypointToggleLabel">${text}</span>`;
+			if (fsBtn) fsBtn.innerHTML = `<i class="fa-solid ${icon}"></i> <span id="fullscreenWaypointToggleLabel">${text}</span>`;
+		}
+
+        // ================================================================
+        // 其他功能函数
+        // ================================================================
         function showWaypointInfo(wp) {
             const info = document.getElementById('waypointInfo');
             info.classList.remove('hidden');
@@ -4241,18 +4224,16 @@
         }
 
         // ================================================================
-        // ★★★ analyzeWeather - 支持单位切换 ★★★
+        // analyzeWeather (不变)
         // ================================================================
         function analyzeWeather() {
             const isMetric = unitSystem === 'metric';
 
-            // 读取输入值（当前单位制下的值）
             let tempInput = document.getElementById('weatherTemp').value.trim();
             let humidityInput = document.getElementById('weatherHumidity').value.trim();
             let windInput = document.getElementById('weatherWind').value.trim();
             const type = document.getElementById('weatherType').value;
 
-            // 基础验证
             if (tempInput === '' || humidityInput === '') {
                 alert('No sufficient data to analyze Weather! \n\n· BOTH Temperature and Humidity are required.');
                 return;
@@ -4267,11 +4248,9 @@
                 return;
             }
 
-            // 转换为公制用于内部计算
             let tempC = isMetric ? temp : fahrenheitToCelsius(temp);
             let windMs = isMetric ? wind : mphToMps(wind);
 
-            // 数据合理性检查（使用公制值）
             const invalid = (type.includes('Snow') && (tempC > 8 || humidity < 15)) ||
                 tempC > 45 || tempC < -60 || humidity < 0 || humidity > 100;
             if (invalid) {
@@ -4294,7 +4273,6 @@
             const tips = [];
             let heatIndexC = tempC;
 
-            // Heat Index (公制)
             if (tempC >= 27 && humidity >= 40) {
                 const T_F = tempC * 9 / 5 + 32;
                 const RH = humidity;
@@ -4315,7 +4293,6 @@
                 return `<div class="weather-tip-row"><span class="weather-tip-icon ${colorClass}"><i class="fa-solid ${icon}"></i></span><span class="weather-tip-text ${colorClass} font-semibold">${text}</span></div>`;
             };
 
-            // 生成提示（使用公制判断，显示时转换）
             if (heatIndexC >= 35) {
                 let msg = isMetric ?
                     'Extreme heat conditions (heat index ≥ 35°C): Long-distance hiking is not recommended. Avoid the hottest part of the day, carry sufficient water, and take additional heat precautions.' :
@@ -4328,19 +4305,24 @@
                 tips.push(makeTip('fa-temperature-full', msg, 'text-accent-amber'));
             }
             if (type.includes('typhoon') || windMs >= 32) {
-                tips.push(makeTip('fa-hurricane', 'Typhoon or severe wind conditions: Outdoor activities may be unsafe. Consider postponing your hike and avoid exposed terrain.', 'text-accent-red'));
+                tips.push(makeTip('fa-hurricane', 'Typhoon or severe wind conditions: Outdoor activities may be unsafe. Consider postponing your hike and avoid exposed terrain.',
+                    'text-accent-red'));
             }
             if (tempC <= 5) {
-                tips.push(makeTip('fa-temperature-empty', 'Cold conditions: Wear appropriate layers and carry sufficient insulation to reduce the risk of hypothermia.', 'text-accent-blue'));
+                tips.push(makeTip('fa-temperature-empty', 'Cold conditions: Wear appropriate layers and carry sufficient insulation to reduce the risk of hypothermia.',
+                    'text-accent-blue'));
             }
             if (type.includes('Showers') || type.includes('Light Rain')) {
-                tips.push(makeTip('fa-cloud-rain', 'Rainy conditions: Bring waterproof gear and use caution on wet, slippery trails.', 'text-accent-blue'));
+                tips.push(makeTip('fa-cloud-rain', 'Rainy conditions: Bring waterproof gear and use caution on wet, slippery trails.',
+                    'text-accent-blue'));
             }
             if (type.includes('Moderate')) {
-                tips.push(makeTip('fa-cloud-showers-heavy', 'Heavy rain conditions: Trail conditions may become hazardous. Consider postponing your hike, especially on steep or exposed routes.', 'text-accent-red'));
+                tips.push(makeTip('fa-cloud-showers-heavy', 'Heavy rain conditions: Trail conditions may become hazardous. Consider postponing your hike, especially on steep or exposed routes.',
+                    'text-accent-red'));
             }
             if (windMs >= 8) {
-                tips.push(makeTip('fa-wind', 'Strong winds: Add wind protection layers and use caution on exposed ridges and open terrain.', 'text-accent-blue'));
+                tips.push(makeTip('fa-wind', 'Strong winds: Add wind protection layers and use caution on exposed ridges and open terrain.',
+                    'text-accent-blue'));
             }
 
             const rows = [];
@@ -4351,7 +4333,6 @@
                 rows.push(makeTip('fa-check', 'Current weather condition is safe for hiking.', 'text-trail-moss'));
             }
 
-            // ===== 高级天气分析 (WBGT) =====
             if (advancedPanelOpen) {
                 const wetBulbInput = document.getElementById('wetBulbTemp').value.trim();
                 const dewPointInput = document.getElementById('dewPoint').value.trim();
@@ -4368,9 +4349,9 @@
                     pressureInput !== '';
 
                 if (!allAdvancedFilled) {
-                    rows.push(makeTip('fa-triangle-exclamation', 'No sufficient data for advanced weather analysis.', 'text-accent-amber'));
+                    rows.push(makeTip('fa-triangle-exclamation', 'No sufficient data for advanced weather analysis.',
+                        'text-accent-amber'));
                 } else {
-                    // 读取高级输入（当前单位制）
                     let wbVal = Number(wetBulbInput);
                     let dpVal = Number(dewPointInput);
                     let sVal = Number(solarRadInput);
@@ -4383,12 +4364,10 @@
                         return;
                     }
 
-                    // 转换为公制
                     let wbC = isMetric ? wbVal : fahrenheitToCelsius(wbVal);
                     let dpC = isMetric ? dpVal : fahrenheitToCelsius(dpVal);
                     let pressureHPa = isMetric ? pVal : inHgToHPa(pVal);
 
-                    // 数据合理性检查（公制）
                     const errors = [];
                     if (windMs < 0 || windMs > 150) {
                         errors.push('Wind Speed: 0 ~ 150 m/s' + (isMetric ? '' : ' (0 ~ 335 mph)'));
@@ -4430,7 +4409,6 @@
                         return;
                     }
 
-                    // WBGT 计算（公制）
                     const angleRad = angleDeg * Math.PI / 180;
                     const e = 6.112 * Math.exp((17.67 * dpC) / (dpC + 243.5)) * (1.0007 + 0.00000346 * pressureHPa);
                     const emissivity = 0.575 * Math.pow(e, 1 / 7);
@@ -4442,7 +4420,6 @@
                     const Tg = (B + C * tempC + 7680000) / (C + 256000);
                     const WBGT = 0.7 * Tnwb + 0.2 * Tg + 0.1 * tempC;
 
-                    // WBGT 显示（双单位）
                     let wbgtDisplay = isMetric ?
                         WBGT.toFixed(1) + '℃ / ' + celsiusToFahrenheit(WBGT).toFixed(1) + '℉' :
                         celsiusToFahrenheit(WBGT).toFixed(1) + '℉ / ' + WBGT.toFixed(1) + '℃';
@@ -4474,14 +4451,17 @@
                     else if (WBGT <= 28) wbgtIcon = 'fa-temperature-three-quarters';
                     else wbgtIcon = 'fa-temperature-full';
 
-                    // 同时显示热指数（双单位）
                     if (heatIndexC >= 27) {
                         let hiDisplay = isMetric ?
                             heatIndexC.toFixed(1) + '℃ / ' + celsiusToFahrenheit(heatIndexC).toFixed(1) + '℉' :
                             celsiusToFahrenheit(heatIndexC).toFixed(1) + '℉ / ' + heatIndexC.toFixed(1) + '℃';
-                        rows.push(`<div class="weather-tip-row"><span class="weather-tip-icon text-accent-amber"><i class="fa-solid fa-temperature-full"></i></span><span class="weather-tip-text text-accent-amber font-semibold">Heat Index ≈ ${hiDisplay}</span></div>`);
+                        rows.push(
+                            `<div class="weather-tip-row"><span class="weather-tip-icon text-accent-amber"><i class="fa-solid fa-temperature-full"></i></span><span class="weather-tip-text text-accent-amber font-semibold">Heat Index ≈ ${hiDisplay}</span></div>`
+                            );
                     }
-					rows.push(`<div class="weather-tip-row"><span class="weather-tip-icon" style="color:${wbgtColor}"><i class="fa-solid ${wbgtIcon}"></i></span><span class="weather-tip-text" style="font-weight:600; color:${wbgtColor};">WBGT ≈ ${wbgtDisplay}，${wbgtAdvice}</span></div>`);
+                    rows.push(
+                        `<div class="weather-tip-row"><span class="weather-tip-icon" style="color:${wbgtColor}"><i class="fa-solid ${wbgtIcon}"></i></span><span class="weather-tip-text" style="font-weight:600; color:${wbgtColor};">WBGT ≈ ${wbgtDisplay}，${wbgtAdvice}</span></div>`
+                        );
                 }
             }
 
@@ -4492,7 +4472,7 @@
         }
 
         // ================================================================
-        // ★★★ 修改 getWeatherEquipmentModifier ★★★
+        // getWeatherEquipmentModifier (不变)
         // ================================================================
         function getWeatherEquipmentModifier() {
             if (!weatherData) return { recommended: [], supplies: [] };
@@ -4533,7 +4513,7 @@
         }
 
         // ================================================================
-        // ★★★ generateEquipmentRecommendation - Water 用 oz ★★★
+        // generateEquipmentRecommendation
         // ================================================================
         function generateEquipmentRecommendation(data, difficulty, risk) {
             const { totalDistance, totalAscent, maxElevation, uphillMaxGradient, downhillMaxGradient } = data;
@@ -4633,7 +4613,6 @@
 
             const waterAmount = Math.ceil(time.totalHours * 0.5 + 1);
 
-            // ★★★ Water 固定用 oz ★★★
             supplies.push({
                 icon: 'fa-bottle-water',
                 name: 'Water',
@@ -4701,8 +4680,7 @@
                 walkHours: totalWalkMin / 60,
                 restHours: restMin / 60,
                 avgPace: totalMin / totalDistance,
-                // 70 kg, 0.7 kcal per kg per km, 0.0106 kcal per kg per m climb
-				calories: Math.round(70*(totalDistance * 0.7 + totalAscent * 0.0106))
+                calories: Math.round(70 * (totalDistance * 0.7 + totalAscent * 0.0106))
             };
         }
 
@@ -5242,11 +5220,11 @@
 
             if (risk.risks.length === 0) {
                 riskList.innerHTML = `
-              <div class="flex items-center gap-3 p-3 rounded-xl bg-trail-moss/10">
-                <i class="fa-solid fa-circle-check text-trail-moss"></i>
-                <p class="text-sm text-trail-mid">No significant safety concern needed.</p>
-              </div>
-            `;
+                    <div class="flex items-center gap-3 p-3 rounded-xl bg-trail-moss/10">
+                        <i class="fa-solid fa-circle-check text-trail-moss"></i>
+                        <p class="text-sm text-trail-mid">No significant safety concern needed.</p>
+                    </div>
+                    `;
             } else {
                 risk.risks.forEach(r => {
                     const colors = {
@@ -5261,12 +5239,12 @@
                     item.style.background = c.bg;
                     item.style.border = `1px solid ${c.border}`;
                     item.innerHTML = `
-                        <i class="fa-solid ${r.icon} mt-0.5 w-5 text-center flex-shrink-0" style="color: ${c.text}"></i>
-                        <div class="flex-1">
-                          <p class="text-sm font-semibold text-trail-dark">${r.title}</p>
-                          <p class="text-xs text-trail-mid/70 mt-0.5">${r.desc}</p>
-                        </div>
-                      `;
+                            <i class="fa-solid ${r.icon} mt-0.5 w-5 text-center flex-shrink-0" style="color: ${c.text}"></i>
+                            <div class="flex-1">
+                                <p class="text-sm font-semibold text-trail-dark">${r.title}</p>
+                                <p class="text-xs text-trail-mid/70 mt-0.5">${r.desc}</p>
+                            </div>
+                            `;
                     riskList.appendChild(item);
                 });
             }
@@ -5282,91 +5260,91 @@
 
             const essentialContainer = document.getElementById('essentialEquipment');
             essentialContainer.innerHTML = equipment.essential.map(item => `
-            <div class="equipment-item">
-              <span class="equipment-icon text-trail-moss"><i class="fa-solid ${item.icon}"></i></span>
-              <div class="equipment-content">
-                <p class="equipment-name">${item.name}</p>
-                <p class="equipment-desc">${item.desc}</p>
-              </div>
-            </div>
-          `).join('');
+                    <div class="equipment-item">
+                        <span class="equipment-icon text-trail-moss"><i class="fa-solid ${item.icon}"></i></span>
+                        <div class="equipment-content">
+                            <p class="equipment-name">${item.name}</p>
+                            <p class="equipment-desc">${item.desc}</p>
+                        </div>
+                    </div>
+                    `).join('');
 
             const recommendedContainer = document.getElementById('recommendedEquipment');
             recommendedContainer.innerHTML = equipment.recommended.map(item => `
-            <div class="equipment-item">
-              <span class="equipment-icon text-accent-amber"><i class="fa-solid ${item.icon}"></i></span>
-              <div class="equipment-content">
-                <p class="equipment-name">${item.name}</p>
-                <p class="equipment-desc">${item.desc}</p>
-              </div>
-            </div>
-          `).join('');
+                    <div class="equipment-item">
+                        <span class="equipment-icon text-accent-amber"><i class="fa-solid ${item.icon}"></i></span>
+                        <div class="equipment-content">
+                            <p class="equipment-name">${item.name}</p>
+                            <p class="equipment-desc">${item.desc}</p>
+                        </div>
+                    </div>
+                    `).join('');
 
             const suppliesContainer = document.getElementById('suppliesRecommendation');
             suppliesContainer.innerHTML = equipment.supplies.map(item => `
-            <div class="equipment-item">
-              <span class="equipment-icon text-accent-blue"><i class="fa-solid ${item.icon}"></i></span>
-              <div class="equipment-content">
-                <p class="equipment-name">${item.name}</p>
-                <p class="equipment-desc">${item.desc}</p>
-              </div>
-            </div>
-          `).join('');
+                    <div class="equipment-item">
+                        <span class="equipment-icon text-accent-blue"><i class="fa-solid ${item.icon}"></i></span>
+                        <div class="equipment-content">
+                            <p class="equipment-name">${item.name}</p>
+                            <p class="equipment-desc">${item.desc}</p>
+                        </div>
+                    </div>
+                    `).join('');
 
             updateSegments();
 
             const dist = calculateGradientDistribution(trackData);
             const distContainer = document.getElementById('gradientDistribution');
             distContainer.innerHTML = `
-            <div>
-              <div class="flex items-center gap-2 mb-3">
-                <i class="fa-solid fa-arrow-trend-up text-accent-red text-sm"></i>
-                <span class="text-sm font-semibold text-trail-dark">Uphill</span>
-                <span class="text-xs text-trail-mid/50">(${UnitHelper.distanceLabel(trackData.uphillDistance, 1)})</span>
-              </div>
-              <div class="space-y-3">
-                ${dist.uphill.map(d => `
-                  <div class="tech-tip">
-                    <div class="flex items-center justify-between mb-1">
-                      <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded" style="background: ${d.color}"></div>
-                        <span class="text-xs text-trail-mid">${d.name}</span>
-                      </div>
-                      <span class="text-xs font-medium text-trail-dark">${d.percentage.toFixed(1)}%</span>
+                    <div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fa-solid fa-arrow-trend-up text-accent-red text-sm"></i>
+                            <span class="text-sm font-semibold text-trail-dark">Uphill</span>
+                            <span class="text-xs text-trail-mid/50">(${UnitHelper.distanceLabel(trackData.uphillDistance, 1)})</span>
+                        </div>
+                        <div class="space-y-3">
+                            ${dist.uphill.map(d => `
+                                <div class="tech-tip">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-3 h-3 rounded" style="background: ${d.color}"></div>
+                                            <span class="text-xs text-trail-mid">${d.name}</span>
+                                        </div>
+                                        <span class="text-xs font-medium text-trail-dark">${d.percentage.toFixed(1)}%</span>
+                                    </div>
+                                    <div class="h-1.5 rounded-full bg-trail-sage/10 overflow-hidden mb-1">
+                                        <div class="h-full rounded-full transition-all duration-700" style="width: 0%; background: ${d.color}" data-target="${d.percentage}"></div>
+                                    </div>
+                                    <div class="text-xs text-trail-mid/60 pl-5">${d.tip}</div>
+                                </div>
+                                `).join('')}
+                        </div>
                     </div>
-                    <div class="h-1.5 rounded-full bg-trail-sage/10 overflow-hidden mb-1">
-                      <div class="h-full rounded-full transition-all duration-700" style="width: 0%; background: ${d.color}" data-target="${d.percentage}"></div>
+                    <div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fa-solid fa-arrow-trend-down text-accent-blue text-sm"></i>
+                            <span class="text-sm font-semibold text-trail-dark">Downhill</span>
+                            <span class="text-xs text-trail-mid/50">(${UnitHelper.distanceLabel(trackData.downhillDistance, 1)})</span>
+                        </div>
+                        <div class="space-y-3">
+                            ${dist.downhill.map(d => `
+                                <div class="tech-tip">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-3 h-3 rounded" style="background: ${d.color}"></div>
+                                            <span class="text-xs text-trail-mid">${d.name}</span>
+                                        </div>
+                                        <span class="text-xs font-medium text-trail-dark">${d.percentage.toFixed(1)}%</span>
+                                    </div>
+                                    <div class="h-1.5 rounded-full bg-trail-sage/10 overflow-hidden mb-1">
+                                        <div class="h-full rounded-full transition-all duration-700" style="width: 0%; background: ${d.color}" data-target="${d.percentage}"></div>
+                                    </div>
+                                    <div class="text-xs text-trail-mid/60 pl-5">${d.tip}</div>
+                                </div>
+                                `).join('')}
+                        </div>
                     </div>
-                    <div class="text-xs text-trail-mid/60 pl-5">${d.tip}</div>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-            <div>
-              <div class="flex items-center gap-2 mb-3">
-                <i class="fa-solid fa-arrow-trend-down text-accent-blue text-sm"></i>
-                <span class="text-sm font-semibold text-trail-dark">Downhill</span>
-                <span class="text-xs text-trail-mid/50">(${UnitHelper.distanceLabel(trackData.downhillDistance, 1)})</span>
-              </div>
-              <div class="space-y-3">
-                ${dist.downhill.map(d => `
-                  <div class="tech-tip">
-                    <div class="flex items-center justify-between mb-1">
-                      <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded" style="background: ${d.color}"></div>
-                        <span class="text-xs text-trail-mid">${d.name}</span>
-                      </div>
-                      <span class="text-xs font-medium text-trail-dark">${d.percentage.toFixed(1)}%</span>
-                    </div>
-                    <div class="h-1.5 rounded-full bg-trail-sage/10 overflow-hidden mb-1">
-                      <div class="h-full rounded-full transition-all duration-700" style="width: 0%; background: ${d.color}" data-target="${d.percentage}"></div>
-                    </div>
-                    <div class="text-xs text-trail-mid/60 pl-5">${d.tip}</div>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-          `;
+                    `;
 
             setTimeout(() => {
                 distContainer.querySelectorAll('[data-target]').forEach(bar => {
@@ -5399,16 +5377,16 @@
             ];
 
             summaryContainer.innerHTML = summaryItems.map(item => `
-            <div class="flex items-center justify-between py-2 border-b border-trail-sage/10 last:border-0">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-trail-sage/10 flex items-center justify-center">
-                  <i class="fa-solid ${item.icon} text-xs text-trail-moss"></i>
-                </div>
-                <span class="text-trail-mid/70">${item.label}</span>
-              </div>
-              <span class="font-semibold text-trail-dark">${item.value}</span>
-            </div>
-          `).join('');
+                    <div class="flex items-center justify-between py-2 border-b border-trail-sage/10 last:border-0">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-trail-sage/10 flex items-center justify-center">
+                                <i class="fa-solid ${item.icon} text-xs text-trail-moss"></i>
+                            </div>
+                            <span class="text-trail-mid/70">${item.label}</span>
+                        </div>
+                        <span class="font-semibold text-trail-dark">${item.value}</span>
+                    </div>
+                    `).join('');
         }
 
         function updateSegments() {
@@ -5450,31 +5428,31 @@
                 const descentDisplay = UnitHelper.elevationLabel(seg.descent, 0);
 
                 row.innerHTML = `
-              <td class="py-3 px-2 text-center">
-                <span class="segment-number inline-flex items-center justify-center w-6 h-6 rounded-lg bg-trail-sage/15 text-xs font-bold text-trail-mid" data-segment-idx="${globalIdx}">${globalIdx + 1}</span>
-              </td>
-              <td class="py-3 px-2 text-center">
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium" style="background: ${tc.bg}; color: ${tc.color}">
-                  <i class="fa-solid ${tc.icon} text-xs"></i>
-                  ${tc.label}
-                </span>
-              </td>
-              <td class="py-3 px-2 text-center font-medium text-trail-dark">${distDisplay}</td>
-              <td class="py-3 px-2 text-center text-accent-red">${ascentDisplay}</td>
-              <td class="py-3 px-2 text-center text-accent-blue">${descentDisplay}</td>
-              <td class="py-3 px-2 text-center font-medium" style="color: ${getUphillColor(Math.max(0, seg.uphillAvg))};">+${seg.uphillAvg.toFixed(1)}%</td>
-              <td class="py-3 px-2 text-center font-medium" style="color: ${getDownhillColor(Math.min(0, seg.downhillAvg))};">-${seg.downhillAvg.toFixed(1)}%</td>
-              <td class="py-3 px-2 text-center font-medium" style="color: ${getUphillColor(Math.max(0, seg.maxUphillGrad))};">+${seg.maxUphillGrad.toFixed(1)}%</td>
-              <td class="py-3 px-2 text-center font-medium" style="color: ${getDownhillColor(Math.min(0, seg.maxDownhillGrad))};">${seg.maxDownhillGrad.toFixed(1)}%</td>
-              <td class="py-3 px-2 text-center font-medium text-trail-dark">${seg.time.toFixed(1)}h</td>
-              <td class="py-3 px-2 text-center">
-                <div class="inline-flex items-center gap-2">
-                  <div class="w-12 h-1.5 rounded-full bg-trail-sage/15 overflow-hidden">
-                    <div class="h-full rounded-full" style="width: ${seg.difficulty}%; background: ${diffColor}"></div>
-                  </div>
-                </div>
-              </td>
-            `;
+                        <td class="py-3 px-2 text-center">
+                            <span class="segment-number inline-flex items-center justify-center w-6 h-6 rounded-lg bg-trail-sage/15 text-xs font-bold text-trail-mid" data-segment-idx="${globalIdx}">${globalIdx + 1}</span>
+                        </td>
+                        <td class="py-3 px-2 text-center">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium" style="background: ${tc.bg}; color: ${tc.color}">
+                                <i class="fa-solid ${tc.icon} text-xs"></i>
+                                ${tc.label}
+                            </span>
+                        </td>
+                        <td class="py-3 px-2 text-center font-medium text-trail-dark">${distDisplay}</td>
+                        <td class="py-3 px-2 text-center text-accent-red">${ascentDisplay}</td>
+                        <td class="py-3 px-2 text-center text-accent-blue">${descentDisplay}</td>
+                        <td class="py-3 px-2 text-center font-medium" style="color: ${getUphillColor(Math.max(0, seg.uphillAvg))};">+${seg.uphillAvg.toFixed(1)}%</td>
+                        <td class="py-3 px-2 text-center font-medium" style="color: ${getDownhillColor(Math.min(0, seg.downhillAvg))};">-${seg.downhillAvg.toFixed(1)}%</td>
+                        <td class="py-3 px-2 text-center font-medium" style="color: ${getUphillColor(Math.max(0, seg.maxUphillGrad))};">+${seg.maxUphillGrad.toFixed(1)}%</td>
+                        <td class="py-3 px-2 text-center font-medium" style="color: ${getDownhillColor(Math.min(0, seg.maxDownhillGrad))};">${seg.maxDownhillGrad.toFixed(1)}%</td>
+                        <td class="py-3 px-2 text-center font-medium text-trail-dark">${seg.time.toFixed(1)}h</td>
+                        <td class="py-3 px-2 text-center">
+                            <div class="inline-flex items-center gap-2">
+                                <div class="w-12 h-1.5 rounded-full bg-trail-sage/15 overflow-hidden">
+                                    <div class="h-full rounded-full" style="width: ${seg.difficulty}%; background: ${diffColor}"></div>
+                                </div>
+                            </div>
+                        </td>
+                        `;
 
                 row.addEventListener('click', () => {
                     selectSegment(globalIdx);
@@ -5523,9 +5501,11 @@
                 if (segmentMode === 'waypoint') {
                     const startName = seg.name || 'Start';
                     const endName = seg.endName || 'Finish';
-                    tooltipText = `${startName}，${UnitHelper.distanceLabel(seg.startDist, 2)} → ${endName}，${UnitHelper.distanceLabel(seg.endDist, 2)}`;
+                    tooltipText =
+                        `${startName}，${UnitHelper.distanceLabel(seg.startDist, 2)} → ${endName}，${UnitHelper.distanceLabel(seg.endDist, 2)}`;
                 } else {
-                    tooltipText = `${UnitHelper.distanceLabel(seg.startDist, 2)} → ${UnitHelper.distanceLabel(seg.endDist, 2)}`;
+                    tooltipText =
+                        `${UnitHelper.distanceLabel(seg.startDist, 2)} → ${UnitHelper.distanceLabel(seg.endDist, 2)}`;
                 }
 
                 const tooltip = document.getElementById('segmentTooltip');
@@ -5605,6 +5585,10 @@
                         clearMobileVLine();
                     }
 
+                    // ★★★ 重置为显示名称 ★★★
+                    waypointDisplayMode = 'show-names';
+                    updateWaypointButton();
+
                     updateUI();
                     showToast('Analyze success', 'success');
                 } catch (err) {
@@ -5656,6 +5640,9 @@
                 segmentHighlightLayers.forEach(layer => leafletMap.removeLayer(layer));
                 segmentHighlightLayers = [];
             }
+
+            waypointDisplayMode = 'show-names';
+            updateWaypointButton();
         }
 
         function toggleAnnotations() {
@@ -5663,14 +5650,6 @@
             document.getElementById('annotationLabel').textContent = showAnnotations ? 'Hide Annotations' : 'Show Annotations';
             const fullLabel = document.getElementById('fullscreenAnnotationLabel');
             if (fullLabel) fullLabel.textContent = showAnnotations ? 'Hide Annotations' : 'Show Annotations';
-            drawChart();
-        }
-
-        function toggleWaypointNames() {
-            showWaypointNames = !showWaypointNames;
-            document.getElementById('waypointNameLabel').textContent = showWaypointNames ? 'Hide Waypoint Names' : 'Show Waypoint Names';
-            const fullLabel = document.getElementById('fullscreenWaypointNameLabel');
-            if (fullLabel) fullLabel.textContent = showWaypointNames ? 'Hide Waypoint Names' : 'Show Waypoint Names';
             drawChart();
         }
 
@@ -5763,6 +5742,9 @@
                         document.getElementById('fileName').textContent = 'demo.gpx';
                         document.getElementById('fileInfo').classList.remove('hidden');
 
+                        waypointDisplayMode = 'show-names';
+                        updateWaypointButton();
+
                         updateUI();
 
                         showToast('Load demo trails successful!', 'success');
@@ -5803,9 +5785,6 @@
                 '<i class="fa-solid fa-maximize"></i>';
         }
 
-        // ================================================================
-        // Follow Cursor (map ↔ elevation profile linkage)
-        // ================================================================
         function toggleMapLinkage() {
             mapLinkageEnabled = !mapLinkageEnabled;
 
@@ -5900,86 +5879,105 @@
             const linkageBtnTitle = mapLinkageEnabled ? 'Disable Follow Cursor' : 'Enable Follow Cursor';
 
             toolbar.innerHTML = `
-            <div class="flex items-center gap-2 justify-between w-full">
-              <div class="flex items-center gap-2 ml-auto">
-                <select id="fullscreenColorModeSelect" class="color-mode-select" title="Coloring Mode" onchange="document.getElementById('colorModeSelect').value=this.value; changeColorMode();">
-                  <option value="gradient">Grade</option>
-                  <option value="elevation">Elevation</option>
-                </select>
-                <select id="fullscreenMapSourceSelect" class="map-source-select" title="Map Source" onchange="document.getElementById('mapSourceSelect').value=this.value; changeMapSource();">
-                  <option value="osm" selected>OpenStreetMap</option>
-                  <option value="windy">Windy</option>
-                  <option value="opentopomap">OpenTopoMap</option>
-                  <option value="opencyclemap">OpenCycleMap</option>
-                  <option value="cyclosm">CyclOSM</option>
-                  <option value="googlesatellite">Google Satellite</option>
-                  <option value="googlehybrid">Google Hybrid</option>
-                  <option value="amaproad">Amap Road</option>
-                  <option value="amapsatellite">Amap Satellite</option>
-                  <option value="gaode_hybrid">Amap Hybrid</option>
-                </select>
-              </div>
-            </div>
-          `;
+                    <div class="flex items-center gap-2 justify-between w-full">
+                        <div class="flex items-center gap-2 ml-auto">
+                            <select id="fullscreenColorModeSelect" class="color-mode-select" title="Coloring Mode" onchange="document.getElementById('colorModeSelect').value=this.value; changeColorMode();">
+                                <option value="gradient">Grade</option>
+                                <option value="elevation">Elevation</option>
+                            </select>
+                            <select id="fullscreenMapSourceSelect" class="map-source-select" title="Map Source" onchange="document.getElementById('mapSourceSelect').value=this.value; changeMapSource();">
+                                <option value="osm" selected>OpenStreetMap</option>
+                                <option value="windy">Windy</option>
+                                <option value="opentopomap">OpenTopoMap</option>
+                                <option value="opencyclemap">OpenCycleMap</option>
+                                <option value="cyclosm">CyclOSM</option>
+                                <option value="googlesatellite">Google Satellite</option>
+                                <option value="googlehybrid">Google Hybrid</option>
+                                <option value="amaproad">Amap Road</option>
+                                <option value="amapsatellite">Amap Satellite</option>
+                                <option value="gaode_hybrid">Amap Hybrid</option>
+                            </select>
+                        </div>
+                    </div>
+                    `;
             map.appendChild(toolbar);
 
             const panel = document.createElement('div');
             panel.className = 'fullscreen-profile';
             panel.id = 'fullscreenProfile';
             panel.innerHTML = `
-            <div class="flex items-center justify-between gap-2 mb-2">
-              <div id="fullscreenProfileLegend" class="flex-1"></div>
-              <div class="flex items-center gap-2 flex-shrink-0">
-                <button onclick="toggleAnnotations()" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">
-                  <i class="fa-solid fa-eye"></i> <span id="fullscreenAnnotationLabel">${showAnnotations ? 'Hide Annotations' : 'Show Annotations'}</span>
-                </button>
-                <button onclick="toggleWaypointNames()" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">
-                  <i class="fa-solid fa-tag"></i> <span id="fullscreenWaypointNameLabel">${showWaypointNames ? 'Hide Waypoint Names' : 'Show Waypoint Names'}</span>
-                </button>
-              </div>
-            </div>
-            <div class="relative flex-1 chart-area">
-              <canvas id="fullscreenElevationChart"></canvas>
-              <div id="fullscreenChartTooltip" class="tooltip"></div>
-            </div>
-          `;
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <div id="fullscreenProfileLegend" class="flex-1"></div>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <button onclick="toggleAnnotations()" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">
+                                <i class="fa-solid fa-eye"></i> <span id="fullscreenAnnotationLabel">${showAnnotations ? 'Hide Annotations' : 'Show Annotations'}</span>
+                            </button>
+                            <!-- ★★★ 全屏模式三状态按钮 ★★★ -->
+                            <button onclick="toggleWaypointDisplay()" id="fullscreenWaypointToggleBtn" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">
+                                <i class="fa-solid fa-tag"></i> <span id="fullscreenWaypointToggleLabel">Hide Waypoint Names</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="relative flex-1 chart-area">
+                        <canvas id="fullscreenElevationChart"></canvas>
+                        <div id="fullscreenChartTooltip" class="tooltip"></div>
+                    </div>
+                    `;
             map.appendChild(panel);
 
+            // 同步全屏按钮状态
+            const fsBtn = document.getElementById('fullscreenWaypointToggleBtn');
+            const fsLabel = document.getElementById('fullscreenWaypointToggleLabel');
+            if (fsBtn && fsLabel) {
+                let icon, text;
+				if (waypointDisplayMode === 'show-names') {
+					icon = 'fa-tag';
+					text = 'Hide Waypoint Names';
+				} else if (waypointDisplayMode === 'hide-names') {
+					icon = 'fa-eye-slash';
+					text = 'Hide All Waypoints';
+				} else {
+					icon = 'fa-tag';
+					text = 'Show Waypoint Names';
+				}
+                fsBtn.innerHTML = `<i class="fa-solid ${icon}"></i> <span id="fullscreenWaypointToggleLabel">${text}</span>`;
+            }
+
             const legendHtml = `
-            <div class="flex items-center gap-4 flex-wrap" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-              <div id="fs-gradientLegend" class="flex items-center gap-4">
-                <div class="flex items-center gap-2">
-                  <span class="font-medium text-trail-mid/70 text-xs">Uphill </span>
-                  <div class="w-24 h-3 rounded grad-bar-up"></div>
-                  <span class="text-xs text-trail-mid/70">Gentle → Steep</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="font-medium text-trail-mid/70 text-xs">Downhill </span>
-                  <div class="w-24 h-3 rounded grad-bar-down"></div>
-                  <span class="text-xs text-trail-mid/70">Gentle → Steep</span>
-                </div>
-              </div>
-              <div id="fs-elevationLegend" class="hidden flex items-center gap-2">
-                <span class="font-medium text-trail-mid/70 text-xs">Elevation </span>
-                <div class="w-24 h-3 rounded grad-bar-elevation"></div>
-                <span class="text-xs text-trail-mid/70">Low → High</span>
-              </div>
-              <div class="flex items-center gap-3" style="display: flex; align-items: center; gap: 10px; margin-left: 4px;">
-                <div class="flex items-center gap-1.5">
-                  <div class="w-2.5 h-2.5 rounded-full" style="background: #c54b3c; flex-shrink: 0;"></div>
-                  <span class="text-xs text-trail-mid/70">Current Location</span>
-                </div>
-                <div class="flex items-center gap-1.5">
-                  <div class="w-2.5 h-2.5 rounded-full" style="background: #5c7a52; flex-shrink: 0;"></div>
-                  <span class="text-xs text-trail-mid/70">Start</span>
-                </div>
-                <div class="flex items-center gap-1.5">
-                  <div class="w-2.5 h-2.5 rounded-full" style="background: #c54b3c; flex-shrink: 0;"></div>
-                  <span class="text-xs text-trail-mid/70">Finish</span>
-                </div>
-              </div>
-            </div>
-          `;
+                    <div class="flex items-center gap-4 flex-wrap" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <div id="fs-gradientLegend" class="flex items-center gap-4">
+                            <div class="flex items-center gap-2">
+                                <span class="font-medium text-trail-mid/70 text-xs">Uphill </span>
+                                <div class="w-24 h-3 rounded grad-bar-up"></div>
+                                <span class="text-xs text-trail-mid/70">Gentle → Steep</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-medium text-trail-mid/70 text-xs">Downhill </span>
+                                <div class="w-24 h-3 rounded grad-bar-down"></div>
+                                <span class="text-xs text-trail-mid/70">Gentle → Steep</span>
+                            </div>
+                        </div>
+                        <div id="fs-elevationLegend" class="hidden flex items-center gap-2">
+                            <span class="font-medium text-trail-mid/70 text-xs">Elevation </span>
+                            <div class="w-24 h-3 rounded grad-bar-elevation"></div>
+                            <span class="text-xs text-trail-mid/70">Low → High</span>
+                        </div>
+                        <div class="flex items-center gap-3" style="display: flex; align-items: center; gap: 10px; margin-left: 4px;">
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-2.5 h-2.5 rounded-full" style="background: #c54b3c; flex-shrink: 0;"></div>
+                                <span class="text-xs text-trail-mid/70">Current Location</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-2.5 h-2.5 rounded-full" style="background: #5c7a52; flex-shrink: 0;"></div>
+                                <span class="text-xs text-trail-mid/70">Start</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-2.5 h-2.5 rounded-full" style="background: #c54b3c; flex-shrink: 0;"></div>
+                                <span class="text-xs text-trail-mid/70">Finish</span>
+                            </div>
+                        </div>
+                    </div>
+                    `;
 
             document.getElementById('fullscreenProfileLegend').innerHTML = legendHtml;
 
@@ -6058,11 +6056,13 @@
                 }
             }
 
-            // Initialize unit and elevation mode buttons
             setUnitSystem('metric');
             setElevationMode('raw');
 
-            // Initialize Follow Cursor button state
+            // ★★★ 初始化航路点按钮 ★★★
+            waypointDisplayMode = 'show-names';
+            updateWaypointButton();
+
             const initLinkageBtn = document.getElementById('mapLinkageBtn');
             if (initLinkageBtn) {
                 if (mapLinkageEnabled) {
@@ -6074,7 +6074,6 @@
                 }
             }
 
-            // 初始化天气输入框标签
             updateWeatherUnitLabelsAndPlaceholders();
 
             document.getElementById('fileInput').addEventListener('change', (e) => {
@@ -6171,6 +6170,7 @@
         console.log('Unit System:', unitSystem);
         console.log('Elevation Mode:', elevationMode);
         console.log('Follow Cursor:', mapLinkageEnabled ? 'enabled' : 'disabled');
+        console.log('Waypoint Display Mode:', waypointDisplayMode);
     </script>
 </body>
 </html>
