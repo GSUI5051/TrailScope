@@ -101,7 +101,7 @@ An experimental online GPX tool, but a whole different animal
 ## 🛠️ 技术栈
 
 - **HTML5 / CSS3** – 结构样式，Tailwind CSS 辅助布局
-- **JavaScript (ES6+)** – 全部业务逻辑
+- **JavaScript (ES6+)** – 全部业务逻辑，按模块拆分组织（HTML 中无任何内联 JS）
 - **Leaflet** – 地图渲染与交互
 - **Canvas API** – 海拔剖面图绘制
 - **Font Awesome** – 图标库
@@ -115,19 +115,50 @@ An experimental online GPX tool, but a whole different animal
 
 ```
 TrailScope/
-├── TrailScope-Chinese.html    # 中文版主页面
-├── TrailScope-English.html    # 英文版主页面
+├── index.html                  # 中文版主页面（入口）
+├── TrailScope-Chinese.html     # 中文版主页面
+├── TrailScope-English.html     # 英文版主页面
 ├── css/
 │   ├── leaflet-1p9p4.css
 │   ├── fonts.css
-│   └── all.min.css            # Font Awesome
+│   └── all.min.css             # Font Awesome
 ├── js/
-│   ├── tailwind-3p4p17.js
-│   └── leaflet-1p9p4.js
-├── demo.gpx                   # 中文示例轨迹
-├── demo-en.gpx                # 英文示例轨迹
-└── README-CN.md               # 本文件
+│   ├── common/                 # 共享模块与第三方库（两个页面共用）
+│   │   ├── tailwind-3p4p17.js  # 第三方：Tailwind CSS
+│   │   ├── leaflet-1p9p4.js    # 第三方：Leaflet
+│   │   ├── tailwind-config.js  # Tailwind 主题配置
+│   │   ├── device.js           # 设备 / UA 检测
+│   │   ├── colors.js           # 坡度/海拔配色常量
+│   │   ├── elevation.js        # 原始/平滑爬升下降计算逻辑
+│   │   ├── utils.js            # 颜色插值与坡度颜色辅助函数
+│   │   ├── gpx-math.js         # 地理计算（haversine、3D 距离、最近点）
+│   │   ├── coords.js           # GCJ-02 / WGS-84 坐标转换
+│   │   ├── map-common.js       # 共享地图辅助（缩放、居中、分段高亮）
+│   │   ├── waypoints.js        # 航路点显示模式逻辑
+│   │   └── ui-common.js        # 共享 UI 辅助（缩放、提示、分页等）
+│   ├── cn/                     # 中文版专属模块
+│   │   ├── state.js            # 全局状态
+│   │   ├── map-sources.js      # 地图源定义
+│   │   ├── gpx.js              # GPX 解析与轨迹处理
+│   │   ├── chart.js            # 海拔剖面图绘制
+│   │   ├── map.js              # 地图初始化与绘制
+│   │   ├── interaction.js      # 图表交互（悬停/点击/触摸）
+│   │   ├── waypoints.js        # 航路点信息展示
+│   │   ├── analysis.js         # 难度/气象/风险/分段计算
+│   │   ├── ui.js               # 统计、分段、文件与导出界面
+│   │   ├── bindings.js         # 按钮/下拉框事件绑定
+│   │   └── init.js             # DOMContentLoaded 初始化
+│   └── en/                     # 英文版专属模块（布局同 cn/）
+│       ├── units.js            # 公制/英制单位制
+│       └── …                   # state / map-sources / …（同 cn/）
+├── demo.gpx                    # 中文示例轨迹
+├── demo-en.gpx                 # 英文示例轨迹
+├── webfonts/                   # Font Awesome 字体文件
+├── README.md                   # 英文说明文档
+└── README-CN.md                # 本文件
 ```
+
+> **加载顺序：** 先加载 `common/*`（共享逻辑，`tailwind-config.js` 位于 `<head>`），再加载语言模块（`cn/` 或 `en/`），最后加载 `bindings.js` 与 `init.js`。
 
 ---
 
@@ -164,7 +195,10 @@ TrailScope 提供的数据分析仅用于路线规划参考。
 
 欢迎提交 Issue 或 Pull Request！如果你有更好的算法、新的地图源或 UI 改进建议，请随时参与。
 
-- 建议在修改前阅读代码结构，主要逻辑集中在 `<script>` 标签内。
+- 本项目已完全模块化：HTML 页面中**不含任何内联 JavaScript**（无 `<script>` 代码块，无 `onclick`/`onchange` 属性）。
+- 共享逻辑（设备检测、地理计算、坐标转换、通用 UI 辅助等）位于 `js/common/`；语言相关逻辑（界面文案、单位处理、地图源等）位于 `js/cn/` 与 `js/en/`。
+- 修改用户可见的文案或行为时，请**同步更新中英文两个模块**。
+- 所有按钮与下拉框交互均通过 `bindings.js` 按元素 id 绑定，请勿再添加内联事件属性。
 - 如添加新功能，请确保兼容桌面端与移动端。
 
 ---
@@ -184,6 +218,6 @@ TrailScope 提供的数据分析仅用于路线规划参考。
 
 ---
 
-**TrailScope – 让每一条轨迹都变得清晰可读。**
+**TrailScope – 让每一条轨迹都变得清晰可读**
 
 **Made with ❤️ for hikers & trail runners**

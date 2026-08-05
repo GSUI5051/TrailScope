@@ -101,7 +101,7 @@ An experimental online GPX tool, but a whole different animal
 ## 🛠️ Tech Stack
 
 - **HTML5 / CSS3** – Structure and styling, with Tailwind CSS for layout
-- **JavaScript (ES6+)** – All logic
+- **JavaScript (ES6+)** – All logic, organized into modular scripts (no inline JS in the HTML)
 - **Leaflet** – Map rendering and interaction
 - **Canvas API** – Elevation profile drawing
 - **Font Awesome** – Icons
@@ -115,19 +115,50 @@ An experimental online GPX tool, but a whole different animal
 
 ```
 TrailScope/
-├── TrailScope-Chinese.html    # Chinese main page
-├── TrailScope-English.html    # English main page
+├── index.html                  # Chinese main page (entry)
+├── TrailScope-Chinese.html     # Chinese main page
+├── TrailScope-English.html     # English main page
 ├── css/
 │   ├── leaflet-1p9p4.css
 │   ├── fonts.css
-│   └── all.min.css            # Font Awesome
+│   └── all.min.css             # Font Awesome
 ├── js/
-│   ├── tailwind-3p4p17.js
-│   └── leaflet-1p9p4.js
-├── demo.gpx                   # Chinese demo track
-├── demo-en.gpx                # English demo track
-└── README.md                  # This file
+│   ├── common/                 # shared modules & vendor libs (loaded by both pages)
+│   │   ├── tailwind-3p4p17.js  # vendor: Tailwind CSS
+│   │   ├── leaflet-1p9p4.js    # vendor: Leaflet
+│   │   ├── tailwind-config.js  # Tailwind theme configuration
+│   │   ├── device.js           # UA / device detection
+│   │   ├── colors.js           # gradient color constants
+│   │   ├── elevation.js        # raw/smooth elevation accumulation logic
+│   │   ├── utils.js            # color interpolation & gradient helpers
+│   │   ├── gpx-math.js         # geo math (haversine, 3D distance, nearest point)
+│   │   ├── coords.js           # GCJ-02 / WGS-84 coordinate conversion
+│   │   ├── map-common.js       # shared map helpers (fit, zoom, segment highlight)
+│   │   ├── waypoints.js        # waypoint display mode logic
+│   │   └── ui-common.js        # shared UI helpers (zoom, toast, pagination, …)
+│   ├── cn/                     # Chinese-only modules
+│   │   ├── state.js            # global state
+│   │   ├── map-sources.js      # map source definitions
+│   │   ├── gpx.js              # GPX parsing & track processing
+│   │   ├── chart.js            # elevation profile drawing
+│   │   ├── map.js              # map initialization & drawing
+│   │   ├── interaction.js      # chart interaction (hover / click / touch)
+│   │   ├── waypoints.js        # waypoint info UI
+│   │   ├── analysis.js         # difficulty / weather / risks / segments
+│   │   ├── ui.js               # stats, segments, file & export UI
+│   │   ├── bindings.js         # button / select event bindings
+│   │   └── init.js             # DOMContentLoaded bootstrap
+│   └── en/                     # English-only modules (same layout as cn/)
+│       ├── units.js            # metric / imperial unit system
+│       └── …                   # state / map-sources / … (same as cn/)
+├── demo.gpx                    # Chinese demo track
+├── demo-en.gpx                 # English demo track
+├── webfonts/                   # Font Awesome font files
+├── README.md                   # This file
+└── README-CN.md                # Chinese README
 ```
+
+> **Loading order:** `common/*` first (shared logic + `tailwind-config.js` in `<head>`), then the language modules (`cn/` or `en/`), with `bindings.js` and `init.js` last.
 
 ---
 
@@ -167,7 +198,10 @@ before starting your adventure.
 
 Issues and pull requests are welcome! If you have better algorithms, additional map sources, or UI improvements, feel free to get involved.
 
-- Please review the code structure before making changes; the main logic resides within the `<script>` tags.
+- The project is fully modular: the HTML pages contain **zero inline JavaScript** (no `<script>` blocks, no `onclick`/`onchange` attributes).
+- Shared logic (device detection, geo math, coordinate conversion, shared UI helpers, …) lives in `js/common/`; language-specific logic (UI strings, unit handling, map sources, …) lives in `js/cn/` and `js/en/`.
+- When changing user-facing text or behavior, update **both** the Chinese and English modules.
+- All button and select interactions are wired through `bindings.js` by element id — avoid adding inline event handlers.
 - Ensure compatibility with both desktop and mobile devices when adding new features.
 
 ---
