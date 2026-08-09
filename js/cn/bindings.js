@@ -39,3 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
     bind('nextPageBtn', 'click', () => nextPage());
     bind('lastPageBtn', 'click', () => goToLastPage());
 });
+
+
+

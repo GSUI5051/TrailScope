@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>TrailScope · GPX Trail Analyzer</title>
+    <title>TrailScope · Track Analyzer</title>
     <script src="js/common/tailwind-3p4p17.js">
     </script>
     <link rel="stylesheet" href="css/leaflet-1p9p4.css" />
@@ -885,16 +885,16 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-bold text-trail-dark tracking-tight">TrailScope</h1>
-                    <p class="text-xs text-trail-moss -mt-0.5">Hiking Trail Analysis</p>
+                    <p class="text-xs text-trail-moss -mt-0.5">GPX Track Analyzer</p>
                 </div>
             </div>
             <div class="hidden md:flex items-center gap-6 text-sm font-medium text-trail-mid">
-                <a href="#upload" class="hover:text-trail-dark transition">Upload</a>
+                <a href="#upload" class="hover:text-trail-dark transition">Import</a>
                 <a href="#analysis" class="hover:text-trail-dark transition">Route</a>
                 <a href="#assessment" class="hover:text-trail-dark transition">Assessment</a>
                 <a href="#weatherAnalysis" class="hover:text-trail-dark transition">Weather</a>
                 <a href="#equipment" class="hover:text-trail-dark transition">Gear & Supplies</a>
-                <a href="#segments" class="hover:text-trail-dark transition">Segments</a>
+                <a href="#segments" class="hover:text-trail-dark transition">Sections</a>
                 <a href="#techtips" class="hover:text-trail-dark transition">Tech Tips</a>
                 <a href="#summary" class="hover:text-trail-dark transition">Summary</a>
             </div>
@@ -918,7 +918,7 @@
                     <span class="bg-gradient-to-r from-trail-moss via-trail-earth to-accent-clay bg-clip-text text-transparent">Mountain Trail Track</span>
                 </h2>
                 <p class="text-base text-trail-mid/80 leading-relaxed max-w-2xl mx-auto">
-                    Upload a GPX track, get elevation profile, difficulty rating and segment statistics, visualize grades
+                    Import a GPX track, get elevation profile, difficulty rating and section statistics, visualize grades
                 </p>
                 <p class="text-base text-trail-mid/80 leading-relaxed max-w-2xl mx-auto">
                     Assess fitness requirements, gear and supply needs, hiking time, and potential risks
@@ -952,7 +952,7 @@
         <div class="glass-card rounded-3xl p-8 md:p-10">
             <div class="grid md:grid-cols-2 gap-8 items-center">
                 <div>
-                    <h3 class="text-2xl font-bold text-trail-dark mb-3">Upload a Trail Track</h3>
+                    <h3 class="text-2xl font-bold text-trail-dark mb-3">Import a GPX Track</h3>
                     <p class="text-sm text-trail-mid/70 leading-relaxed mb-3">
                         Only .gpx files are supported. The page parses coordinates and elevation data, calculates distance, grades, total ascent/descent, and generates a visual report. All processing is done locally in your browser.
                     </p>
@@ -976,7 +976,7 @@
                                 <i class="fa-solid fa-cloud-arrow-up text-2xl text-trail-mid"></i>
                             </div>
                             <div>
-                                <p class="text-base font-semibold text-trail-dark mb-1">Click to upload a GPX file, or drag and drop it here</p>
+                                <p class="text-base font-semibold text-trail-dark mb-1">Click to import a GPX file, or drag and drop it here</p>
                                 <p class="text-xs text-trail-mid/60">GPX only · Recommended file size under 5 MB</p>
                             </div>
                         </div>
@@ -1060,16 +1060,16 @@
                             </h3>
                         </div>
                         <div id="mapSegmentInfo" class="title-right hidden">
-                            <button id="prevSegmentBtn" class="nav-segment-btn" title="上一段">
+                            <button id="prevSegmentBtn" class="nav-segment-btn" title="Previous Section">
                                 <i class="fa-solid fa-chevron-left"></i>
                             </button>
                             <span class="seg-label-uniform" id="mapSegmentLabel">—</span>
-                            <button id="nextSegmentBtn" class="nav-segment-btn" title="下一段">
+                            <button id="nextSegmentBtn" class="nav-segment-btn" title="Next Section">
                                 <i class="fa-solid fa-chevron-right"></i>
                             </button>
                         </div>
                     </div>
-                    <p class="text-xs mt-1" style="color:#ff0000"><b>This map is used for trail visualization only. Do not use it for surveying purposes!</b></p>
+                    <p class="text-xs mt-1" style="color:#ff0000"><b>This map is used for track visualization only. Do not use it for surveying purposes!</b></p>
                 </div>
 
                 <!-- Map Gradient Legend -->
@@ -1099,10 +1099,10 @@
 
                     <div class="absolute top-3 right-3 flex flex-col gap-2 z-[1000]">
                         <button class="map-control-btn" id="mapZoomInBtn" title="Zoom In">
-                            <i class="fa-solid fa-plus"></i>
+                            <i class="fa-solid fa-magnifying-glass-plus"></i>
                         </button>
                         <button class="map-control-btn" id="mapZoomOutBtn" title="Zoom Out">
-                            <i class="fa-solid fa-minus"></i>
+                            <i class="fa-solid fa-magnifying-glass-minus"></i>
                         </button>
                         <button class="map-control-btn" id="mapFitBtn" title="Show Entire Track">
                             <i class="fa-solid fa-expand"></i>
@@ -1220,10 +1220,10 @@
                     <!-- Zoom Controls -->
                     <div class="absolute top-2 right-2 flex flex-col gap-1.5 z-10 zoom-controls">
                         <button class="zoom-btn" id="chartZoomInBtn" title="Zoom In">
-                            <i class="fa-solid fa-plus"></i>
+                            <i class="fa-solid fa-magnifying-glass-plus"></i>
                         </button>
                         <button class="zoom-btn" id="chartZoomOutBtn" title="Zoom Out">
-                            <i class="fa-solid fa-minus"></i>
+                            <i class="fa-solid fa-magnifying-glass-minus"></i>
                         </button>
                         <button class="zoom-btn" id="chartResetBtn" title="Reset">
                             <i class="fa-solid fa-expand"></i>
@@ -1381,7 +1381,7 @@
                     <i class="fa-solid fa-triangle-exclamation text-accent-red"></i>
                     Safety Considerations
                 </h3>
-                <p class="text-xs text-trail-mid/60 mb-5">Based on trail characteristics and weather data</p>
+                <p class="text-xs text-trail-mid/60 mb-5">Based on track characteristics and weather data</p>
 
                 <div id="riskList" class="space-y-3">
                 </div>
@@ -1535,10 +1535,10 @@
                 <div>
                     <h3 class="text-xl font-bold text-trail-dark flex items-center gap-2">
                         <i class="fa-solid fa-list-ol text-trail-moss"></i>
-                        Segment Statistics
+                        Section Statistics
                     </h3>
                     <p class="text-sm text-trail-mid/60 mt-1">
-                        <span id="segmentTotalCount">0 segments, </span>click any segment to view details on trail map and elevation profile
+                        <span id="segmentTotalCount">0 section(s), </span>click any section to view details on trail map and elevation profile
                     </p>
                 </div>
                 <div class="flex gap-2">
@@ -1576,7 +1576,7 @@
                     <span>Show </span>
                     <select id="pageSizeSelect" class="page-size-select">
                     </select>
-                    <span id="pageSizeInfo">segments in a page, 0 total</span>
+                    <span id="pageSizeInfo">sections in a page, 0 total</span>
                 </div>
 
                 <div class="flex items-center gap-2">
@@ -1628,9 +1628,9 @@
             <div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-trail-sage/20 to-trail-moss/10 flex items-center justify-center mx-auto mb-6">
                 <i class="fa-solid fa-mountain text-3xl text-trail-moss/60"></i>
             </div>
-            <h3 class="text-xl font-bold text-trail-dark mb-2">Analyze Trails</h3>
+            <h3 class="text-xl font-bold text-trail-dark mb-2">Analyze Track</h3>
             <p class="text-sm text-trail-mid/60 max-w-md mx-auto mb-6">
-                Upload GPX file · Click DEMO to load demo trail
+                Import GPX file · Click DEMO to load demo track
             </p>
             <div class="flex flex-wrap justify-center gap-3">
                 <div class="px-4 py-2 rounded-xl bg-trail-sage/10 text-xs text-trail-mid flex items-center gap-2">
@@ -1643,7 +1643,7 @@
                     <i class="fa-solid fa-check text-trail-moss"></i> Difficulty Rating
                 </div>
                 <div class="px-4 py-2 rounded-xl bg-trail-sage/10 text-xs text-trail-mid flex items-center gap-2">
-                    <i class="fa-solid fa-check text-trail-moss"></i> Segment Info
+                    <i class="fa-solid fa-check text-trail-moss"></i> Section Info
                 </div>
                 <div class="px-4 py-2 rounded-xl bg-trail-sage/10 text-xs text-trail-mid flex items-center gap-2">
                     <i class="fa-solid fa-check text-trail-moss"></i> Safety Consideration
@@ -1655,7 +1655,7 @@
     <!-- Footer -->
     <footer class="max-w-7xl mx-auto px-6 py-8 text-center">
         <p class="text-xs text-trail-mid/50">
-            TrailScope · Hiking Trail Analysis · All data are handled locally · <a href='https://github.com/GSUI5051/TrailScope' style="font-weight:600; color:#0000cc"><span>FOSS (GitHub)</span></a><br><br><br>
+            TrailScope · GPX track Analyzer · All data are handled locally · <a href='https://github.com/GSUI5051/TrailScope' style="font-weight:600; color:#0000cc"><span>FOSS (GitHub)</span></a><br><br><br>
             2026 · Girls' Space and Universe Institute
         </p>
     </footer>

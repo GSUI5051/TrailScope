@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>TrailScope · 徒步路线GPX轨迹分析</title>
+    <title>TrailScope · 徒步轨迹分析器</title>
     <script src="js/common/tailwind-3p4p17.js">
     </script>
     <link rel="stylesheet" href="css/leaflet-1p9p4.css" />
@@ -971,11 +971,11 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-bold text-trail-dark tracking-tight">TrailScope</h1>
-                    <p class="text-xs text-trail-moss -mt-0.5">徒步轨迹智能分析</p>
+                    <p class="text-xs text-trail-moss -mt-0.5">徒步轨迹分析</p>
                 </div>
             </div>
             <div class="hidden md:flex items-center gap-6 text-sm font-medium text-trail-mid">
-                <a href="#upload" class="hover:text-trail-dark transition">上传轨迹</a>
+                <a href="#upload" class="hover:text-trail-dark transition">导入轨迹</a>
                 <a href="#analysis" class="hover:text-trail-dark transition">路线分析</a>
                 <a href="#assessment" class="hover:text-trail-dark transition">路线评估</a>
                 <a href="#weatherAnalysis" class="hover:text-trail-dark transition">气象分析</a>
@@ -1004,7 +1004,7 @@
                     <span class="bg-gradient-to-r from-trail-moss via-trail-earth to-accent-clay bg-clip-text text-transparent">户外徒步轨迹</span>
                 </h2>
                 <p class="text-base text-trail-mid/80 leading-relaxed max-w-2xl mx-auto">
-                    上传 GPX 轨迹文件，获取专业级海拔剖面分析、坡度分级可视化、难度评级与分段统计
+                    导入 GPX 轨迹文件，获取专业级海拔剖面分析、坡度分级可视化、难度评级与分段统计
                 </p>
                 <p class="text-base text-trail-mid/80 leading-relaxed max-w-2xl mx-auto">
                     全面评估体能和装备需求、徒步耗时与潜在风险
@@ -1032,7 +1032,7 @@
         <div class="glass-card rounded-3xl p-8 md:p-10">
             <div class="grid md:grid-cols-2 gap-8 items-center">
                 <div>
-                    <h3 class="text-2xl font-bold text-trail-dark mb-3">上传徒步轨迹</h3>
+                    <h3 class="text-2xl font-bold text-trail-dark mb-3">导入徒步轨迹</h3>
                     <p class="text-sm text-trail-mid/70 leading-relaxed mb-3">
                         仅支持 .gpx 格式文件。网页将解析轨迹中的经纬度与海拔数据，自动计算距离、坡度、累计爬升与下降，并生成可视化分析报告。所有计算均在本地浏览器完成。
                     </p>
@@ -1056,7 +1056,7 @@
                                 <i class="fa-solid fa-cloud-arrow-up text-2xl text-trail-mid"></i>
                             </div>
                             <div>
-                                <p class="text-base font-semibold text-trail-dark mb-1">点击上传 GPX 文件，或拖拽 GPX 文件到此处</p>
+                                <p class="text-base font-semibold text-trail-dark mb-1">点击导入 GPX 文件，或拖拽 GPX 文件到此处</p>
                                 <p class="text-xs text-trail-mid/60">仅限 .gpx 格式 · 文件大小建议不超过 5 MB</p>
                             </div>
                         </div>
@@ -1180,10 +1180,10 @@
 
                     <div class="absolute top-3 right-3 flex flex-col gap-2 z-[1000]">
                         <button class="map-control-btn" id="mapZoomInBtn" title="放大">
-                            <i class="fa-solid fa-plus"></i>
+                            <i class="fa-solid fa-magnifying-glass-plus"></i>
                         </button>
                         <button class="map-control-btn" id="mapZoomOutBtn" title="缩小">
-                            <i class="fa-solid fa-minus"></i>
+                            <i class="fa-solid fa-magnifying-glass-minus"></i>
                         </button>
                         <button class="map-control-btn" id="mapFitBtn" title="显示全图">
                             <i class="fa-solid fa-expand"></i>
@@ -1301,10 +1301,10 @@
                     <!-- Zoom Controls -->
                     <div class="absolute top-2 right-2 flex flex-col gap-1.5 z-10 zoom-controls">
                         <button class="zoom-btn" id="chartZoomInBtn" title="放大">
-                            <i class="fa-solid fa-plus"></i>
+                            <i class="fa-solid fa-magnifying-glass-plus"></i>
                         </button>
                         <button class="zoom-btn" id="chartZoomOutBtn" title="缩小">
-                            <i class="fa-solid fa-minus"></i>
+                            <i class="fa-solid fa-magnifying-glass-minus"></i>
                         </button>
                         <button class="zoom-btn" id="chartResetBtn" title="重置">
                             <i class="fa-solid fa-expand"></i>
@@ -1700,7 +1700,7 @@
             </div>
             <h3 class="text-xl font-bold text-trail-dark mb-2">分析徒步轨迹</h3>
             <p class="text-sm text-trail-mid/60 max-w-md mx-auto mb-6">
-                上传 GPX 文件 · 点击“体验示例”进行演示
+                导入 GPX 文件 · 点击“体验示例”进行演示
             </p>
             <div class="flex flex-wrap justify-center gap-3">
                 <div class="px-4 py-2 rounded-xl bg-trail-sage/10 text-xs text-trail-mid flex items-center gap-2">
