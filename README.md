@@ -1,8 +1,8 @@
-[简体中文](README-CN.md) | [English](README.md)
+[简体中文](readme-cn.md) | [English](readme.md)
 
 一个实验性的在线 GPX 分析工具，但它是完全不同的动物
 
-An experimental online GPX tool, but a whole different animal
+An experimental online GPX visualizer and analyzer, but a whole different animal
 
 [Click to use](https://gsui5051.github.io/TrailScope/TrailScope-English.html)
 
@@ -30,10 +30,10 @@ An experimental online GPX tool, but a whole different animal
   Switch between "Grade" and "Elevation" coloring modes.
 
 - **📊 Comprehensive Statistics**  
-  - Total distance, total ascent/descent (D+/D-), max/min elevation  
+  - Total distance, total elevation gain/loss (D+/D-), max/min elevation  
   - Average grade, uphill/downhill/flat distances  
   - Maximum uphill/downhill grade 
-  - Raw/smooth elevation accumulation to reduce GPS and baro altitude noise
+  - Raw/smooth elevation gain/loss accumulation to reduce GPS and baro altimeter noise
   - Grade distribution analysis and tech tips for hiking and trail running   
 
 - **🏔️ Difficulty Rating**  
@@ -44,7 +44,7 @@ An experimental online GPX tool, but a whole different animal
   Provides a 1–5 fitness level description.
 
 - **⚠️ Safety Consideration**  
-  Automatically identifies potential risks from route characteristics (high altitude, steep sections, long distance, large ascent, etc.) and weather condition, gives an overall safety concern level.
+  Automatically identifies potential risks from route characteristics (high altitude, steep sections, long distance, large elevation gain/loss, etc.) and weather condition, gives an overall safety concern level.
 
 - **☀️ Weather Analysis**  
   Input temperature, humidity, wind speed, and weather type; get tailored gear advice and action suggestions.  
@@ -52,14 +52,14 @@ An experimental online GPX tool, but a whole different animal
 
 - **🎒 Gear & Supply Recommendations**  
   Generates essential gear, recommended gear, and supplies (water, meals, snacks) based on route difficulty, altitude, and weather conditions.  
-  Supplies automatically convert between Metric and US Customary (imperial) units; water is displayed in fluid ounces (oz) for US Customary units.
+  Supplies automatically convert between metric and US Customary (or imperial) units; water is displayed in fluid ounces (oz) for imperial units.
 
 - **📋 Segment Statistics**  
-  Split the route by "grade variation", "fixed distance (1 km)", or "waypoints". Each segment shows distance, ascent, descent, average grade, max grade, time, and difficulty rating.  
+  Split the route by "major grade variation", "fixed distance (1 km or 1 mi)", or "waypoints". Each segment shows distance, elevation gain/loss, average grade, max grade, time, and difficulty rating.  
   Click any segment to highlight it on both the map and the elevation profile.
 
 - **🌐 Unit Switching**  
-  Toggle between Metric (km, m) and US Customary (mi, ft) units instantly; all displayed values update accordingly.
+  Toggle between metric (km, m) and imperial (mi, ft) units instantly; all displayed values update accordingly.
 
 - **📱 Mobile Optimized**  
   Touch‑friendly interactions; supports swipe gestures to explore the profile; full‑screen map mode adapts to portrait/landscape orientations.
@@ -72,18 +72,19 @@ An experimental online GPX tool, but a whole different animal
 ## 🚀 How to Use
 
 1. **Open the Page**  
-   - Launch `TrailScope-English.html`in your browser.
+   - Launch `TrailScope-English.html` in your browser.
    - [Click here for online version.](https://gsui5051.github.io/TrailScope/TrailScope-English.html)
+   - For offline usage, [Click here to download all the code](https://github.com/GSUI5051/TrailScope/archive/refs/heads/main.zip), unzip and launch `TrailScope-English.html` in your browser.
 
 2. **Load a Track**  
-   - Click the upload area and select a `.gpx` file, or drag and drop it.  
-   - Alternatively, click the **“DEMO”** button to load a sample track.
+   - Click the upload zone and select a `.gpx` file, or drag and drop it to upload zone.  
+   - Alternatively, click the **DEMO** button to load a sample track.
 
 3. **Explore the Analysis**  
    Go to analysis section, showing:
-   - Overview stats cards (distance, ascent, descent, max elevation)
+   - Overview stats cards (distance, elevation gain/loss, max elevation)
    - Interactive trail map and elevation profile chart
-   - Difficulty rating, time & fitness estimates, risk assessment
+   - Difficulty rating, time & fitness estimate, safety consideration
    - Weather analysis (requires manual input)
    - Gear & supply recommendations
    - Segment statistics table
@@ -92,8 +93,8 @@ An experimental online GPX tool, but a whole different animal
 
 4. **Interact**  
    - **Map**: Zoom, pan, switch map sources; click waypoints for details.  
-   - **Profile**: Scroll to zoom (desktop), drag to pan; hover/touch to inspect points; export as PNG.  
-   - **Segment Table**: Click any row to highlight the corresponding section on map and profile.  
+   - **Elevation Profile**: Scroll to zoom (desktop), drag to pan; hover/touch to inspect points; export as PNG.  
+   - **Segments**: Click any row to highlight the corresponding section on map and elevation profile.  
    - **Unit Toggle**: Click the Metric (km, m)/US Customary (mi, ft) button at the top to convert all values.
 
 ---
@@ -101,7 +102,7 @@ An experimental online GPX tool, but a whole different animal
 ## 🛠️ Tech Stack
 
 - **HTML5 / CSS3** – Structure and styling, with Tailwind CSS for layout
-- **JavaScript (ES6+)** – All logic, organized into modular scripts (no inline JS in the HTML)
+- **JavaScript (ES6+)** – All logic
 - **Leaflet** – Map rendering and interaction
 - **Canvas API** – Elevation profile drawing
 - **Font Awesome** – Icons
@@ -150,10 +151,10 @@ TrailScope/
 │   │   └── init.js             # DOMContentLoaded bootstrap
 │   └── en/                     # English-only modules (same layout as cn/)
 │       ├── units.js            # metric / imperial unit system
-│       └── …                   # state / map-sources / … (same as cn/)
+│       └── …                  # state / map-sources / … (same as cn/)
 ├── demo.gpx                    # Chinese demo track
 ├── demo-en.gpx                 # English demo track
-├── webfonts/                   # Font Awesome font files
+├── webfonts/                   # Font files
 ├── README.md                   # This file
 └── README-CN.md                # Chinese README
 ```
@@ -170,7 +171,7 @@ TrailScope/
 | **Elevation Loss (D-)** | Total vertical drop along the track |
 | **Grade** | Percent slope (positive for uphill, negative for downhill) |
 | **Pace** | Minutes per kilometer (or per mile) |
-| **Naismith’s Rule** | Classic hiking time formula (1 hour per 5 km + 0.5 hour per 300 m ascent), with steep‑terrain correction added |
+| **Naismith’s Rule** | Classic hiking time formula (1 hour per 5 km + 0.5 hour per 300 m elevation gain), with steep‑terrain correction added |
 | **WBGT** | Wet‑Bulb Globe Temperature – a composite index for heat‑stress assessment |
 | **Waypoint** | A named point in a GPX file (e.g., "supply", "viewpoint") |
 | **Segment** | A sub‑section of the route, defined by grade changes, fixed distance, or waypoints |
@@ -198,10 +199,7 @@ before starting your adventure.
 
 Issues and pull requests are welcome! If you have better algorithms, additional map sources, or UI improvements, feel free to get involved.
 
-- The project is fully modular: the HTML pages contain **zero inline JavaScript** (no `<script>` blocks, no `onclick`/`onchange` attributes).
-- Shared logic (device detection, geo math, coordinate conversion, shared UI helpers, …) lives in `js/common/`; language-specific logic (UI strings, unit handling, map sources, …) lives in `js/cn/` and `js/en/`.
-- When changing user-facing text or behavior, update **both** the Chinese and English modules.
-- All button and select interactions are wired through `bindings.js` by element id — avoid adding inline event handlers.
+- Please review the code structure before making changes.
 - Ensure compatibility with both desktop and mobile devices when adding new features.
 
 ---
@@ -214,9 +212,9 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 
 ## 🌟 Acknowledgements
 
-- Inspired by awesome outdoor softwares and existed gpx visualizers (Strava, Zepp, Mapy, Organic Maps, GPX Studio, Gaia GPS).
+- Inspired by awesome outdoor softwares and existed gpx visualizers (Strava, Zepp, Mapy, Organic Maps, GPX Studio).
 - Thanks to all open‑source libraries (Leaflet, Tailwind CSS, Font Awesome).
-- Thanks to OpenStreetMap and all map providers.
+- Thanks to OpenStreetMap, Google map, Amap and all map providers.
 - Special thanks to outdoor enthusiasts and trail runners for their track data.
 
 ---

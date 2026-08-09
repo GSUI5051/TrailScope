@@ -1,10 +1,10 @@
-[简体中文](README-CN.md) | [English](README.md)
+[简体中文](readme-cn.md) | [English](readme.md)
 
 一个实验性的在线 GPX 分析工具，但它是完全不同的动物
 
-An experimental online GPX tool, but a whole different animal
+An experimental online GPX visualizer and analyzer, but a whole different animal
 
-[点击使用工具](https://gsui5051.github.io/TrailScope/)
+[点击使用](https://gsui5051.github.io/TrailScope/)
 
 # TrailScope - 徒步轨迹智能分析
 
@@ -23,7 +23,7 @@ An experimental online GPX tool, but a whole different animal
   支持 `.gpx` 格式轨迹文件，自动提取位置和海拔信息。
 
 - **🗺️ 交互式地图**  
-  基于 Leaflet 渲染，提供多种地图源（高德、谷歌、OpenStreetMap、Windy 等），按坡度或海拔着色显示路线。
+  基于 Leaflet 渲染，提供多种地图源（高德、谷歌、OpenStreetMap、Windy等），按坡度或海拔着色显示路线。
 
 - **📈 海拔剖面图**  
   展示全程海拔变化，支持缩放、平移，鼠标悬停/触摸查看任意点的距离、海拔和坡度。  
@@ -33,7 +33,7 @@ An experimental online GPX tool, but a whole different animal
   - 总距离、累计爬升/下降、最高/最低海拔  
   - 平均坡度、上坡/下坡/平路距离  
   - 最大上坡/下坡坡度 
-  - 可切换基于原始数据/平滑数据的累计爬升下降计算，帮助减少 GPS 高度和气压高度计测量噪声导致的误差。  
+  - 可切换基于原始数据/平滑数据的海拔累计，帮助减少 GPS 高度和气压高度计测量噪声导致的误差。  
   - 针对户外徒步和越野跑的坡度统计和技术要点
 
 - **🏔️ 难度评级**  
@@ -55,7 +55,7 @@ An experimental online GPX tool, but a whole different animal
   补给量随单位制（公制/英制）自动转换，饮水量使用美制盎司（oz）显示。（仅限英文版）
 
 - **📋 分段统计**  
-  支持按“坡度变化”、“固定距离（1km）”、“航路点”三种方式进行分段，展示每段的距离、爬升、下降、平均坡度、最大坡度、耗时及难度评分。  
+  支持按“坡段”、“固定距离（1km）”、“航路点”三种方式进行分段，展示每段的距离、爬升、下降、平均坡度、最大坡度、耗时及难度评分。  
   点击任意分段可在地图和剖面图上高亮显示。
 
 - **🌐 单位切换**  
@@ -74,9 +74,10 @@ An experimental online GPX tool, but a whole different animal
 1. **访问页面**  
    - 用浏览器打开 `index.html` 或 `TrailScope-Chinese.html`
    - [点击这里查看在线部署版本](https://gsui5051.github.io/TrailScope/)
+   - 离线使用：[点击这里下载全套源代码](https://github.com/GSUI5051/TrailScope/archive/refs/heads/main.zip) ，将压缩包里面的 `TrailScope-main` 文件夹中的所有内容解压到本地后，打开打开 `index.html` 或 `TrailScope-Chinese.html`
 
 2. **加载轨迹**  
-   - 点击上传区域，选择 `.gpx` 文件；或将文件拖拽至上传区。  
+   - 点击上传区域，选择 `.gpx` 文件；或将文件拖拽至上传区。 
    - 也可点击 **“体验示例”** 按钮加载内置的示例轨迹。
 
 3. **分析结果**  
@@ -91,8 +92,8 @@ An experimental online GPX tool, but a whole different animal
    - 路线概况
 
 4. **交互操作**  
-   - **地图**：缩放、平移、切换图源；点击航路点可查看详细信息。  
-   - **剖面图**：滚轮缩放（电脑端）、拖拽平移；鼠标悬停/触摸可查看数据点详情；支持导出为 PNG 图片。  
+   - **路线地图**：缩放、平移、切换图源；点击航路点可查看详细信息。  
+   - **海拔剖面图**：滚轮缩放（电脑端）、拖拽平移；鼠标悬停/触摸可查看数据点详情；支持导出为 PNG 图片。  
    - **分段表**：点击任意行可高亮对应路段在地图和剖面图上。  
    - **单位切换**：点击顶部“公制/英制”按钮，所有数值自动转换。（仅限英文版）
 
@@ -101,7 +102,7 @@ An experimental online GPX tool, but a whole different animal
 ## 🛠️ 技术栈
 
 - **HTML5 / CSS3** – 结构样式，Tailwind CSS 辅助布局
-- **JavaScript (ES6+)** – 全部业务逻辑，按模块拆分组织（HTML 中无任何内联 JS）
+- **JavaScript (ES6+)** – 全部业务逻辑
 - **Leaflet** – 地图渲染与交互
 - **Canvas API** – 海拔剖面图绘制
 - **Font Awesome** – 图标库
@@ -150,15 +151,15 @@ TrailScope/
 │   │   └── init.js             # DOMContentLoaded 初始化
 │   └── en/                     # 英文版专属模块（布局同 cn/）
 │       ├── units.js            # 公制/英制单位制
-│       └── …                   # state / map-sources / …（同 cn/）
+│       └── …                  # state / map-sources / …（同 cn/）
 ├── demo.gpx                    # 中文示例轨迹
 ├── demo-en.gpx                 # 英文示例轨迹
-├── webfonts/                   # Font Awesome 字体文件
+├── webfonts/                   # 字体文件
 ├── README.md                   # 英文说明文档
 └── README-CN.md                # 本文件
 ```
 
-> **加载顺序：** 先加载 `common/*`（共享逻辑，`tailwind-config.js` 位于 `<head>`），再加载语言模块（`cn/` 或 `en/`），最后加载 `bindings.js` 与 `init.js`。
+> **加载顺序：** 先加载 `common/*`（共用逻辑，`tailwind-config.js` 位于 `<head>`），再加载语言模块（`cn/` 或 `en/`），最后加载 `bindings.js` 与 `init.js`。
 
 ---
 
@@ -195,11 +196,8 @@ TrailScope 提供的数据分析仅用于路线规划参考。
 
 欢迎提交 Issue 或 Pull Request！如果你有更好的算法、新的地图源或 UI 改进建议，请随时参与。
 
-- 本项目已完全模块化：HTML 页面中**不含任何内联 JavaScript**（无 `<script>` 代码块，无 `onclick`/`onchange` 属性）。
-- 共享逻辑（设备检测、地理计算、坐标转换、通用 UI 辅助等）位于 `js/common/`；语言相关逻辑（界面文案、单位处理、地图源等）位于 `js/cn/` 与 `js/en/`。
-- 修改用户可见的文案或行为时，请**同步更新中英文两个模块**。
-- 所有按钮与下拉框交互均通过 `bindings.js` 按元素 id 绑定，请勿再添加内联事件属性。
-- 如添加新功能，请确保兼容桌面端与移动端。
+- 建议在修改前阅读代码结构。
+- 如添加新功能，请确保兼容电脑端与移动端。
 
 ---
 
@@ -211,13 +209,13 @@ TrailScope 提供的数据分析仅用于路线规划参考。
 
 ## 🌟 致谢
 
-- 灵感来源于各种优秀的户外软件和已有的 gpx 分析工具（Strava, Zepp, 两步路，Mapy, Organic Maps, GPX Studio, Gaia GPS）。
+- 灵感来源于各种优秀的户外地图软件和已有的 gpx 分析工具（两步路，Strava, Zepp, Mapy, Organic Maps, GPX Studio）。
 - 感谢所有开源社区提供的优秀库（Leaflet, Tailwind CSS, Font Awesome）。
-- 感谢所有地图和卫星图的供应人员。
+- 感谢所有地图供应人员。
 - 特别感谢广大户外徒步与越野跑爱好者提供的轨迹数据。
 
 ---
 
-**TrailScope – 让每一条轨迹都变得清晰可读**
+**TrailScope – 解读每一条轨迹**
 
 **Made with ❤️ for hikers & trail runners**
