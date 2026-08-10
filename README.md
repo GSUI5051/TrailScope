@@ -1,4 +1,4 @@
-[简体中文](readme-cn.md) | [English](readme.md)
+[简体中文](README.md) | [English](README-CN.md)
 
 一个实验性的在线 GPX 分析工具，但它是完全不同的动物
 
@@ -14,6 +14,15 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
 ![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=flat&logo=Leaflet&logoColor=white)
 
 **TrailScope** is a pure front-end GPX track analysis tool designed for hikers and trail runners. Upload your GPX file，input weather data, get a professional route analysis report, including elevation profile, grade visualization, difficulty rating, segment statistics, gear recommendations, and safety considerations.
+
+---
+
+## 🎬 Intro Video
+
+Want a quick walkthrough of TrailScope's core features and workflow?  
+Watch intro: [TrailScope Feature Overview](https://youtu.be/GeVyon0YSvM)
+
+The video covers its key modules - loading GPX tracks, reading maps, analyzing elevation profiles and weather assessment - ideal for getting started.
 
 ---
 

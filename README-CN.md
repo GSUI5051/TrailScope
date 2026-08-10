@@ -1,4 +1,4 @@
-[简体中文](readme-cn.md) | [English](readme.md)
+[简体中文](README.md) | [English](README-CN.md)
 
 一个实验性的在线 GPX 分析工具，但它是完全不同的动物
 
@@ -6,7 +6,7 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
 
 [点击使用](https://gsui5051.github.io/TrailScope/)
 
-# TrailScope - 徒步轨迹智能分析
+# TrailScope - 徒步轨迹分析
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white)
@@ -14,6 +14,15 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
 ![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=flat&logo=Leaflet&logoColor=white)
 
 **TrailScope** 是一款纯前端的 GPX 轨迹分析工具，专为户外徒步、越野跑爱好者设计。上传 GPX 文件并输入气象数据，即可获得专业级的路线分析报告，涵盖海拔剖面、坡度分级、难度评估、分段统计、装备建议以及风险提示。
+
+---
+
+## 🎬 介绍视频
+
+想快速了解 TrailScope 的核心功能与使用方式？  
+介绍视频：[TrailScope 功能介绍](https://www.bilibili.com/video/BV1Kduo6eEX4/) | [TrailScope 功能介绍（线路二）](https://youtu.be/k4cJetP-9Eg)
+
+视频中涵盖了从加载 GPX 轨迹、阅读路线地图和海拔剖面图，到天气评估的完整流程，适合新用户快速上手。
 
 ---
 
