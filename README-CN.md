@@ -72,9 +72,8 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
 ## 🚀 使用方法
 
 1. **访问页面**  
-   - 用浏览器打开 `index.html` 或 `TrailScope-Chinese.html`
    - [点击这里查看在线部署版本](https://gsui5051.github.io/TrailScope/)
-   - 离线使用：[点击这里下载全套源代码](https://github.com/GSUI5051/TrailScope/archive/refs/heads/main.zip) ，将压缩包里面的 `TrailScope-main` 文件夹中的所有内容解压到本地后，打开打开 `index.html` 或 `TrailScope-Chinese.html`
+   - 离线使用：[点击这里下载全套源代码](https://github.com/GSUI5051/TrailScope/archive/refs/heads/main.zip) ，将压缩包里面的 `TrailScope-main` 文件夹中的所有内容解压到本地后，打开 `index.html` 或 `TrailScope-Chinese.html`
 
 2. **加载轨迹**  
    - 点击上传区域，选择 `.gpx` 文件；或将文件拖拽至上传区。 
@@ -150,8 +149,8 @@ TrailScope/
 │   │   ├── bindings.js         # 按钮/下拉框事件绑定
 │   │   └── init.js             # DOMContentLoaded 初始化
 │   └── en/                     # 英文版专属模块（布局同 cn/）
-│       ├── units.js            # 公制/英制单位制
-│       └── …                  # state / map-sources / …（同 cn/）
+│       ├── units.js            # 公制/英制单位转换
+│       └── …                   # state / map-sources / …（同 cn/）
 ├── demo.gpx                    # 中文示例轨迹
 ├── demo-en.gpx                 # 英文示例轨迹
 ├── webfonts/                   # 字体文件

@@ -242,8 +242,8 @@ function analyzeWeather() {
             const WBGT = 0.7 * Tnwb + 0.2 * Tg + 0.1 * tempC;
 
             let wbgtDisplay = isMetric ?
-                WBGT.toFixed(1) + '℃ / ' + celsiusToFahrenheit(WBGT).toFixed(1) + '℉' :
-                celsiusToFahrenheit(WBGT).toFixed(1) + '℉ / ' + WBGT.toFixed(1) + '℃';
+                WBGT.toFixed(1) + ' ℃ (' + celsiusToFahrenheit(WBGT).toFixed(1) + ' ℉)' :
+                celsiusToFahrenheit(WBGT).toFixed(1) + ' ℉ (' + WBGT.toFixed(1) + ' ℃)';
 
             let wbgtAdvice = '';
             let wbgtColor = '#1a1a1a';
@@ -274,8 +274,8 @@ function analyzeWeather() {
 
             if (heatIndexC >= 27) {
                 let hiDisplay = isMetric ?
-                    heatIndexC.toFixed(1) + '℃ / ' + celsiusToFahrenheit(heatIndexC).toFixed(1) + '℉' :
-                    celsiusToFahrenheit(heatIndexC).toFixed(1) + '℉ / ' + heatIndexC.toFixed(1) + '℃';
+                    heatIndexC.toFixed(1) + ' ℃ (' + celsiusToFahrenheit(heatIndexC).toFixed(1) + ' ℉)' :
+                    celsiusToFahrenheit(heatIndexC).toFixed(1) + ' ℉ (' + heatIndexC.toFixed(1) + '℃)';
                 rows.push(
                     `<div class="weather-tip-row"><span class="weather-tip-icon text-accent-amber"><i class="fa-solid fa-temperature-full"></i></span><span class="weather-tip-text text-accent-amber font-semibold">Heat Index ≈ ${hiDisplay}</span></div>`
                     );

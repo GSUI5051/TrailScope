@@ -72,7 +72,6 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
 ## 🚀 How to Use
 
 1. **Open the Page**  
-   - Launch `TrailScope-English.html` in your browser.
    - [Click here for online version.](https://gsui5051.github.io/TrailScope/TrailScope-English.html)
    - For offline usage, [Click here to download all the code](https://github.com/GSUI5051/TrailScope/archive/refs/heads/main.zip), unzip and launch `TrailScope-English.html` in your browser.
 
@@ -151,7 +150,7 @@ TrailScope/
 │   │   └── init.js             # DOMContentLoaded bootstrap
 │   └── en/                     # English-only modules (same layout as cn/)
 │       ├── units.js            # metric / imperial unit system
-│       └── …                  # state / map-sources / … (same as cn/)
+│       └── …                   # state / map-sources / … (same as cn/)
 ├── demo.gpx                    # Chinese demo track
 ├── demo-en.gpx                 # English demo track
 ├── webfonts/                   # Font files
