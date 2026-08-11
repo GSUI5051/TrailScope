@@ -1,4 +1,4 @@
-[简体中文](README.md) | [English](README-CN.md)
+[简体中文](README-CN.md) | [English](README.md)
 
 一个实验性的在线 GPX 分析工具，但它是完全不同的动物
 
@@ -22,7 +22,7 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
 想快速了解 TrailScope 的核心功能与使用方式？  
 介绍视频：[TrailScope 功能介绍](https://www.bilibili.com/video/BV1Kduo6eEX4/) | [TrailScope 功能介绍（线路二）](https://youtu.be/k4cJetP-9Eg)
 
-视频中涵盖了从加载 GPX 轨迹、阅读路线地图和海拔剖面图，到天气评估的完整流程，适合新用户快速上手。
+视频涵盖了从加载 GPX 轨迹、阅读路线地图和海拔剖面图，到天气评估的完整流程，适合新用户快速上手。
 
 ---
 

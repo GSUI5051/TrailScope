@@ -1,4 +1,4 @@
-[简体中文](README.md) | [English](README-CN.md)
+[简体中文](README-CN.md) | [English](README.md)
 
 一个实验性的在线 GPX 分析工具，但它是完全不同的动物
 
