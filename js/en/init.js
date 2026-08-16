@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('zoomInfo').classList.add('hidden');
         const infoDiv = document.querySelector('.text-xs.text-trail-mid\\/50.ml-auto');
         if (infoDiv) {
-            infoDiv.innerHTML = '<i class="fa-solid fa-circle-info"></i> Swipe for details · Tap outside to deselect';
+            infoDiv.innerHTML = '<i class="fa-solid fa-circle-info"></i> Pinch to zoom · Swipe for details · Tap outside to deselect';
         }
     }
 

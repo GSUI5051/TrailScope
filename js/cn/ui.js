@@ -623,7 +623,7 @@ function enterMapFullscreen() {
 
     map.classList.add('map-fullscreen-chart');
 
-    if (IS_MOBILE) {
+    if (IS_MOBILE && isPortraitViewport()) {
         map.classList.add('portrait-mode');
     }
 
@@ -758,14 +758,14 @@ function enterMapFullscreen() {
 
     setupChartInteraction();
 
-    map.requestFullscreen?.();
+    // ★★★ 先同步完成图表绘制与地图重排，再请求原生全屏：
+    // 点击处理返回后的第一帧就是已绘制好的全屏内容，避免先显示深色空壳再绘制导致的黑屏 ★★★
+    resizeActiveChartCanvas();
+    leafletMap?.invalidateSize();
+    applyFullscreenCenterPan();
+    updateFullscreenButton(true);
 
-    setTimeout(() => {
-        resizeActiveChartCanvas();
-        leafletMap?.invalidateSize();
-        fitMapToTrack();
-        updateFullscreenButton(true);
-    }, 300);
+    map.requestFullscreen?.();
 }
 
 

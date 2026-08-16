@@ -7,13 +7,13 @@ const mapSources = {
         maxZoom: 19,
         attribution: '© OpenStreetMap contributors'
     },
-    windy: {
+ /*   windy: {
         name: 'Windy',
-        url: 'https://tiles.windy.com/v1/maptiles/outdoor/256/{z}/{x}/{y}',
+        url: 'https://tiles.windy.com/v1/maptiles/outdoor/256%402x/{z}/{x}/{y}',
         subdomains: '',
         maxZoom: 18,
         attribution: '© Windy'
-    },
+    },*/
     opentopomap: {
         name: 'OpenTopoMap',
         url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
@@ -34,6 +34,13 @@ const mapSources = {
         subdomains: 'abc',
         maxZoom: 20,
         attribution: '© CyclOSM'
+    },
+    openhikingmap: {
+        name: 'OpenHikingMap',
+        url: 'https://tile.openmaps.fr/openhikingmap/{z}/{x}/{y}.png',
+        subdomains: '',
+        maxZoom: 18,
+        attribution: '<a href="https://github.com/sletuffe/OpenTopoMap">&copy; OpenTopoMap-R</a> <a href="https://openmaps.fr/donate">❤️ Donation</a> <a href="http://www.openstreetmap.org/copyright">&copy; OpenStreetMap</a>'
     },
     googlesatellite: {
         name: '谷歌卫星图',

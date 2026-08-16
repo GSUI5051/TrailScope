@@ -13,13 +13,24 @@ function drawChart() {
 
     const W = rect.width;
     const H = rect.height;
+    if (W < 1 || H < 1) {
+        // 布局过渡瞬间画布尺寸可能为 0：跳过本次绘制，避免画出横线并保留旧画面
+        return;
+    }
     let padding = { top: 30, right: 50, bottom: 45, left: 60 };
     if (IS_MOBILE) {
         padding.left = 60;
         padding.right = 30;
     }
     const chartW = W - padding.left - padding.right;
-    const chartH = H - padding.top - padding.bottom;
+    let chartH = H - padding.top - padding.bottom;
+    if (chartH < 1) {
+        // 画布过矮（如手机横屏全屏）：压缩上下内边距，保证绘图区高度为正，
+        // 否则 y 轴映射反转（图表上下颠倒）且触摸判定区间失效（滑动无响应）
+        padding.top = Math.max(4, Math.floor(H * 0.12));
+        padding.bottom = Math.max(4, Math.floor(H * 0.12));
+        chartH = H - padding.top - padding.bottom;
+    }
 
     ctx.clearRect(0, 0, W, H);
 

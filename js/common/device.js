@@ -26,4 +26,9 @@ function detectDevice() {
 const DEVICE_TYPE = detectDevice();
 const IS_MOBILE = DEVICE_TYPE === 'mobile';
 
+// ★★★ 视口方向判断：全屏模式下区分手机横竖屏（旋转屏幕时每次重新读取） ★★★
+function isPortraitViewport() {
+    return window.innerHeight > window.innerWidth;
+}
+
 

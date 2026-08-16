@@ -101,7 +101,7 @@ The video covers its key modules - loading GPX tracks, reading maps, analyzing e
 
 4. **Interact**  
    - **Map**: Zoom, pan, switch map sources; click waypoints for details.  
-   - **Elevation Profile**: Scroll to zoom (desktop), drag to pan; hover/touch to inspect points; export as PNG.  
+   - **Elevation Profile**: Scroll to zoom (desktop), pinch to zoom (mobile), drag to pan; hover/touch to inspect points; export as PNG.  
    - **Segments**: Click any row to highlight the corresponding section on map and elevation profile.  
    - **Unit Toggle**: Click the Metric (km, m)/US Customary (mi, ft) button at the top to convert all values.
 
@@ -130,7 +130,8 @@ TrailScope/
 ├── css/
 │   ├── leaflet-1p9p4.css
 │   ├── fonts.css
-│   └── all.min.css             # Font Awesome
+│   ├── all.min.css             # Font Awesome
+│   └── custom.css              # custom styles shared by all three pages
 ├── js/
 │   ├── common/                 # shared modules & vendor libs (loaded by both pages)
 │   │   ├── tailwind-3p4p17.js  # vendor: Tailwind CSS

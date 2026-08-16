@@ -273,6 +273,11 @@ function setupChartInteraction() {
             }
         } else if (touches.length === 2) {
             touchState.isPinching = true;
+            touchState.startPinchDist = Math.hypot(
+                touches[0].clientX - touches[1].clientX,
+                touches[0].clientY - touches[1].clientY
+            );
+            touchState.startZoomLevel = zoomLevel;
         }
     }
 
@@ -306,6 +311,7 @@ function setupChartInteraction() {
             touchState.lastY = y;
         } else if (touches.length === 2 && touchState.isPinching) {
             e.preventDefault();
+            pinchZoomMobile(touches);
         }
     }
 
@@ -395,6 +401,47 @@ function setupChartInteraction() {
         touchState.isTap = false;
 
         canvas.style.cursor = 'crosshair';
+    }
+
+    // ★★★ 双指缩放：以两指中心为锚点，按手指距离相对起始距离的比例缩放 ★★★
+    function pinchZoomMobile(touches) {
+        if (!trackData || !canvas._scale) return;
+
+        const dist = Math.hypot(
+            touches[0].clientX - touches[1].clientX,
+            touches[0].clientY - touches[1].clientY
+        );
+        if (touchState.startPinchDist <= 0 || dist <= 0) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const centerX = (touches[0].clientX + touches[1].clientX) / 2 - rect.left;
+
+        const { padding, chartW, viewStart, viewEnd } = canvas._scale;
+        const anchorRatio = Math.max(0, Math.min(1, (centerX - padding.left) / chartW));
+        const anchorDist = viewStart + anchorRatio * (viewEnd - viewStart);
+
+        const newZoom = Math.max(1, Math.min(trackData.maxZoomLevel, touchState.startZoomLevel * (dist / touchState.startPinchDist)));
+        if (newZoom === zoomLevel) return;
+
+        zoomLevel = newZoom;
+        const newVisibleRange = trackData.totalDistance / zoomLevel;
+        let newViewStart = anchorDist - anchorRatio * newVisibleRange;
+        let newViewEnd = newViewStart + newVisibleRange;
+
+        if (newViewStart < 0) {
+            newViewStart = 0;
+            newViewEnd = Math.min(trackData.totalDistance, newVisibleRange);
+        }
+        if (newViewEnd > trackData.totalDistance) {
+            newViewEnd = trackData.totalDistance;
+            newViewStart = Math.max(0, trackData.totalDistance - newVisibleRange);
+        }
+
+        zoomCenter = (newViewStart + newViewEnd) / 2 / trackData.totalDistance;
+        zoomCenter = Math.max(0, Math.min(1, zoomCenter));
+
+        updateZoomInfo();
+        drawChart();
     }
 
     function handleTouchCancelMobile(e) {

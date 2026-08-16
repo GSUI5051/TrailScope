@@ -101,7 +101,7 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
 
 4. **交互操作**  
    - **路线地图**：缩放、平移、切换图源；点击航路点可查看详细信息。  
-   - **海拔剖面图**：滚轮缩放（电脑端）、拖拽平移；鼠标悬停/触摸可查看数据点详情；支持导出为 PNG 图片。  
+   - **海拔剖面图**：滚轮缩放（电脑端）、双指缩放（手机端）、拖拽平移；鼠标悬停/触摸可查看数据点详情；支持导出为 PNG 图片。  
    - **分段表**：点击任意行可高亮对应路段在地图和剖面图上。  
    - **单位切换**：点击顶部“公制/英制”按钮，所有数值自动转换。（仅限英文版）
 
@@ -130,7 +130,8 @@ TrailScope/
 ├── css/
 │   ├── leaflet-1p9p4.css
 │   ├── fonts.css
-│   └── all.min.css             # Font Awesome
+│   ├── all.min.css             # Font Awesome
+│   └── custom.css              # 三个页面共用的自定义样式
 ├── js/
 │   ├── common/                 # 共享模块与第三方库（两个页面共用）
 │   │   ├── tailwind-3p4p17.js  # 第三方：Tailwind CSS

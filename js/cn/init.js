@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('zoomInfo').classList.add('hidden');
         const infoDiv = document.querySelector('.text-xs.text-trail-mid\\/50.ml-auto');
         if (infoDiv) {
-            infoDiv.innerHTML = '<i class="fa-solid fa-circle-info"></i> 手指滑动查看详情 · 点击外部取消标记';
+            infoDiv.innerHTML = '<i class="fa-solid fa-circle-info"></i> 双指缩放 · 手指滑动查看详情 · 点击外部取消标记';
         }
     }
 

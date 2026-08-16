@@ -1,0 +1,990 @@
+        /* 样式全部保留，与原来一致 */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px rgba(26, 46, 31, 0.08);
+        }
+
+        .glass-dark {
+            background: rgba(26, 46, 31, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(122, 148, 113, 0.2);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #f5f1e8 0%, #e8dcc8 30%, #d4c5a9 60%, #cd762a 100%);
+        }
+
+        .upload-zone {
+            border: 2px dashed rgba(122, 148, 113, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .upload-zone:hover,
+        .upload-zone.dragover {
+            border-color: rgba(122, 148, 113, 0.8);
+            background: rgba(122, 148, 113, 0.08);
+            transform: scale(1.01);
+        }
+
+        .stat-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(26, 46, 31, 0.12);
+        }
+
+        .difficulty-bar {
+            background: linear-gradient(90deg,
+                    #5c7a52 0%, #7a9471 20%, #d4a017 50%, #cd762a 75%, #c54b3c 100%);
+        }
+
+        .grad-bar-up {
+            background: linear-gradient(90deg, rgba(88, 212, 0, 1) 0%, rgba(214, 214, 5, 1) 50%, rgba(255, 0, 0, 1) 100%);
+        }
+        .grad-bar-down {
+            background: linear-gradient(90deg, rgba(88, 212, 0, 1) 0%, rgba(87, 190, 255, 1) 50%, rgba(0, 176, 240, 1) 100%);
+        }
+        .grad-bar-elevation {
+            background: linear-gradient(90deg, rgba(88, 212, 0, 1) 0%, rgba(214, 214, 5, 1) 50%, rgba(255, 0, 0, 1) 100%);
+        }
+
+        #elevationChart {
+            cursor: crosshair;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        #fullscreenElevationChart {
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .tooltip {
+            position: absolute;
+            pointer-events: none;
+            background: rgba(26, 46, 31, 0.95);
+            color: #f5f1e8;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            line-height: 1.6;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.15s;
+            white-space: nowrap;
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+        }
+
+        .segment-tooltip {
+            position: fixed;
+            pointer-events: none;
+            background: rgba(26, 46, 31, 0.95);
+            color: #f5f1e8;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.15s;
+            white-space: nowrap;
+        }
+
+        .segment-tooltip.visible {
+            opacity: 1;
+        }
+
+        .segment-row {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .segment-row:hover {
+            background: rgba(122, 148, 113, 0.1);
+            transform: translateX(4px);
+        }
+
+        .segment-row.active {
+            background: rgba(122, 148, 113, 0.2);
+            border-left: 3px solid #2d4a35;
+        }
+
+        .segment-number {
+            cursor: help;
+            position: relative;
+        }
+
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.1);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .scroll-thin::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scroll-thin::-webkit-scrollbar-track {
+            background: rgba(122, 148, 113, 0.1);
+            border-radius: 3px;
+        }
+
+        .scroll-thin::-webkit-scrollbar-thumb {
+            background: rgba(122, 148, 113, 0.4);
+            border-radius: 3px;
+        }
+
+        .scroll-thin::-webkit-scrollbar-thumb:hover {
+            background: rgba(122, 148, 113, 0.6);
+        }
+
+        .mountain-bg {
+            background-image:
+                radial-gradient(ellipse at 20% 80%, rgba(122, 148, 113, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(196, 149, 108, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(58, 107, 138, 0.08) 0%, transparent 70%);
+        }
+
+        .badge-glow {
+            box-shadow: 0 0 20px rgba(212, 160, 23, 0.3);
+        }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .nav-blur {
+            background: rgba(245, 241, 232, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .seg-btn {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            background: rgba(122, 148, 113, 0.15);
+            color: #2d4a35;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .seg-btn:hover {
+            background: rgba(122, 148, 113, 0.25);
+        }
+
+        .seg-btn.active {
+            background: #1a2e1f;
+            color: #f5f1e8;
+        }
+
+        .zoom-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(26, 46, 31, 0.85);
+            color: #f5f1e8;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .zoom-btn:hover {
+            background: rgba(26, 46, 31, 1);
+            transform: scale(1.05);
+        }
+
+        /* 手机端隐藏缩放按钮 */
+        .mobile-hide-zoom .zoom-controls {
+            display: none !important;
+        }
+
+        #mapContainer {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        #leafletMap {
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .leaflet-control-zoom {
+            display: none !important;
+        }
+
+        .map-control-btn {
+            background: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            color: #2d4a35;
+            font-size: 15px;
+        }
+
+        .map-control-btn:hover {
+            background: #f5f1e8;
+            transform: scale(1.05);
+        }
+
+        .map-control-btn.active-linkage {
+            background: #1a2e1f;
+            color: #f5f1e8;
+            box-shadow: 0 2px 8px rgba(26, 46, 31, 0.35);
+        }
+
+        .map-control-btn.active-linkage:hover {
+            background: #2d4a35;
+        }
+
+        .map-source-select {
+            background: white;
+            border: none;
+            height: 36px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            padding: 0 10px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #2d4a35;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .map-source-select:hover {
+            background: #f5f1e8;
+        }
+
+        .map-source-select option {
+            background: white;
+            color: #2d4a35;
+        }
+
+        .color-mode-select {
+            background: white;
+            border: none;
+            height: 32px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            padding: 0 10px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #2d4a35;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .color-mode-select:hover {
+            background: #f5f1e8;
+        }
+
+        .color-mode-select option {
+            background: white;
+            color: #2d4a35;
+        }
+
+        .custom-marker {
+            background: #8b7355;
+            border: 2px solid white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .start-marker {
+            background: #5c7a52;
+        }
+
+        .end-marker {
+            background: #c54b3c;
+        }
+
+        .current-marker {
+            background: #c54b3c;
+            width: 18px;
+            height: 18px;
+            border: 3px solid white;
+        }
+
+        .tech-tip {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .tech-tip:hover {
+            transform: translateX(4px);
+        }
+
+        .equipment-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(122, 148, 113, 0.1);
+        }
+
+        .equipment-item:last-child {
+            border-bottom: none;
+        }
+
+        .equipment-icon {
+            width: 1.5rem;
+            flex-shrink: 0;
+            text-align: center;
+            font-size: 1rem;
+            line-height: 1.5;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: inherit;
+            margin-top: 2px;
+        }
+
+        .equipment-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .equipment-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #1a2e1f;
+            margin-bottom: 2px;
+        }
+
+        .equipment-desc {
+            font-size: 0.75rem;
+            color: rgba(45, 74, 53, 0.6);
+            line-height: 1.4;
+        }
+
+        .pagination-btn {
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: rgba(122, 148, 113, 0.15);
+            color: #2d4a35;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: rgba(122, 148, 113, 0.25);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .pagination-btn.active {
+            background: #1a2e1f;
+            color: #f5f1e8;
+        }
+
+        .page-size-select {
+            background: white;
+            border: 1px solid rgba(122, 148, 113, 0.3);
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            padding: 0 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #2d4a35;
+            outline: none;
+        }
+
+        .warning-text {
+            color: #c54b3c;
+            font-weight: 500;
+        }
+
+        .nav-segment-btn {
+            background: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            color: #2d4a35;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .nav-segment-btn:hover:not(:disabled) {
+            background: #f5f1e8;
+            transform: scale(1.05);
+        }
+
+        .nav-segment-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .waypoint-popup-content {
+            background: rgba(26, 46, 31, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(122, 148, 113, 0.2);
+            color: #f5f1e8;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 12px;
+            line-height: 1.6;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .waypoint-popup-content strong {
+            color: #d4a017;
+            font-size: 13px;
+        }
+
+        .waypoint-popup-content .waypoint-info-line {
+            color: rgba(245, 241, 232, 0.8);
+        }
+
+        .leaflet-popup-content-wrapper {
+            background: transparent !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+        }
+
+        .leaflet-popup-tip {
+            background: rgba(26, 46, 31, 0.85) !important;
+        }
+
+        .leaflet-popup-content {
+            margin: 0 !important;
+        }
+
+        /* 地图全屏模式 */
+        .map-fullscreen-chart {
+            position: fixed !important;
+            inset: 0;
+            z-index: 9999;
+        }
+        .map-fullscreen-chart #leafletMap {
+            position: absolute;
+            inset: 0;
+            height: 100% !important;
+        }
+        .map-fullscreen-chart .fullscreen-profile {
+            position: absolute;
+            left: 2%;
+            right: 2%;
+            bottom: 2%;
+            height: min(38vh, 420px);
+            background: rgba(245, 241, 232, .94);
+            border-radius: 20px;
+            padding: 16px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+        }
+        .map-fullscreen-chart .fullscreen-chart-toolbar {
+            position: absolute;
+            left: 2%;
+            right: 2%;
+            bottom: calc(min(38vh, 420px) + 4% + 12px);
+            z-index: 10001;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .map-fullscreen-chart .fullscreen-profile canvas {
+            flex: 1;
+            min-height: 0;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .map-fullscreen-chart .fullscreen-profile .chart-area {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+        }
+        .map-fullscreen-chart .fullscreen-profile .tooltip {
+            z-index: 10002;
+        }
+
+        .map-fullscreen-chart.portrait-mode {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+        }
+        .map-fullscreen-chart.portrait-mode #leafletMap {
+            position: absolute !important;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50% !important;
+            width: 100% !important;
+            z-index: 1;
+            border-radius: 0 !important;
+        }
+        .map-fullscreen-chart.portrait-mode .fullscreen-profile {
+            position: absolute !important;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50% !important;
+            background: rgba(245, 241, 232, .95);
+            border-radius: 0 !important;
+            padding: 12px 12px 16px 12px;
+            z-index: 2;
+            display: block;
+            width: 100% !important;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .map-fullscreen-chart.portrait-mode .fullscreen-profile .chart-area {
+            width: 100%;
+            height: calc(100% - 40px);
+            position: relative;
+        }
+        .map-fullscreen-chart.portrait-mode .fullscreen-profile canvas {
+            width: 100% !important;
+            height: 100% !important;
+            display: block;
+        }
+        .map-fullscreen-chart.portrait-mode .fullscreen-profile .tooltip {
+            z-index: 10002;
+        }
+
+        .map-fullscreen-chart.portrait-mode .fullscreen-chart-toolbar {
+            position: absolute !important;
+            bottom: calc(50% + 8px) !important;
+            left: 0;
+            right: 0;
+            padding: 8px 12px;
+            z-index: 10001;
+            background: transparent !important;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            width: 100%;
+            box-sizing: border-box;
+            pointer-events: none;
+        }
+        .map-fullscreen-chart.portrait-mode .fullscreen-chart-toolbar>* {
+            pointer-events: auto;
+        }
+
+        /* 手机横屏全屏：右上角 5 按钮改为 2 列网格（第3行左格留空），并隐藏剖面图滑动提示框 */
+        @media (pointer: coarse) and (orientation: landscape) {
+            #mapContainer.map-fullscreen-chart:not(.portrait-mode) > div.absolute.top-3.right-3 {
+                display: grid;
+                grid-template-columns: repeat(2, auto);
+                gap: 8px;
+            }
+            #mapContainer.map-fullscreen-chart:not(.portrait-mode) > div.absolute.top-3.right-3 > button:nth-child(1) { grid-column: 2; grid-row: 1; }
+            #mapContainer.map-fullscreen-chart:not(.portrait-mode) > div.absolute.top-3.right-3 > button:nth-child(2) { grid-column: 1; grid-row: 1; }
+            #mapContainer.map-fullscreen-chart:not(.portrait-mode) > div.absolute.top-3.right-3 > button:nth-child(3) { grid-column: 1; grid-row: 2; }
+            #mapContainer.map-fullscreen-chart:not(.portrait-mode) > div.absolute.top-3.right-3 > button:nth-child(4) { grid-column: 2; grid-row: 2; }
+            #mapContainer.map-fullscreen-chart:not(.portrait-mode) > div.absolute.top-3.right-3 > button:nth-child(5) { grid-column: 2; grid-row: 3; }
+
+            /* 横屏剖面图面板较矮，提示框会盖住整张图：拖动时不显示 */
+            #mapContainer.map-fullscreen-chart:not(.portrait-mode) #fullscreenChartTooltip {
+                display: none !important;
+            }
+        }
+        .map-fullscreen-chart.portrait-mode .fullscreen-profile #fullscreenProfileLegend {
+            flex-shrink: 0;
+            padding-bottom: 4px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .map-fullscreen-chart.portrait-mode .fullscreen-profile .flex.items-center.justify-between.gap-2.mb-2 {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .map-fullscreen-chart.portrait-mode #mapInfoOverlay {
+            display: block !important;
+            position: absolute !important;
+            top: 10px !important;
+            left: 10px !important;
+            z-index: 10002 !important;
+            background: rgba(26, 46, 31, 0.8) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 8px 12px;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        .map-fullscreen-chart.portrait-mode #mapInfoOverlay .text-trail-cream {
+            color: #f5f1e8;
+        }
+
+        .advanced-toggle-btn {
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+        .advanced-toggle-btn:hover {
+            background: rgba(122, 148, 113, 0.15);
+        }
+        .advanced-toggle-btn .arrow-icon {
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+        .advanced-toggle-btn .arrow-icon.open {
+            transform: rotate(180deg);
+        }
+
+        .advanced-panel {
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, margin 0.3s ease;
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0;
+        }
+        .advanced-panel.open {
+            max-height: 600px;
+            opacity: 1;
+            margin-top: 16px;
+        }
+
+        .weather-adv-input {
+            transition: border-color 0.2s;
+        }
+        .weather-adv-input:focus {
+            border-color: #5c7a52;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(92, 122, 82, 0.2);
+        }
+
+        .weather-tip-icon {
+            width: 1.5rem;
+            text-align: center;
+            flex-shrink: 0;
+            font-size: 1rem;
+            line-height: 1.5;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .weather-tip-text {
+            flex: 1;
+            line-height: 1.5;
+        }
+        .weather-tip-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding: 0.2rem 0;
+            margin-bottom: 0.25rem;
+        }
+        .weather-tip-row:last-child {
+            margin-bottom: 0rem;
+        }
+        .weather-tips-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .weather-result-wrapper {
+            line-height: 1.6;
+        }
+
+        .equipment-section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1a2e1f;
+            margin-bottom: 1rem;
+        }
+
+        .equipment-section-header i {
+            width: 1.5rem;
+            flex-shrink: 0;
+            text-align: center;
+            font-size: 1.125rem;
+            line-height: 1.5;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 40px;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+        }
+
+        .title-row .title-left {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .title-row .title-left h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1a2e1f;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .title-row .title-right {
+            height: 28px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-sm-uniform {
+            height: 28px;
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            gap: 0.375rem;
+            white-space: nowrap;
+            flex-shrink: 0;
+            border: none;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .btn-sm-uniform i {
+            font-size: 0.7rem;
+            line-height: 1;
+        }
+
+        .btn-sm-uniform:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .seg-label-uniform {
+            height: 28px;
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: help;
+            line-height: 1;
+            flex-shrink: 0;
+            background: rgba(122, 148, 113, 0.2);
+            color: #2d4a35;
+        }
+
+        .unit-toggle-btn {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: transparent;
+            color: #2d4a35;
+        }
+        .unit-toggle-btn.active {
+            background: #1a2e1f;
+            color: #f5f1e8;
+            box-shadow: 0 2px 8px rgba(26, 46, 31, 0.25);
+        }
+        .unit-toggle-btn:hover:not(.active) {
+            background: rgba(122, 148, 113, 0.2);
+        }
+        .unit-toggle-group {
+            display: inline-flex;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 24px;
+            padding: 3px;
+            border: 1px solid rgba(122, 148, 113, 0.2);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        @media (max-width: 768px) {
+            .stat-card {
+                padding: 0.75rem;
+            }
+            .stat-card p.text-2xl {
+                font-size: 1.25rem;
+            }
+            .glass-card {
+                padding: 1rem;
+            }
+            .title-row .title-left h3 {
+                font-size: 1rem;
+            }
+            .btn-sm-uniform {
+                font-size: 0.65rem;
+                padding: 0 0.5rem;
+                height: 24px;
+            }
+            .zoom-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 12px;
+            }
+            .tooltip {
+                font-size: 11px;
+                padding: 6px 10px;
+                white-space: normal;
+                max-width: 200px;
+            }
+            #elevationChart {
+                height: 280px !important;
+            }
+            #mapContainer {
+                height: 300px !important;
+            }
+            .unit-toggle-btn {
+                font-size: 0.7rem;
+                padding: 4px 10px;
+            }
+            .unit-toggle-group {
+                border-radius: 18px;
+                padding: 2px;
+            }
+            .map-control-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 13px;
+            }
+        }
+
+        .chart-wrapper {
+            position: relative;
+        }
+        .chart-vline {
+            display: none !important;
+        }
+
+        /* 移动端（lg 以下）：「路线地图 + 海拔剖面图」（lg:grid-cols-5）与「难度评估」
+           （lg:grid-cols-3）容器缺基础单列定义，grid 隐式列按内容收缩导致卡片变窄 —— 补单列通栏 */
+        @media (max-width: 1023.98px) {
+            .lg\:grid-cols-5,
+            .lg\:grid-cols-3 {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+/* 天气输入框单位标签 */
+        .weather-unit-label {
+            display: inline-block;
+            padding-left: 0.5rem;
+            font-size: 0.75rem;
+            color: rgba(45, 74, 53, 0.7);
+        }
+        .weather-input-wrap {
+            position: relative;
+        }
+        .weather-input-wrap .weather-unit-suffix {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.75rem;
+            color: rgba(45, 74, 53, 0.5);
+            pointer-events: none;
+        }

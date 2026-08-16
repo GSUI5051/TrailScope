@@ -235,9 +235,14 @@ function updateMapCurrentPoint(pointIdx) {
         if (document.getElementById('mapContainer').classList.contains('map-fullscreen-chart')) {
             const profile = document.querySelector('.fullscreen-profile');
             if (profile) {
-                const profileHeight = profile.getBoundingClientRect().height;
-                const offsetY = profileHeight / 2;
-                leafletMap.panBy([0, offsetY], { animate: false });
+                const mapRect = leafletMap.getContainer().getBoundingClientRect();
+                const profileRect = profile.getBoundingClientRect();
+                if (profileRect.height > 0 && profileRect.top > mapRect.top) {
+                    // 将"当前位置"点放到地图顶部与剖面图顶部之间的中点（手机竖屏与桌面全屏自适应）
+                    const desiredY = (mapRect.top + profileRect.top) / 2;
+                    const viewportCenterY = mapRect.top + mapRect.height / 2;
+                    leafletMap.panBy([0, viewportCenterY - desiredY], { animate: false });
+                }
             }
         }
     }
