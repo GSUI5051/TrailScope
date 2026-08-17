@@ -645,12 +645,16 @@ function enterMapFullscreen() {
                 <option value="elevation">海拔分析</option>
               </select>
               <select id="fullscreenMapSourceSelect" class="map-source-select" title="切换图源" onchange="document.getElementById('mapSourceSelect').value=this.value; changeMapSource();">
-                <option value="amaproad" selected>高德路网图</option>
+                <option value="tiandituluwang" selected>天地图路网图</option>
+                <option value="tiandituweixing">天地图卫星图</option>
+                <option value="tianditudixing">天地图地形图</option>
+                <option value="amaproad">高德路网图</option>
                 <option value="amapsatellite">高德卫星图</option>
                 <option value="gaode_hybrid">高德混合图</option>
                 <option value="googlesatellite">谷歌卫星图</option>
                 <option value="googlehybrid">谷歌混合图</option>
                 <option value="osm">OpenStreetMap</option>
+                <option value="openhikingmap">OpenHikingMap</option>
                 <option value="windy">Windy</option>
                 <option value="opentopomap">OpenTopoMap</option>
                 <option value="opencyclemap">OpenCycleMap</option>
