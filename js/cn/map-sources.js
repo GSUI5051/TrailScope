@@ -79,7 +79,22 @@ const mapSources = {
         name: '高德混合图',
         maxZoom: 18,
         attribution: '© 高德地图',
-    }
+    },
+	tiandituluwang: {
+		name: '天地图路网图',
+		maxZoom: 18,
+		attribution: '© 天地图'
+	},
+	tiandituweixing: {
+		name: '天地图卫星图',
+		maxZoom: 18,
+		attribution: '© 天地图'
+	},
+	tianditudixing: {
+		name: '天地图地形图',
+		maxZoom: 18,
+		attribution: '© 天地图'
+	}
 };
 
 

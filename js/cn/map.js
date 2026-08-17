@@ -56,7 +56,67 @@ function changeMapSource(source) {
         const group = L.layerGroup([roadLayer, satelliteLayer]);
         group.addTo(leafletMap);
         currentTileLayer = group;
-    } else {
+    } else if (source === 'tiandituweixing') {
+		const tiandituroadLayer = L.tileLayer(
+            'http://t{s}.tianditu.gov.cn/cia_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=50fdf5d2464091ca4951c7c2d7e017c4',
+			{ subdomains: ['0', '1', '2', '3', '4', '5', '6', '7'],
+			tilesize: 256,
+			maxZoom: 18,
+            attribution: '© 天地图' }
+        );
+        const tianditusatelliteLayer = L.tileLayer(
+            'http://t{s}.tianditu.gov.cn/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=50fdf5d2464091ca4951c7c2d7e017c4',
+			{ subdomains: ['0', '1', '2', '3', '4', '5', '6', '7'],
+			tilesize: 256,
+			maxZoom: 18,
+            attribution: '© 天地图' }
+        );
+		tianditusatelliteLayer.setZIndex(5);
+        tiandituroadLayer.setZIndex(10);
+        const group = L.layerGroup([tiandituroadLayer, tianditusatelliteLayer]);
+        group.addTo(leafletMap);
+		currentTileLayer = group;
+    } else if (source === 'tiandituluwang') {
+		const tiandituroadLayer = L.tileLayer(
+            'http://t{s}.tianditu.gov.cn/cva_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=50fdf5d2464091ca4951c7c2d7e017c4',
+			{ subdomains: ['0', '1', '2', '3', '4', '5', '6', '7'],
+			tilesize: 256,
+			maxZoom: 18,
+            attribution: '© 天地图' }
+        );
+        const tianditumapLayer = L.tileLayer(
+            'http://t{s}.tianditu.gov.cn/vec_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=50fdf5d2464091ca4951c7c2d7e017c4',
+			{ subdomains: ['0', '1', '2', '3', '4', '5', '6', '7'],
+			tilesize: 256,
+			maxZoom: 18,
+            attribution: '© 天地图' }
+        );
+		tianditumapLayer.setZIndex(5);
+        tiandituroadLayer.setZIndex(10);
+        const group = L.layerGroup([tiandituroadLayer, tianditumapLayer]);
+        group.addTo(leafletMap);
+		currentTileLayer = group;
+    } else if (source === 'tianditudixing') {
+		const tiandituroadLayer = L.tileLayer(
+            'http://t{s}.tianditu.gov.cn/cta_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cta&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=50fdf5d2464091ca4951c7c2d7e017c4',
+			{ subdomains: ['0', '1', '2', '3', '4', '5', '6', '7'],
+			tilesize: 256,
+			maxZoom: 14,
+            attribution: '© 天地图' }
+        );
+        const tiandituterrainLayer = L.tileLayer(
+            'http://t{s}.tianditu.gov.cn/ter_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ter&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=50fdf5d2464091ca4951c7c2d7e017c4',
+			{ subdomains: ['0', '1', '2', '3', '4', '5', '6', '7'],
+			tilesize: 256,
+			maxZoom: 14,
+            attribution: '© 天地图' }
+        );
+		tiandituterrainLayer.setZIndex(5);
+        tiandituroadLayer.setZIndex(10);
+        const group = L.layerGroup([tiandituroadLayer, tiandituterrainLayer]);
+        group.addTo(leafletMap);
+		currentTileLayer = group;
+	} else {
         const tileOptions = {
             maxZoom: config.maxZoom,
             attribution: config.attribution
