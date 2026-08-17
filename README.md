@@ -213,6 +213,14 @@ Issues and pull requests are welcome! If you have better algorithms, additional 
 
 ---
 
+## ⚠️ Usage Restrictions
+
+**This project is for personal research and study purposes only. Commercial use is strictly prohibited.**
+
+Without written permission from the author, this project or its derivatives may not be used for any commercial or for-profit activities, including but not limited to: commercial software products, paid services, or internal business use within enterprises.
+
+---
+
 ## 📄 License
 
 This project is licensed under the [MIT License](https://opensource.org/licenses/MIT). You are free to use, modify, and distribute it.
