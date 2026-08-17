@@ -60,7 +60,15 @@ function changeMapSource(source) {
         if (config.subdomains) {
             tileOptions.subdomains = config.subdomains;
         }
-        const newLayer = L.tileLayer(config.url, tileOptions);
+        if (config.customHeaders) {
+            tileOptions.customHeaders = config.customHeaders;
+        }
+        let newLayer;
+        if (config.customHeaders) {
+            newLayer = new L.TileLayerHeaders(config.url, tileOptions);
+        } else {
+            newLayer = L.tileLayer(config.url, tileOptions);
+        }
         newLayer.addTo(leafletMap);
         currentTileLayer = newLayer;
     }

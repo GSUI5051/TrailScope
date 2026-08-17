@@ -7,13 +7,18 @@ const mapSources = {
         maxZoom: 19,
         attribution: '© OpenStreetMap contributors'
     },
- /*   windy: {
+    windy: {
         name: 'Windy',
         url: 'https://tiles.windy.com/v1/maptiles/outdoor/256%402x/{z}/{x}/{y}',
         subdomains: '',
         maxZoom: 18,
-        attribution: '© Windy'
-    },*/
+        attribution: '© Windy',
+        customHeaders: {
+            'origin': 'https://www.windy.com',
+            'priority': 'u=1, i',
+            'referer': 'https://www.windy.com/'
+        }
+    },
     opentopomap: {
         name: 'OpenTopoMap',
         url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
