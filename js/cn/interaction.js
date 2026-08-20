@@ -2,26 +2,41 @@
 function setupChartInteraction() {
     const canvas = chartCanvas;
     const tooltip = canvas._tooltip || document.getElementById('chartTooltip');
+    if (canvas._chartInteractionBound) return;
+    canvas._chartInteractionBound = true;
 
-    // 鼠标事件
-    canvas.addEventListener('mousemove', function(e) {
-        if (IS_MOBILE) return;
-        if (!trackData || !canvas._scale) return;
+    let hoverFrame = 0;
+    let pendingHover = null;
+    let tooltipWidth = 0;
+    let tooltipHeight = 0;
+    let hoverDisplayMode = null;
+    function positionTooltip(clientX, clientY, rect, W) {
+        let tooltipX = clientX - rect.left + 12;
+        let tooltipY = clientY - rect.top - tooltipHeight - 12;
+        if (tooltipX + tooltipWidth > W) {
+            tooltipX = clientX - rect.left - tooltipWidth - 12;
+        }
+        if (tooltipY < 0) {
+            tooltipY = clientY - rect.top + 12;
+        }
+        tooltip.style.left = tooltipX + 'px';
+        tooltip.style.top = tooltipY + 'px';
+    }
+
+    function updateDesktopHover(clientX, clientY) {
+        if (canvas !== chartCanvas || !trackData || !canvas._scale) return;
 
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        const { xScale, yScale, padding, chartW, chartH, W, H, viewStart, viewEnd } = canvas._scale;
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+        const { padding, chartW, chartH, W, viewStart, viewEnd } = canvas._scale;
 
         if (isDragging) {
             const dx = x - dragStartX;
             const visibleRange = dragStartViewEnd - dragStartViewStart;
             const distShift = -(dx / chartW) * visibleRange;
-
             let newViewStart = dragStartViewStart + distShift;
             let newViewEnd = dragStartViewEnd + distShift;
-
             if (newViewStart < 0) {
                 newViewStart = 0;
                 newViewEnd = visibleRange;
@@ -30,7 +45,6 @@ function setupChartInteraction() {
                 newViewEnd = trackData.totalDistance;
                 newViewStart = trackData.totalDistance - visibleRange;
             }
-
             zoomCenter = (newViewStart + newViewEnd) / 2 / trackData.totalDistance;
             drawChart();
             return;
@@ -40,80 +54,70 @@ function setupChartInteraction() {
             tooltip.classList.remove('visible');
             hoveredPointIdx = -1;
             updateMapCurrentPoint(-1);
-            drawChart();
+            clearChartHoverOverlay(canvas);
             return;
         }
 
-        const points = trackData.points;
-        const distRatio = (x - padding.left) / chartW;
-        const targetDist = viewStart + distRatio * (viewEnd - viewStart);
+        const targetDist = viewStart + ((x - padding.left) / chartW) * (viewEnd - viewStart);
+        const nearestIdx = findNearestPointIndexByDistance(trackData.points, targetDist);
+        const pointChanged = nearestIdx !== hoveredPointIdx ||
+            hoverDisplayMode !== waypointDisplayMode || currentMarkerPointIdx !== nearestIdx;
+        const pt = trackData.points[nearestIdx];
 
-        let nearestIdx = 0;
-        let minDiff = Infinity;
-        for (let i = 0; i < points.length; i++) {
-            const diff = Math.abs(points[i].distance - targetDist);
-            if (diff < minDiff) {
-                minDiff = diff;
-                nearestIdx = i;
+        if (pointChanged) {
+            hoveredPointIdx = nearestIdx;
+            hoverDisplayMode = waypointDisplayMode;
+            const threshold = trackData.totalDistance / trackData.points.length * 3;
+            const waypointHover = waypointDisplayMode === 'hide-all'
+                ? null
+                : findFirstWaypointNearDistance(trackData.waypoints, pt.distance, threshold);
+            if (waypointHover) {
+                tooltip.innerHTML = `
+                    <div style="font-weight: 700; margin-bottom: 4px; color: #d4a017;">📍 ${waypointHover.name}</div>
+                    <div>距离：<span style="font-weight: 600;">${pt.distance.toFixed(2)} km</span></div>
+                    <div>海拔：<span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${Math.round(pt.ele)} m</span></div>
+                    <div>坡度：<span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
+                  `;
+            } else {
+                tooltip.innerHTML = `
+                    <div>距离：<span style="font-weight: 600;">${pt.distance.toFixed(2)} km</span></div>
+                    <div>海拔：<span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${Math.round(pt.ele)} m</span></div>
+                    <div>坡度：<span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
+                  `;
             }
+            tooltip.classList.add('visible');
+            const tooltipRect = tooltip.getBoundingClientRect();
+            tooltipWidth = tooltipRect.width;
+            tooltipHeight = tooltipRect.height;
+            updateMapCurrentPoint(nearestIdx);
+            refreshChartHoverOverlay();
         }
 
-        hoveredPointIdx = nearestIdx;
-        const pt = points[nearestIdx];
+        positionTooltip(clientX, clientY, rect, W);
+    }
 
-        // 航路点悬停：只有在显示航路点（非 hide-all）时检测
-        let waypointHover = null;
-        if (waypointDisplayMode !== 'hide-all') {
-            for (let i = 0; i < trackData.waypoints.length; i++) {
-                const wp = trackData.waypoints[i];
-                if (Math.abs(wp.distance - pt.distance) < (trackData.totalDistance / points.length) * 3) {
-                    waypointHover = wp;
-                    break;
-                }
-            }
+    canvas.addEventListener('mousemove', function(e) {
+        if (IS_MOBILE) return;
+        pendingHover = { clientX: e.clientX, clientY: e.clientY };
+        if (!hoverFrame) {
+            hoverFrame = requestAnimationFrame(() => {
+                hoverFrame = 0;
+                const nextHover = pendingHover;
+                pendingHover = null;
+                if (nextHover) updateDesktopHover(nextHover.clientX, nextHover.clientY);
+            });
         }
-
-        if (waypointHover) {
-            tooltip.innerHTML = `
-                <div style="font-weight: 700; margin-bottom: 4px; color: #d4a017;">📍 ${waypointHover.name}</div>
-                <div>距离：<span style="font-weight: 600;">${pt.distance.toFixed(2)} km</span></div>
-                <div>海拔：<span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${Math.round(pt.ele)} m</span></div>
-                <div>坡度：<span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
-              `;
-        } else {
-            tooltip.innerHTML = `
-                <div>距离：<span style="font-weight: 600;">${pt.distance.toFixed(2)} km</span></div>
-                <div>海拔：<span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${Math.round(pt.ele)} m</span></div>
-                <div>坡度：<span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
-              `;
-        }
-
-        tooltip.classList.add('visible');
-
-        const tooltipRect = tooltip.getBoundingClientRect();
-        let tooltipX = e.clientX - rect.left + 12;
-        let tooltipY = e.clientY - rect.top - tooltipRect.height - 12;
-
-        if (tooltipX + tooltipRect.width > W) {
-            tooltipX = e.clientX - rect.left - tooltipRect.width - 12;
-        }
-        if (tooltipY < 0) {
-            tooltipY = e.clientY - rect.top + 12;
-        }
-
-        tooltip.style.left = tooltipX + 'px';
-        tooltip.style.top = tooltipY + 'px';
-
-        updateMapCurrentPoint(nearestIdx);
-        drawChart();
     });
 
     canvas.addEventListener('mouseleave', function() {
         if (IS_MOBILE) return;
+        if (hoverFrame) cancelAnimationFrame(hoverFrame);
+        hoverFrame = 0;
+        pendingHover = null;
+        hoverDisplayMode = null;
         tooltip.classList.remove('visible');
-        hoveredPointIdx = -1;
         updateMapCurrentPoint(-1);
-        drawChart();
+        clearChartHoverOverlay(canvas);
     });
 
     canvas.addEventListener('click', function(e) {
@@ -389,7 +393,7 @@ function setupChartInteraction() {
                 tooltip.style.left = tx + 'px';
                 tooltip.style.top = ty + 'px';
                 updateMapCurrentPoint(touchState.vlineIdx);
-                drawChart();
+                refreshChartHoverOverlay();
             }
         }
 
@@ -465,7 +469,7 @@ function setupChartInteraction() {
             touchState.vlineActive = false;
             touchState.vlineIdx = -1;
             updateMapCurrentPoint(-1);
-            drawChart();
+            clearChartHoverOverlay(canvas);
             return;
         }
 
@@ -473,31 +477,17 @@ function setupChartInteraction() {
         const distRatio = (x - padding.left) / chartW;
         const targetDist = viewStart + distRatio * (viewEnd - viewStart);
 
-        let nearestIdx = 0;
-        let minDiff = Infinity;
-        for (let i = 0; i < points.length; i++) {
-            const diff = Math.abs(points[i].distance - targetDist);
-            if (diff < minDiff) {
-                minDiff = diff;
-                nearestIdx = i;
-            }
-        }
+        const nearestIdx = findNearestPointIndexByDistance(points, targetDist);
 
         touchState.vlineIdx = nearestIdx;
         touchState.vlineActive = true;
 
         const pt = points[nearestIdx];
 
-        let waypointHover = null;
-        if (waypointDisplayMode !== 'hide-all') {
-            for (let i = 0; i < trackData.waypoints.length; i++) {
-                const wp = trackData.waypoints[i];
-                if (Math.abs(wp.distance - pt.distance) < (trackData.totalDistance / points.length) * 3) {
-                    waypointHover = wp;
-                    break;
-                }
-            }
-        }
+        const threshold = trackData.totalDistance / points.length * 3;
+        const waypointHover = waypointDisplayMode === 'hide-all'
+            ? null
+            : findFirstWaypointNearDistance(trackData.waypoints, pt.distance, threshold);
 
         if (waypointHover) {
             tooltip.innerHTML = `
@@ -525,7 +515,7 @@ function setupChartInteraction() {
         tooltip.style.top = ty + 'px';
 
         updateMapCurrentPoint(nearestIdx);
-        drawChart();
+        refreshChartHoverOverlay();
     }
 
     function clearMobileVLine() {
@@ -535,7 +525,7 @@ function setupChartInteraction() {
         touchState.vlineIdx = -1;
         touchState.hasMoved = false;
         updateMapCurrentPoint(-1);
-        drawChart();
+        clearChartHoverOverlay(canvas);
     }
 
     window.clearMobileVLine = clearMobileVLine;

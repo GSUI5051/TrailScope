@@ -4,13 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>TrailScope · Track Analyzer</title>
-    <script src="js/common/tailwind-3p4p17.js">
-    </script>
+    <link rel="stylesheet" href="css/tailwind.generated.css" />
     <link rel="stylesheet" href="css/leaflet-1p9p4.css" />
     <script src="js/common/leaflet-1p9p4.js">
     </script>
     <script src="js/common/leaflet-custom-headers.js"></script>
-        <script src="js/common/tailwind-config.js"></script>
     <link href="css/fonts.css" rel="stylesheet">
     <link rel="stylesheet" href="css/all.min.css">
     <link rel="stylesheet" href="css/custom.css" />
@@ -26,7 +24,7 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-bold text-trail-dark tracking-tight">TrailScope</h1>
-                    <p class="text-xs text-trail-moss -mt-0.5">GPX Track Analyzer</p>
+                    <p class="text-xs text-trail-moss -mt-0.5">Track Analyzer</p>
                 </div>
             </div>
             <div class="hidden md:flex items-center gap-6 text-sm font-medium text-trail-mid">
@@ -52,14 +50,14 @@
             <div class="text-center max-w-3xl mx-auto">
                 <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-trail-sage/20 text-trail-mid text-sm font-medium mb-6">
                     <span class="w-2 h-2 rounded-full bg-trail-moss pulse-dot"></span>
-                    GPX Track Analysis Engine
+                    For Hiking and Trail Running
                 </div>
                 <h2 class="text-4xl md:text-5xl font-extrabold text-trail-dark tracking-tight leading-tight mb-4">
                     Explore Every Section of<br/>
                     <span class="bg-gradient-to-r from-trail-moss via-trail-earth to-accent-clay bg-clip-text text-transparent">Mountain Trail Track</span>
                 </h2>
                 <p class="text-base text-trail-mid/80 leading-relaxed max-w-2xl mx-auto">
-                    Import a GPX track, get elevation profile, difficulty rating and section statistics, visualize grades
+                    Import a GPX / KML / KMZ track, get elevation profile, difficulty rating and section statistics, visualize grades
                 </p>
                 <p class="text-base text-trail-mid/80 leading-relaxed max-w-2xl mx-auto">
                     Assess fitness requirements, gear and supply needs, hiking time, and potential risks
@@ -96,13 +94,13 @@
         <div class="glass-card rounded-3xl p-8 md:p-10">
             <div class="grid md:grid-cols-2 gap-8 items-center">
                 <div>
-                    <h3 class="text-2xl font-bold text-trail-dark mb-3">Import a GPX Track</h3>
+                    <h3 class="text-2xl font-bold text-trail-dark mb-3">Import a Trail Track</h3>
                     <p class="text-sm text-trail-mid/70 leading-relaxed mb-3">
-                        Only .gpx files are supported. The page parses coordinates and elevation data, calculates distance, grades, total ascent/descent, and generates a visual report. All processing is done locally in your browser.
+                        GPX, KML, and KMZ files are supported. The page parses coordinates and elevation data, calculates distance, grades, total ascent/descent, and generates a visual report. Images, videos, and audio attachments inside KMZ are ignored, while text waypoints are preserved. All processing is done locally in your browser.
                     </p>
                     <p id="warningText" class="text-sm warning-text leading-relaxed mb-6 hidden">
                         <i class="fa-solid fa-triangle-exclamation mr-1"></i>
-                        <b>Imported GPX tracks are pre-determined, not from an actual walk. Use this track for hiking/trekking after thorough evaluation.</b>
+                        <b>Imported tracks may be hand-planned rather than recorded walks. Evaluate route conditions and personal safety carefully before hiking.</b>
                     </p>
                     <div class="flex flex-wrap gap-3 text-xs text-trail-mid/60">
                         <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield text-trail-moss"></i> Local Processing</span>
@@ -114,14 +112,15 @@
 
                 <div>
                     <div id="uploadZone" class="upload-zone rounded-2xl p-8 text-center cursor-pointer">
-                        <input type="file" id="fileInput" accept=".gpx" class="hidden" />
+                        <input type="file" id="fileInput" accept=".gpx,.kml,.kmz" class="hidden" />
                         <div class="flex flex-col items-center gap-4">
                             <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-trail-sage/30 to-trail-moss/20 flex items-center justify-center">
                                 <i class="fa-solid fa-cloud-arrow-up text-2xl text-trail-mid"></i>
                             </div>
                             <div>
-                                <p class="text-base font-semibold text-trail-dark mb-1">Click to import a GPX file, or drag and drop it here</p>
-                                <p class="text-xs text-trail-mid/60">GPX only · Recommended file size under 5 MB</p>
+                                <p class="text-base font-semibold text-trail-dark mb-1">Click to import a GPX, KML, or KMZ file, or drag and drop it here</p>
+                                <p class="text-xs text-trail-mid/60">Supports .gpx / .kml / .kmz · Recommended file size under 5 MB<br></p>
+								<p class="text-xs text-trail-mid/60">Ignore KMZ media file, only waypoints and text notes</p>
                             </div>
                         </div>
                     </div>
@@ -129,7 +128,7 @@
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-file-lines text-trail-moss"></i>
                             <div>
-                                <p id="fileName" class="text-sm font-medium text-trail-dark">No GPX file loaded</p>
+                                <p id="fileName" class="text-sm font-medium text-trail-dark">No track or empty track</p>
                             </div>
                         </div>
                         <button id="clearFileBtn" class="hidden text-trail-mid/60 hover:text-accent-red transition">
@@ -775,7 +774,7 @@
             </div>
             <h3 class="text-xl font-bold text-trail-dark mb-2">Analyze Track</h3>
             <p class="text-sm text-trail-mid/60 max-w-md mx-auto mb-6">
-                Import GPX file · Click DEMO to load demo track
+                Import GPX / KML / KMZ file · Click DEMO to load demo track
             </p>
             <div class="flex flex-wrap justify-center gap-3">
                 <div class="px-4 py-2 rounded-xl bg-trail-sage/10 text-xs text-trail-mid flex items-center gap-2">
@@ -817,6 +816,7 @@
     <script src="js/common/map-common.js"></script>
     <script src="js/common/waypoints.js"></script>
     <script src="js/common/ui-common.js"></script>
+    <script src="js/common/kmz.js"></script>
     <script src="js/en/units.js"></script>
     <script src="js/en/state.js"></script>
     <script src="js/en/map-sources.js"></script>

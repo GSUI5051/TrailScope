@@ -5,7 +5,8 @@ function initMap() {
     leafletMap = L.map('leafletMap', {
         zoomControl: false,
         attributionControl: false,
-        scrollWheelZoom: true
+        scrollWheelZoom: true,
+        preferCanvas: true
     }).setView([30.185, 102.065], 13);
 
     changeMapSource('tiandituluwang');
@@ -158,33 +159,22 @@ function drawMap(skipFit = false) {
     if (currentMarker) {
         leafletMap.removeLayer(currentMarker);
         currentMarker = null;
+        currentMarkerPointIdx = -1;
     }
-
     segmentHighlightLayers.forEach(layer => leafletMap.removeLayer(layer));
     segmentHighlightLayers = [];
 
     const points = trackData.points;
 
-    for (let i = 1; i < points.length; i++) {
-        let color;
-        if (colorMode === 'elevation') {
-            color = getElevationColor(points[i].ele, trackData.minElevation, trackData.maxElevation);
-        } else {
-            const avgGrad = (points[i].smoothedGradient + points[i - 1].smoothedGradient) / 2;
-            color = getGradientColor(avgGrad);
-        }
-
-        const segment = L.polyline([
-            displayLatLng(points[i - 1]),
-            displayLatLng(points[i])
-        ], {
-            color: color,
+    const renderGroups = getTrackRenderGroups(points, colorMode, trackData.minElevation, trackData.maxElevation);
+    renderGroups.forEach(group => {
+        const segment = L.polyline(group.lines, {
+            color: group.color,
             weight: 4,
             opacity: 0.9
         }).addTo(leafletMap);
-
         trackLayers.push(segment);
-    }
+    });
 
     const startIcon = L.divIcon({
         className: '',
@@ -282,24 +272,26 @@ function updateMapCurrentPoint(pointIdx) {
             leafletMap.removeLayer(currentMarker);
             currentMarker = null;
         }
+        currentMarkerPointIdx = -1;
         document.getElementById('mapInfoOverlay').classList.add('hidden');
         return;
     }
 
     const pt = trackData.points[pointIdx];
-
-    if (currentMarker) {
-        leafletMap.removeLayer(currentMarker);
-        currentMarker = null;
+    const displayPos = displayLatLng(pt);
+    if (!currentMarker) {
+        const currentIcon = L.divIcon({
+            className: '',
+            html: '<div class="custom-marker current-marker"></div>',
+            iconSize: [18, 18],
+            iconAnchor: [9, 9]
+        });
+        currentMarker = L.marker(displayPos, { icon: currentIcon }).addTo(leafletMap);
+    } else if (currentMarkerPointIdx !== pointIdx) {
+        currentMarker.setLatLng(displayPos);
     }
-    const currentIcon = L.divIcon({
-        className: '',
-        html: '<div class="custom-marker current-marker"></div>',
-        iconSize: [18, 18],
-        iconAnchor: [9, 9]
-    });
-    currentMarker = L.marker(displayLatLng(pt), { icon: currentIcon })
-        .addTo(leafletMap);
+    const pointChanged = currentMarkerPointIdx !== pointIdx;
+    currentMarkerPointIdx = pointIdx;
 
     const overlay = document.getElementById('mapInfoOverlay');
     overlay.classList.remove('hidden');
@@ -309,26 +301,11 @@ function updateMapCurrentPoint(pointIdx) {
     eleSpan.style.color = getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation);
     const gradSpan = document.getElementById('mapInfoGrad');
     const gradLabel = getGradientLabel(pt.smoothedGradient);
-    gradSpan.textContent = (pt.smoothedGradient > 0 ? '+' : '') + pt.smoothedGradient.toFixed(1) + '% （' + gradLabel +
-        '）';
+    gradSpan.textContent = (pt.smoothedGradient > 0 ? '+' : '') + pt.smoothedGradient.toFixed(1) + '% （' + gradLabel + '）';
     gradSpan.style.color = getGradientColor(pt.smoothedGradient);
 
-    if (mapLinkageEnabled) {
-        const displayPos = displayLatLng(pt);
-        leafletMap.panTo(displayPos, { animate: false });
-        if (document.getElementById('mapContainer').classList.contains('map-fullscreen-chart')) {
-            const profile = document.querySelector('.fullscreen-profile');
-            if (profile) {
-                const mapRect = leafletMap.getContainer().getBoundingClientRect();
-                const profileRect = profile.getBoundingClientRect();
-                if (profileRect.height > 0 && profileRect.top > mapRect.top) {
-                    // 将"当前位置"点放到地图顶部与剖面图顶部之间的中点（手机竖屏与桌面全屏自适应）
-                    const desiredY = (mapRect.top + profileRect.top) / 2;
-                    const viewportCenterY = mapRect.top + mapRect.height / 2;
-                    leafletMap.panBy([0, viewportCenterY - desiredY], { animate: false });
-                }
-            }
-        }
+    if (pointChanged) {
+        keepMapPointVisible(displayPos);
     }
 }
 function updateMapSegmentLabel(segmentIdx, segments) {

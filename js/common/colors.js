@@ -17,5 +17,67 @@ const DOWNHILL_GRADIENT_COLORS = [
 ];
 const elevationColorBreakpoints = UPHILL_GRADIENT_COLORS;
 const MAX_GRADIENT = 50;
+const TRACK_RENDER_BUCKETS = 32;
+const CHART_RENDER_BUCKETS = 192;
+const trackRenderColorCache = new Map();
+const chartRenderColorCache = new Map();
+
+function getTrackRenderColor(mode, value, minEle, maxEle) {
+    let ratio;
+    let sign = '';
+    if (mode === 'elevation') {
+        const range = maxEle - minEle;
+        ratio = range === 0 ? 0 : Math.max(0, Math.min(1, (value - minEle) / range));
+    } else {
+        sign = value < 0 ? '-' : '+';
+        ratio = Math.max(0, Math.min(1, Math.abs(value) / MAX_GRADIENT));
+    }
+
+    const bucket = Math.min(TRACK_RENDER_BUCKETS - 1, Math.floor(ratio * TRACK_RENDER_BUCKETS));
+    const representativeRatio = (bucket + 0.5) / TRACK_RENDER_BUCKETS;
+    const key = `${mode}:${sign}:${bucket}`;
+    let color = trackRenderColorCache.get(key);
+    if (!color) {
+        if (mode === 'elevation') {
+            const representativeElevation = minEle + representativeRatio * (maxEle - minEle);
+            color = getElevationColor(representativeElevation, minEle, maxEle);
+        } else {
+            const representativeGradient = (sign === '-' ? -1 : 1) * representativeRatio * MAX_GRADIENT;
+            color = getGradientColor(representativeGradient);
+        }
+        trackRenderColorCache.set(key, color);
+    }
+
+    return { key, color };
+}
+
+function getChartRenderColor(mode, value, minEle, maxEle) {
+    let ratio;
+    let sign = '';
+    if (mode === 'elevation') {
+        const range = maxEle - minEle;
+        ratio = range === 0 ? 0 : Math.max(0, Math.min(1, (value - minEle) / range));
+    } else {
+        sign = value < 0 ? '-' : '+';
+        ratio = Math.max(0, Math.min(1, Math.abs(value) / MAX_GRADIENT));
+    }
+
+    const bucket = Math.min(CHART_RENDER_BUCKETS - 1, Math.floor(ratio * CHART_RENDER_BUCKETS));
+    const key = `${mode}:${sign}:${bucket}`;
+    let cached = chartRenderColorCache.get(key);
+    if (cached) return cached;
+
+    const representativeRatio = (bucket + 0.5) / CHART_RENDER_BUCKETS;
+    let color;
+    if (mode === 'elevation') {
+        color = getElevationColor(minEle + representativeRatio * (maxEle - minEle), minEle, maxEle);
+    } else {
+        color = getGradientColor((sign === '-' ? -1 : 1) * representativeRatio * MAX_GRADIENT);
+    }
+    const rgb = hexToRgb(color);
+    cached = { key, color, rgba: `rgb(${rgb.r} ${rgb.g} ${rgb.b})` };
+    chartRenderColorCache.set(key, cached);
+    return cached;
+}
 
 

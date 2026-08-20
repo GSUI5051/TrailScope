@@ -4,13 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>TrailScope · 徒步轨迹分析器</title>
-    <script src="js/common/tailwind-3p4p17.js">
-    </script>
+    <link rel="stylesheet" href="css/tailwind.generated.css" />
     <link rel="stylesheet" href="css/leaflet-1p9p4.css" />
     <script src="js/common/leaflet-1p9p4.js">
     </script>
     <script src="js/common/leaflet-custom-headers.js"></script>
-        <script src="js/common/tailwind-config.js"></script>
     <link href="css/fonts.css" rel="stylesheet">
     <link rel="stylesheet" href="css/all.min.css">
     <link rel="stylesheet" href="css/custom.css" />
@@ -52,14 +50,14 @@
             <div class="text-center max-w-3xl mx-auto">
                 <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-trail-sage/20 text-trail-mid text-sm font-medium mb-6">
                     <span class="w-2 h-2 rounded-full bg-trail-moss pulse-dot"></span>
-                    GPX 轨迹智能解析引擎
+                    适用于徒步和越野跑
                 </div>
                 <h2 class="text-4xl md:text-5xl font-extrabold text-trail-dark tracking-tight leading-tight mb-4">
                     深入解析每一段<br/>
                     <span class="bg-gradient-to-r from-trail-moss via-trail-earth to-accent-clay bg-clip-text text-transparent">户外徒步轨迹</span>
                 </h2>
                 <p class="text-base text-trail-mid/80 leading-relaxed max-w-2xl mx-auto">
-                    导入 GPX 轨迹文件，获取专业级海拔剖面分析、坡度分级可视化、难度评级与分段统计
+                    导入 GPX / KML / KMZ 轨迹文件，获取专业级海拔剖面分析、坡度分级可视化、难度评级与分段统计
                 </p>
                 <p class="text-base text-trail-mid/80 leading-relaxed max-w-2xl mx-auto">
                     全面评估体能和装备需求、徒步耗时与潜在风险
@@ -92,7 +90,7 @@
                 <div>
                     <h3 class="text-2xl font-bold text-trail-dark mb-3">导入徒步轨迹</h3>
                     <p class="text-sm text-trail-mid/70 leading-relaxed mb-3">
-                        仅支持 .gpx 格式文件。网页将解析轨迹中的经纬度与海拔数据，自动计算距离、坡度、累计爬升与下降，并生成可视化分析报告。所有计算均在本地浏览器完成。
+                        支持 .gpx、.kml、.kmz 格式文件。网页将解析轨迹中的经纬度与海拔数据，自动计算距离、坡度、累计爬升与下降，并生成可视化分析报告。KMZ 内的图片、视频和语音附件会被忽略，但文字标注点会保留。所有计算均在本地浏览器完成。
                     </p>
                     <p id="warningText" class="text-sm warning-text leading-relaxed mb-6 hidden">
                         <i class="fa-solid fa-triangle-exclamation mr-1"></i>
@@ -108,14 +106,15 @@
 
                 <div>
                     <div id="uploadZone" class="upload-zone rounded-2xl p-8 text-center cursor-pointer">
-                        <input type="file" id="fileInput" accept=".gpx" class="hidden" />
+                        <input type="file" id="fileInput" accept=".gpx,.kml,.kmz" class="hidden" />
                         <div class="flex flex-col items-center gap-4">
                             <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-trail-sage/30 to-trail-moss/20 flex items-center justify-center">
                                 <i class="fa-solid fa-cloud-arrow-up text-2xl text-trail-mid"></i>
                             </div>
                             <div>
-                                <p class="text-base font-semibold text-trail-dark mb-1">点击导入 GPX 文件，或拖拽 GPX 文件到此处</p>
-                                <p class="text-xs text-trail-mid/60">仅限 .gpx 格式 · 文件大小建议不超过 5 MB</p>
+                                <p class="text-base font-semibold text-trail-dark mb-1">点击导入 GPX / KML / KMZ 文件，或拖拽文件到此处</p>
+                                <p class="text-xs text-trail-mid/60">支持 .gpx / .kml / .kmz · 建议文件大小不超过 5 MB<br></p>
+								<p class="text-xs text-trail-mid/60">忽略 KMZ 文件中的媒体附件，只保留文字标注</p>
                             </div>
                         </div>
                     </div>
@@ -123,7 +122,7 @@
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-file-lines text-trail-moss"></i>
                             <div>
-                                <p id="fileName" class="text-sm font-medium text-trail-dark">GPX 文件未加载或为空</p>
+                                <p id="fileName" class="text-sm font-medium text-trail-dark">轨迹未加载或为空</p>
                             </div>
                         </div>
                         <button id="clearFileBtn" class="hidden text-trail-mid/60 hover:text-accent-red transition">
@@ -762,7 +761,7 @@
             </div>
             <h3 class="text-xl font-bold text-trail-dark mb-2">分析徒步轨迹</h3>
             <p class="text-sm text-trail-mid/60 max-w-md mx-auto mb-6">
-                导入 GPX 文件 · 点击“体验示例”进行演示
+                导入 GPX / KML / KMZ 文件 · 点击“体验示例”进行演示
             </p>
             <div class="flex flex-wrap justify-center gap-3">
                 <div class="px-4 py-2 rounded-xl bg-trail-sage/10 text-xs text-trail-mid flex items-center gap-2">
@@ -804,6 +803,7 @@
     <script src="js/common/map-common.js"></script>
     <script src="js/common/waypoints.js"></script>
     <script src="js/common/ui-common.js"></script>
+    <script src="js/common/kmz.js"></script>
     <script src="js/cn/state.js"></script>
     <script src="js/cn/map-sources.js"></script>
     <script src="js/cn/gpx.js"></script>

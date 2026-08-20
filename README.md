@@ -28,15 +28,15 @@ The video covers its key modules - loading GPX tracks, reading maps, analyzing e
 
 ## ✨ Features
 
-- **📂 GPX Parsing & Visualization**  
-  Supports `.gpx` format, automatically extracts position and elevation.
+- **📂 GPX / KML / KMZ Parsing & Visualization**  
+  Supports `.gpx`, `.kml`, and `.kmz` tracks, including KML paths and text waypoints. Images, videos, and audio attachments inside KMZ are ignored while text annotations are preserved.
 
 - **🗺️ Interactive Map**  
-  Renders with Leaflet, offers multiple map sources (OpenStreetMap, Windy Outdoor Map, Google Satellite, Amap, etc.), color‑coded by grade or elevation.
+  Renders with Leaflet, offers multiple map sources (OpenStreetMap, Windy Outdoor Map, Google Satellite, Amap, etc.), color‑coded by grade or elevation. Track segments that share a render color are grouped into multi-polylines to reduce Leaflet layer overhead without removing original coordinates.
 
 - **📈 Elevation Profile**  
   Displays elevation changes along the entire route; supports zoom, pan, and hover/touch to inspect distance, elevation, and grade at any point.  
-  Switch between "Grade" and "Elevation" coloring modes.
+  Switch between "Grade" and "Elevation" coloring modes. Long tracks use screen-aware min/max decimation only in the derived display path; the full-resolution points remain the source for analysis, inspection, map linkage, and export.
 
 - **📊 Comprehensive Statistics**  
   - Total distance, total elevation gain/loss (D+/D-), max/min elevation  
@@ -71,7 +71,10 @@ The video covers its key modules - loading GPX tracks, reading maps, analyzing e
   Toggle between metric (km, m) and imperial (mi, ft) units instantly; all displayed values update accordingly.
 
 - **📱 Mobile Optimized**  
-  Touch‑friendly interactions; supports swipe gestures to explore the profile; full‑screen map mode adapts to portrait/landscape orientations.
+  Touch‑friendly interactions; supports swipe gestures to explore the profile; full‑screen map mode adapts to portrait/landscape orientations. Cursor and touch indicators use a lightweight overlay canvas, avoiding full profile redraws during pointer movement.
+
+- **⚙️ Rendering & Loading Efficiency**  
+  Batches same-color profile paths with `Path2D`, caches derived annotation and map render data, precompiles the Tailwind stylesheet, and loads JSZip only when a KMZ file is imported. These optimizations affect rendering and resource scheduling only; quantitative analysis continues to use the original track data.
 
 - **🔒 Privacy First**  
   All processing is done locally in your browser; no data is ever sent to a server. Your data, only yours.
@@ -85,7 +88,7 @@ The video covers its key modules - loading GPX tracks, reading maps, analyzing e
    - For offline usage, [Click here to download all the code](https://github.com/GSUI5051/TrailScope/archive/refs/heads/main.zip), unzip and launch `TrailScope-English.html` in your browser.
 
 2. **Load a Track**  
-   - Click the upload zone and select a `.gpx` file, or drag and drop it to upload zone.  
+   - Click the upload zone and select a `.gpx`, `.kml`, or `.kmz` file, or drag and drop it to the upload zone. KMZ is a compressed KML; media attachments are ignored and text waypoints are retained.  
    - Alternatively, click the **DEMO** button to load a sample track.
 
 3. **Explore the Analysis**  
@@ -109,12 +112,13 @@ The video covers its key modules - loading GPX tracks, reading maps, analyzing e
 
 ## 🛠️ Tech Stack
 
-- **HTML5 / CSS3** – Structure and styling, with Tailwind CSS for layout
+- **HTML5 / CSS3** – Structure and styling, with a precompiled Tailwind CSS stylesheet for layout
 - **JavaScript (ES6+)** – All logic
 - **Leaflet** – Map rendering and interaction
-- **Canvas API** – Elevation profile drawing
+- **Canvas API / Path2D** – Elevation profile and lightweight interaction overlay drawing
 - **Font Awesome** – Icons
-- **Native GPX Parsing** – DOM‑based XML parsing
+- **Local GPX / KML Parsing** – DOM‑based XML parsing
+- **Local KMZ Extraction** – Vendored JSZip 3.10.1, loaded on demand for offline ZIP extraction
 
 > No backend dependencies; mobile friendly; runs completely offline.
 
@@ -128,28 +132,31 @@ TrailScope/
 ├── TrailScope-Chinese.html     # Chinese main page
 ├── TrailScope-English.html     # English main page
 ├── css/
+│   ├── tailwind.generated.css  # precompiled Tailwind utilities used by all pages
 │   ├── leaflet-1p9p4.css
 │   ├── fonts.css
 │   ├── all.min.css             # Font Awesome
 │   └── custom.css              # custom styles shared by all three pages
 ├── js/
 │   ├── common/                 # shared modules & vendor libs (loaded by both pages)
-│   │   ├── tailwind-3p4p17.js  # vendor: Tailwind CSS
+│   │   ├── tailwind-3p4p17.js  # retained vendor source; not loaded by production pages
 │   │   ├── leaflet-1p9p4.js    # vendor: Leaflet
-│   │   ├── tailwind-config.js  # Tailwind theme configuration
+│   │   ├── tailwind-config.js  # retained Tailwind theme source for stylesheet rebuilds
 │   │   ├── device.js           # UA / device detection
-│   │   ├── colors.js           # gradient color constants
+│   │   ├── colors.js           # gradient colors and cached render color buckets
 │   │   ├── elevation.js        # raw/smooth elevation accumulation logic
 │   │   ├── utils.js            # color interpolation & gradient helpers
-│   │   ├── gpx-math.js         # geo math (haversine, 3D distance, nearest point)
-│   │   ├── coords.js           # GCJ-02 / WGS-84 coordinate conversion
-│   │   ├── map-common.js       # shared map helpers (fit, zoom, segment highlight)
+│   │   ├── gpx-math.js         # geo math, nearest-point lookup, display decimation/cache
+│   │   ├── coords.js           # GCJ-02 / WGS-84 coordinate conversion and display cache
+│   │   ├── map-common.js       # shared map helpers and derived render-group cache
 │   │   ├── waypoints.js        # waypoint display mode logic
-│   │   └── ui-common.js        # shared UI helpers (zoom, toast, pagination, …)
+│   │   ├── ui-common.js        # shared UI helpers (zoom, toast, pagination, …)
+│   │   ├── jszip.min.js        # vendored JSZip 3.10.1, loaded only for KMZ imports
+│   │   └── kmz.js              # on-demand JSZip loader and KMZ extraction
 │   ├── cn/                     # Chinese-only modules
 │   │   ├── state.js            # global state
 │   │   ├── map-sources.js      # map source definitions
-│   │   ├── gpx.js              # GPX parsing & track processing
+│   │   ├── gpx.js              # GPX/KML parsing & track processing
 │   │   ├── chart.js            # elevation profile drawing
 │   │   ├── map.js              # map initialization & drawing
 │   │   ├── interaction.js      # chart interaction (hover / click / touch)
@@ -168,7 +175,7 @@ TrailScope/
 └── README-CN.md                # Chinese README
 ```
 
-> **Loading order:** `common/*` first (shared logic + `tailwind-config.js` in `<head>`), then the language modules (`cn/` or `en/`), with `bindings.js` and `init.js` last.
+> **Loading order:** Pages load `css/tailwind.generated.css` from `<head>`, followed by the shared runtime modules in `common/*` and then the language modules (`cn/` or `en/`), with `bindings.js` and `init.js` last. `kmz.js` is loaded with the shared modules, while `jszip.min.js` is injected only when a KMZ import requires it. The retained Tailwind runtime/config files are not requested by the production pages.
 
 ---
 
@@ -210,6 +217,8 @@ Issues and pull requests are welcome! If you have better algorithms, additional 
 
 - Please review the code structure before making changes.
 - Ensure compatibility with both desktop and mobile devices when adding new features.
+- Keep parsing and quantitative analysis on the full-resolution track. Any decimation or grouping added for performance should remain inside the derived rendering path.
+- When Tailwind utility classes change in HTML or generated JavaScript templates, rebuild `css/tailwind.generated.css` before publishing.
 
 ---
 

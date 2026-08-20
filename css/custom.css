@@ -403,8 +403,22 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            color: inherit;
             margin-top: 2px;
+        }
+
+        #essentialEquipment .equipment-icon,
+        #essentialEquipment .equipment-icon i {
+            color: #5c7a52;
+        }
+
+        #recommendedEquipment .equipment-icon,
+        #recommendedEquipment .equipment-icon i {
+            color: #d4a017;
+        }
+
+        #suppliesRecommendation .equipment-icon,
+        #suppliesRecommendation .equipment-icon i {
+            color: #3a6b8a;
         }
 
         .equipment-content {

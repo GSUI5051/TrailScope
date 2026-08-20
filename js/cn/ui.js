@@ -385,63 +385,81 @@ function showSegmentTooltip(segIdx, e) {
         moveSegmentTooltip(e);
     }
 }
-function handleFile(file) {
+function readFileContent(file, asArrayBuffer) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = event => resolve(event.target.result);
+        reader.onerror = () => reject(new Error('文件读取失败'));
+        if (asArrayBuffer) {
+            reader.readAsArrayBuffer(file);
+        } else {
+            reader.readAsText(file);
+        }
+    });
+}
+
+async function parseUploadedFile(file, extension) {
+    if (extension === 'kmz') {
+        const arrayBuffer = await readFileContent(file, true);
+        return parseKML(await extractKMLFromKMZ(arrayBuffer));
+    }
+    const text = await readFileContent(file, false);
+    return extension === 'kml' ? parseKML(text) : parseGPX(text);
+}
+
+async function handleFile(file) {
     if (!file) return;
 
-    if (!file.name.toLowerCase().endsWith('.gpx')) {
-        showToast('请上传 .gpx 格式文件', 'error');
+    const extension = file.name.toLowerCase().split('.').pop();
+    if (!['gpx', 'kml', 'kmz'].includes(extension)) {
+        showToast('请上传 .gpx、.kml 或 .kmz 格式文件', 'error');
         return;
     }
 
     document.getElementById('fileName').textContent = file.name;
     document.getElementById('fileInfo').classList.remove('hidden');
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        try {
-            const { points, waypoints, isRtept } = parseGPX(e.target.result);
-            if (points.length < 2) {
-                showToast('GPX 文件中没有找到足够的轨迹点', 'error');
-                return;
-            }
-
-            trackData = processTrack(points, waypoints);
-            document.getElementById('clearFileBtn').classList.remove('hidden');
-            zoomLevel = 1;
-            zoomCenter = 0.5;
-            activeSegmentIdx = -1;
-            currentPage = 1;
-            document.getElementById('clearHighlightBtn').classList.add('hidden');
-            hideMapSegmentInfo();
-
-            hideWaypointInfoOverlay();
-
-            if (isRtept) {
-                document.getElementById('warningText').classList.remove('hidden');
-            } else {
-                document.getElementById('warningText').classList.add('hidden');
-            }
-
-            if (IS_MOBILE) {
-                clearMobileVLine();
-            }
-
-            // ★★★ 重置航路点显示状态为 show-names ★★★
-            waypointDisplayMode = 'show-names';
-            updateWaypointButton();
-
-            updateUI();
-            showToast('轨迹分析完成！', 'success');
-        } catch (err) {
-            console.error(err);
-            showToast('解析GPX文件失败：' + err.message, 'error');
+    try {
+        const { points, waypoints, isRtept } = await parseUploadedFile(file, extension);
+        if (points.length < 2) {
+            showToast(`${extension.toUpperCase()} 文件中没有找到足够的轨迹点`, 'error');
+            return;
         }
-    };
-    reader.readAsText(file);
+
+        trackData = processTrack(points, waypoints);
+        document.getElementById('clearFileBtn').classList.remove('hidden');
+        zoomLevel = 1;
+        zoomCenter = 0.5;
+        activeSegmentIdx = -1;
+        currentPage = 1;
+        document.getElementById('clearHighlightBtn').classList.add('hidden');
+        hideMapSegmentInfo();
+
+        hideWaypointInfoOverlay();
+
+        if (isRtept) {
+            document.getElementById('warningText').classList.remove('hidden');
+        } else {
+            document.getElementById('warningText').classList.add('hidden');
+        }
+
+        if (IS_MOBILE) {
+            clearMobileVLine();
+        }
+
+        waypointDisplayMode = 'show-names';
+        updateWaypointButton();
+
+        updateUI();
+        showToast('轨迹分析完成！', 'success');
+    } catch (err) {
+        console.error(err);
+        showToast('解析轨迹文件失败：' + err.message, 'error');
+    }
 }
 function clearFile() {
     document.getElementById('fileInput').value = '';
-    document.getElementById('fileName').textContent = 'GPX 文件未加载或为空';
+    document.getElementById('fileName').textContent = 'GPX / KML / KMZ 文件未加载或为空';
     document.getElementById('clearFileBtn').classList.add('hidden');
     document.getElementById('warningText').classList.add('hidden');
     trackData = null;
@@ -476,6 +494,7 @@ function clearFile() {
         if (currentMarker) {
             leafletMap.removeLayer(currentMarker);
             currentMarker = null;
+            currentMarkerPointIdx = -1;
         }
         segmentHighlightLayers.forEach(layer => leafletMap.removeLayer(layer));
         segmentHighlightLayers = [];
@@ -599,8 +618,8 @@ function toggleMapLinkage() {
         if (currentMarker) {
             leafletMap.removeLayer(currentMarker);
             currentMarker = null;
+            currentMarkerPointIdx = -1;
         }
-        document.getElementById('mapInfoOverlay').classList.add('hidden');
     } else {
         if (hoveredPointIdx >= 0) {
             updateMapCurrentPoint(hoveredPointIdx);

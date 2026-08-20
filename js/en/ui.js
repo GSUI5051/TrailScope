@@ -406,63 +406,81 @@ function showSegmentTooltip(segIdx, e) {
         moveSegmentTooltip(e);
     }
 }
-function handleFile(file) {
+function readFileContent(file, asArrayBuffer) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = event => resolve(event.target.result);
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        if (asArrayBuffer) {
+            reader.readAsArrayBuffer(file);
+        } else {
+            reader.readAsText(file);
+        }
+    });
+}
+
+async function parseUploadedFile(file, extension) {
+    if (extension === 'kmz') {
+        const arrayBuffer = await readFileContent(file, true);
+        return parseKML(await extractKMLFromKMZ(arrayBuffer));
+    }
+    const text = await readFileContent(file, false);
+    return extension === 'kml' ? parseKML(text) : parseGPX(text);
+}
+
+async function handleFile(file) {
     if (!file) return;
 
-    if (!file.name.toLowerCase().endsWith('.gpx')) {
-        showToast('Only .gpx file is supported', 'error');
+    const extension = file.name.toLowerCase().split('.').pop();
+    if (!['gpx', 'kml', 'kmz'].includes(extension)) {
+        showToast('Only .gpx, .kml, or .kmz files are supported', 'error');
         return;
     }
 
     document.getElementById('fileName').textContent = file.name;
     document.getElementById('fileInfo').classList.remove('hidden');
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        try {
-            const { points, waypoints, isRtept } = parseGPX(e.target.result);
-            if (points.length < 2) {
-                showToast('There\'s no enough track points in GPX file', 'error');
-                return;
-            }
-
-            trackData = processTrack(points, waypoints);
-            document.getElementById('clearFileBtn').classList.remove('hidden');
-            zoomLevel = 1;
-            zoomCenter = 0.5;
-            activeSegmentIdx = -1;
-            currentPage = 1;
-            document.getElementById('clearHighlightBtn').classList.add('hidden');
-            hideMapSegmentInfo();
-
-            hideWaypointInfoOverlay();
-
-            if (isRtept) {
-                document.getElementById('warningText').classList.remove('hidden');
-            } else {
-                document.getElementById('warningText').classList.add('hidden');
-            }
-
-            if (IS_MOBILE) {
-                clearMobileVLine();
-            }
-
-            // ★★★ 重置为显示名称 ★★★
-            waypointDisplayMode = 'show-names';
-            updateWaypointButton();
-
-            updateUI();
-            showToast('Analyze success', 'success');
-        } catch (err) {
-            console.error(err);
-            showToast('Fail to analyze GPX file: ' + err.message, 'error');
+    try {
+        const { points, waypoints, isRtept } = await parseUploadedFile(file, extension);
+        if (points.length < 2) {
+            showToast(`No enough track points found in ${extension.toUpperCase()} file`, 'error');
+            return;
         }
-    };
-    reader.readAsText(file);
+
+        trackData = processTrack(points, waypoints);
+        document.getElementById('clearFileBtn').classList.remove('hidden');
+        zoomLevel = 1;
+        zoomCenter = 0.5;
+        activeSegmentIdx = -1;
+        currentPage = 1;
+        document.getElementById('clearHighlightBtn').classList.add('hidden');
+        hideMapSegmentInfo();
+
+        hideWaypointInfoOverlay();
+
+        if (isRtept) {
+            document.getElementById('warningText').classList.remove('hidden');
+        } else {
+            document.getElementById('warningText').classList.add('hidden');
+        }
+
+        if (IS_MOBILE) {
+            clearMobileVLine();
+        }
+
+        waypointDisplayMode = 'show-names';
+        updateWaypointButton();
+
+        updateUI();
+        showToast('Track analysis complete', 'success');
+    } catch (err) {
+        console.error(err);
+        showToast('Failed to analyze track file: ' + err.message, 'error');
+    }
 }
 function clearFile() {
     document.getElementById('fileInput').value = '';
-    document.getElementById('fileName').textContent = 'No GPX file loaded';
+    document.getElementById('fileName').textContent = 'No GPX, KML, or KMZ file loaded';
     document.getElementById('clearFileBtn').classList.add('hidden');
     document.getElementById('warningText').classList.add('hidden');
     trackData = null;
@@ -497,6 +515,7 @@ function clearFile() {
         if (currentMarker) {
             leafletMap.removeLayer(currentMarker);
             currentMarker = null;
+            currentMarkerPointIdx = -1;
         }
         segmentHighlightLayers.forEach(layer => leafletMap.removeLayer(layer));
         segmentHighlightLayers = [];
@@ -618,8 +637,8 @@ function toggleMapLinkage() {
         if (currentMarker) {
             leafletMap.removeLayer(currentMarker);
             currentMarker = null;
+            currentMarkerPointIdx = -1;
         }
-        document.getElementById('mapInfoOverlay').classList.add('hidden');
     } else {
         if (typeof hoveredPointIdx !== 'undefined' && hoveredPointIdx >= 0) {
             updateMapCurrentPoint(hoveredPointIdx);

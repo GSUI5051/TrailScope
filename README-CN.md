@@ -28,15 +28,15 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
 
 ## ✨ 功能亮点
 
-- **📂 GPX 解析与可视化**  
-  支持 `.gpx` 格式轨迹文件，自动提取位置和海拔信息。
+- **📂 GPX / KML / KMZ 解析与可视化**  
+  支持 `.gpx`、`.kml`、`.kmz` 轨迹导入，包括 KML 路径和文字航路点。KMZ 内的图片、视频和语音附件会被忽略，但文字标注点会保留。
 
 - **🗺️ 交互式地图**  
-  基于 Leaflet 渲染，提供多种地图源（高德、谷歌、OpenStreetMap、Windy等），按坡度或海拔着色显示路线。
+  基于 Leaflet 渲染，提供多种地图源（高德、谷歌、OpenStreetMap、Windy等），按坡度或海拔着色显示路线。渲染时将相同颜色的轨迹线段组合为多折线图层，在保留全部原始坐标的同时减少 Leaflet 图层开销。
 
 - **📈 海拔剖面图**  
   展示全程海拔变化，支持缩放、平移，鼠标悬停/触摸查看任意点的距离、海拔和坡度。  
-  可切换“坡度分析”与“海拔分析”两种配色模式。
+  可切换“坡度分析”与“海拔分析”两种配色模式。长轨迹只在派生显示层按屏幕像素保留海拔极小值和极大值；定量分析、数据点详情、地图联动和导出仍使用完整原始点集。
 
 - **📊 详细统计指标**  
   - 总距离、累计爬升/下降、最高/最低海拔  
@@ -71,7 +71,10 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
   支持公制（km, m）与英制（mi, ft）即时切换，所有显示数值同步转换。（仅限英文版）
 
 - **📱 移动端适配**  
-  针对手机触摸操作优化，支持手势滑动查看剖面详情，全屏地图模式适配横竖屏。
+  针对手机触摸操作优化，支持手势滑动查看剖面详情，全屏地图模式适配横竖屏。鼠标和触摸指示线使用轻量 overlay 画布，指针移动时不重绘完整海拔剖面。
+
+- **⚙️ 渲染与加载优化**  
+  使用 `Path2D` 批量绘制同色剖面路径，缓存派生注释和地图渲染数据，Tailwind 样式采用预编译 CSS，并且只在导入 KMZ 时按需加载 JSZip。这些优化仅作用于渲染和资源调度，定量分析仍基于完整原始轨迹。
 
 - **🔒 隐私保护**  
   所有数据处理均在本地浏览器完成，不上传服务器。你的数据，只有你知道。
@@ -85,7 +88,7 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
    - 离线使用：[点击这里下载全套源代码](https://github.com/GSUI5051/TrailScope/archive/refs/heads/main.zip) ，将压缩包里面的 `TrailScope-main` 文件夹中的所有内容解压到本地后，打开 `index.html` 或 `TrailScope-Chinese.html`
 
 2. **加载轨迹**  
-   - 点击上传区域，选择 `.gpx` 文件；或将文件拖拽至上传区。 
+   - 点击上传区域，选择 `.gpx`、`.kml` 或 `.kmz` 文件；或将文件拖拽至上传区。KMZ 是压缩的 KML，媒体附件会被忽略，但文字标注点会保留。
    - 也可点击 **“体验示例”** 按钮加载内置的示例轨迹。
 
 3. **分析结果**  
@@ -109,12 +112,13 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
 
 ## 🛠️ 技术栈
 
-- **HTML5 / CSS3** – 结构样式，Tailwind CSS 辅助布局
+- **HTML5 / CSS3** – 结构与样式，使用预编译的 Tailwind CSS 辅助布局
 - **JavaScript (ES6+)** – 全部业务逻辑
 - **Leaflet** – 地图渲染与交互
-- **Canvas API** – 海拔剖面图绘制
+- **Canvas API / Path2D** – 海拔剖面图与轻量交互 overlay 绘制
 - **Font Awesome** – 图标库
-- **原生 GPX 解析** – 使用 DOM 解析 XML 格式的 GPX 文件
+- **本地 GPX / KML 解析** – 使用 DOM 解析 XML 格式的 GPX/KML 文件
+- **本地 KMZ 解压** – 使用本地 JSZip 3.10.1，并在导入 KMZ 时按需加载，支持离线运行
 
 > 无任何后端依赖，纯静态页面，适配移动端，可直接在本地运行。
 
@@ -128,28 +132,31 @@ TrailScope/
 ├── TrailScope-Chinese.html     # 中文版主页面
 ├── TrailScope-English.html     # 英文版主页面
 ├── css/
+│   ├── tailwind.generated.css  # 三个页面使用的预编译 Tailwind 工具样式
 │   ├── leaflet-1p9p4.css
 │   ├── fonts.css
 │   ├── all.min.css             # Font Awesome
 │   └── custom.css              # 三个页面共用的自定义样式
 ├── js/
 │   ├── common/                 # 共享模块与第三方库（两个页面共用）
-│   │   ├── tailwind-3p4p17.js  # 第三方：Tailwind CSS
+│   │   ├── tailwind-3p4p17.js  # 保留的 Tailwind vendor 源；正式页面不加载
 │   │   ├── leaflet-1p9p4.js    # 第三方：Leaflet
-│   │   ├── tailwind-config.js  # Tailwind 主题配置
+│   │   ├── tailwind-config.js  # 保留的 Tailwind 主题源，用于重新构建样式
 │   │   ├── device.js           # 设备 / UA 检测
-│   │   ├── colors.js           # 坡度/海拔配色常量
+│   │   ├── colors.js           # 坡度/海拔配色与渲染色桶缓存
 │   │   ├── elevation.js        # 原始/平滑爬升下降计算逻辑
 │   │   ├── utils.js            # 颜色插值与坡度颜色辅助函数
-│   │   ├── gpx-math.js         # 地理计算（haversine、3D 距离、最近点）
-│   │   ├── coords.js           # GCJ-02 / WGS-84 坐标转换
-│   │   ├── map-common.js       # 共享地图辅助（缩放、居中、分段高亮）
+│   │   ├── gpx-math.js         # 地理计算、最近点、显示层抽稀与注释缓存
+│   │   ├── coords.js           # GCJ-02 / WGS-84 坐标转换与显示坐标缓存
+│   │   ├── map-common.js       # 共享地图辅助与派生渲染组缓存
 │   │   ├── waypoints.js        # 航路点显示模式逻辑
-│   │   └── ui-common.js        # 共享 UI 辅助（缩放、提示、分页等）
+│   │   ├── ui-common.js        # 共享 UI 辅助（缩放、提示、分页等）
+│   │   ├── jszip.min.js        # 本地 JSZip 3.10.1，仅导入 KMZ 时加载
+│   │   └── kmz.js              # JSZip 按需加载与 KMZ 解压
 │   ├── cn/                     # 中文版专属模块
 │   │   ├── state.js            # 全局状态
 │   │   ├── map-sources.js      # 地图源定义
-│   │   ├── gpx.js              # GPX 解析与轨迹处理
+│   │   ├── gpx.js              # GPX/KML 解析与轨迹处理
 │   │   ├── chart.js            # 海拔剖面图绘制
 │   │   ├── map.js              # 地图初始化与绘制
 │   │   ├── interaction.js      # 图表交互（悬停/点击/触摸）
@@ -168,7 +175,7 @@ TrailScope/
 └── README-CN.md                # 本文件
 ```
 
-> **加载顺序：** 先加载 `common/*`（共用逻辑，`tailwind-config.js` 位于 `<head>`），再加载语言模块（`cn/` 或 `en/`），最后加载 `bindings.js` 与 `init.js`。
+> **加载顺序：** 页面在 `<head>` 中加载 `css/tailwind.generated.css`，随后加载 `common/*` 共享运行时模块和语言模块（`cn/` 或 `en/`），最后加载 `bindings.js` 与 `init.js`。`kmz.js` 随共享模块加载，只有导入 KMZ 时才动态注入 `jszip.min.js`。保留的 Tailwind 运行时与配置文件不会被正式页面请求。
 
 ---
 
@@ -207,6 +214,8 @@ TrailScope 提供的数据分析仅用于路线规划参考。
 
 - 建议在修改前阅读代码结构。
 - 如添加新功能，请确保兼容电脑端与移动端。
+- 解析和定量分析必须始终使用完整原始轨迹；性能优化所需的抽稀或分组只能位于派生渲染路径。
+- 如果 HTML 或 JavaScript 动态模板中的 Tailwind 工具类发生变化，发布前需要重新构建 `css/tailwind.generated.css`。
 
 ---
 

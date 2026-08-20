@@ -25,8 +25,155 @@ function findNearestPointIndex(points, lat, lon) {
             nearestIdx = i;
         }
     }
-
     return nearestIdx;
 }
 
+function findNearestPointIndexByDistance(points, targetDistance) {
+    if (!points || points.length === 0) return -1;
 
+    let low = 0;
+    let high = points.length;
+    while (low < high) {
+        const mid = low + Math.floor((high - low) / 2);
+        if (points[mid].distance < targetDistance) {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+
+    if (low === 0) return 0;
+    if (low === points.length) return points.length - 1;
+
+    const previous = low - 1;
+    const nextDiff = Math.abs(points[low].distance - targetDistance);
+    const previousDiff = Math.abs(points[previous].distance - targetDistance);
+    if (nextDiff < previousDiff) return low;
+
+    let nearestIdx = previous;
+    while (nearestIdx > 0 && points[nearestIdx - 1].distance === points[nearestIdx].distance) {
+        nearestIdx--;
+    }
+    return nearestIdx;
+}
+
+function findFirstWaypointNearDistance(waypoints, targetDistance, threshold) {
+    if (!waypoints || waypoints.length === 0) return null;
+
+    let low = 0;
+    let high = waypoints.length;
+    const minimumDistance = targetDistance - threshold;
+    while (low < high) {
+        const mid = low + Math.floor((high - low) / 2);
+        if (waypoints[mid].distance < minimumDistance) {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+
+    const waypoint = waypoints[low];
+    return waypoint && Math.abs(waypoint.distance - targetDistance) < threshold ? waypoint : null;
+}
+
+function findFirstPointAtOrAfterDistance(points, distance) {
+    let low = 0;
+    let high = points.length;
+    while (low < high) {
+        const mid = low + Math.floor((high - low) / 2);
+        if (points[mid].distance < distance) {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+    return Math.min(low, Math.max(0, points.length - 1));
+}
+
+function findLastPointAtOrBeforeDistance(points, distance) {
+    if (!points.length) return -1;
+    const firstAfter = findFirstPointAtOrAfterDistance(points, distance);
+    if (points[firstAfter].distance <= distance) return firstAfter;
+    return Math.max(0, firstAfter - 1);
+}
+
+function getChartDisplayPointIndices(points, firstIdx, lastIdx, chartWidth) {
+    const visibleCount = lastIdx - firstIdx + 1;
+    const targetCount = Math.max(128, Math.floor(chartWidth * 2));
+    if (visibleCount <= targetCount) return null;
+
+    const bucketCount = Math.max(1, Math.floor(targetCount / 2));
+    const bucketSize = visibleCount / bucketCount;
+    const indices = [firstIdx];
+
+    for (let bucket = 0; bucket < bucketCount; bucket++) {
+        const start = Math.max(firstIdx, Math.floor(firstIdx + bucket * bucketSize));
+        const end = Math.min(lastIdx + 1, Math.floor(firstIdx + (bucket + 1) * bucketSize));
+        if (end <= start) continue;
+
+        let minIdx = start;
+        let maxIdx = start;
+        for (let i = start + 1; i < end; i++) {
+            if (points[i].ele < points[minIdx].ele) minIdx = i;
+            if (points[i].ele > points[maxIdx].ele) maxIdx = i;
+        }
+
+        const firstExtreme = Math.min(minIdx, maxIdx);
+        const secondExtreme = Math.max(minIdx, maxIdx);
+        if (indices[indices.length - 1] !== firstExtreme) indices.push(firstExtreme);
+        if (indices[indices.length - 1] !== secondExtreme) indices.push(secondExtreme);
+    }
+
+    if (indices[indices.length - 1] !== lastIdx) indices.push(lastIdx);
+    return indices;
+}
+
+const chartAnnotationCache = new WeakMap();
+function getChartAnnotationModel(points) {
+    const cached = chartAnnotationCache.get(points);
+    if (cached && cached.pointCount === points.length) return cached;
+
+    const segments = [];
+    let currentSeg = {
+        type: points[1].gradient > 0 ? 'climb' : 'descent',
+        start: 0,
+        end: 1,
+        ascent: 0,
+        descent: 0
+    };
+
+    let maxIdx = 0;
+    let minIdx = 0;
+    for (let i = 1; i < points.length; i++) {
+        if (points[i].ele > points[maxIdx].ele) maxIdx = i;
+        if (points[i].ele < points[minIdx].ele) minIdx = i;
+
+        const isClimb = points[i].smoothedGradient > 1;
+        const isDescent = points[i].smoothedGradient < -1;
+        if (currentSeg.type === 'climb' && isClimb) {
+            currentSeg.end = i;
+            currentSeg.ascent += Math.max(0, points[i].ele - points[i - 1].ele);
+        } else if (currentSeg.type === 'descent' && isDescent) {
+            currentSeg.end = i;
+            currentSeg.descent += Math.max(0, points[i - 1].ele - points[i].ele);
+        } else {
+            if (currentSeg.end - currentSeg.start > 5) segments.push(currentSeg);
+            currentSeg = {
+                type: isClimb ? 'climb' : (isDescent ? 'descent' : 'flat'),
+                start: i,
+                end: i,
+                ascent: 0,
+                descent: 0
+            };
+        }
+    }
+    if (currentSeg.end - currentSeg.start > 5) segments.push(currentSeg);
+
+    const topSegments = segments
+        .filter(segment => segment.ascent > 30 || segment.descent > 30)
+        .sort((a, b) => (b.ascent + b.descent) - (a.ascent + a.descent))
+        .slice(0, 6);
+    const model = { pointCount: points.length, topSegments, maxIdx, minIdx };
+    chartAnnotationCache.set(points, model);
+    return model;
+}

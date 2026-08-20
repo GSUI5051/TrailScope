@@ -6,6 +6,7 @@ let leafletMap = null;
 let currentTileLayer = null;
 let trackLayers = [];
 let currentMarker = null;
+let currentMarkerPointIdx = -1;
 let waypointMarkers = [];
 let segmentHighlightLayers = [];
 let showAnnotations = true;

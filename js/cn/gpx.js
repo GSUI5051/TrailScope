@@ -59,6 +59,113 @@ function parseGPX(gpxText) {
 
     return { points, waypoints, isRtept };
 }
+
+const KML_MAX_TRACK_POINTS = 200000;
+const KML_MAX_WAYPOINTS = 20000;
+
+function kmlElementsByName(root, name) {
+    return Array.from(root.getElementsByTagName('*')).filter(element => element.localName === name);
+}
+
+function kmlFirstElement(root, name) {
+    return kmlElementsByName(root, name)[0] || null;
+}
+
+function kmlElementText(root, name) {
+    const element = kmlFirstElement(root, name);
+    return element ? element.textContent.trim() : '';
+}
+
+function kmlDescriptionText(value) {
+    return value
+        .replace(/<br\s*\/?>(?=\S)/gi, ' ')
+        .replace(/<\/p\s*>/gi, ' ')
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function kmlCoordinateTuple(text) {
+    const values = text.trim().split(/[\,\s]+/);
+    const lon = parseFloat(values[0]);
+    const lat = parseFloat(values[1]);
+    const ele = values.length > 2 && values[2].trim() !== '' ? parseFloat(values[2]) : null;
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+    return { lat, lon, ele: Number.isFinite(ele) ? ele : null };
+}
+
+function kmlCoordinatesElement(root) {
+    return kmlFirstElement(root, 'coordinates');
+}
+
+function kmlTrackPointsFromTrack(track) {
+    const coords = kmlElementsByName(track, 'coord');
+    const whens = kmlElementsByName(track, 'when');
+    return coords.map((coordElement, index) => {
+        const tuple = kmlCoordinateTuple(coordElement.textContent);
+        if (!tuple) return null;
+        const rawTime = whens[index] ? whens[index].textContent.trim() : '';
+        const parsedTime = rawTime ? new Date(rawTime) : null;
+        return {
+            ...tuple,
+            time: parsedTime && !Number.isNaN(parsedTime.getTime()) ? parsedTime : null
+        };
+    }).filter(Boolean);
+}
+
+function kmlLineStringPoints(lineString) {
+    const coordinatesElement = kmlCoordinatesElement(lineString);
+    if (!coordinatesElement) return [];
+    return coordinatesElement.textContent.trim().split(/\s+/).map(kmlCoordinateTuple).filter(Boolean).map(tuple => ({
+        ...tuple,
+        time: null
+    }));
+}
+
+function parseKML(kmlText) {
+    if (typeof kmlText !== 'string' || kmlText.length > 32 * 1024 * 1024) {
+        throw new Error('KML file is too large');
+    }
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(kmlText, 'text/xml');
+    if (kmlElementsByName(doc, 'parsererror').length > 0 || !doc.documentElement) {
+        throw new Error('Invalid KML XML');
+    }
+
+    const points = [];
+    const tracks = kmlElementsByName(doc, 'Track');
+    if (tracks.length > 0) {
+        tracks.forEach(track => {
+            points.push(...kmlTrackPointsFromTrack(track));
+        });
+    } else {
+        kmlElementsByName(doc, 'LineString').forEach(lineString => {
+            points.push(...kmlLineStringPoints(lineString));
+        });
+    }
+    if (points.length > KML_MAX_TRACK_POINTS) throw new Error('KML contains too many track points');
+
+    const waypoints = [];
+    kmlElementsByName(doc, 'Placemark').forEach(placemark => {
+        const point = kmlFirstElement(placemark, 'Point');
+        if (!point) return;
+        const coordinatesElement = kmlCoordinatesElement(point);
+        const tuple = coordinatesElement ? kmlCoordinateTuple(coordinatesElement.textContent.trim().split(/\s+/)[0]) : null;
+        if (!tuple) return;
+
+        const desc = kmlElementText(placemark, 'description');
+        const nameText = kmlElementText(placemark, 'name');
+        const name = nameText || kmlDescriptionText(desc) || '未命名航路点';
+        waypoints.push({ ...tuple, name, desc });
+    });
+    if (waypoints.length > KML_MAX_WAYPOINTS) throw new Error('KML contains too many waypoints');
+
+    return { points, waypoints, isRtept: false };
+}
+
 function processTrack(points, waypoints) {
     if (points.length < 2) return null;
 

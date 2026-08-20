@@ -50,11 +50,18 @@ function gcj02ToWgs84(lat, lon) {
     }
     return [wLat, wLon];
 }
+function getDisplayLatLng(p) {
+    if (!useGCJ02Display) return [p.lat, p.lon];
+    if (!p._gcj02Display) {
+        p._gcj02Display = wgs84ToGcj02(p.lat, p.lon);
+    }
+    return p._gcj02Display;
+}
 function displayLatLng(p) {
-    return useGCJ02Display ? wgs84ToGcj02(p.lat, p.lon) : [p.lat, p.lon];
+    return getDisplayLatLng(p);
 }
 function displayWaypointLatLng(p) {
-    return useGCJ02Display ? wgs84ToGcj02(p.lat, p.lon) : [p.lat, p.lon];
+    return getDisplayLatLng(p);
 }
 
 

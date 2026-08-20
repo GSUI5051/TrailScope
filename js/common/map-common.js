@@ -6,6 +6,76 @@ function hideWaypointInfoOverlay() {
     }
     isWaypointInfoPinned = false;
 }
+function keepMapPointVisible(displayPos) {
+    if (!mapLinkageEnabled || !leafletMap) return;
+
+    const mapSize = leafletMap.getSize();
+    if (!mapSize || mapSize.x <= 0 || mapSize.y <= 0) return;
+
+    const markerPoint = leafletMap.latLngToContainerPoint(displayPos);
+    const insetX = Math.min(96, Math.max(32, mapSize.x * 0.16));
+    const insetY = Math.min(80, Math.max(28, mapSize.y * 0.16));
+    let safeTop = insetY;
+    let safeBottom = mapSize.y - insetY;
+    let desiredY = mapSize.y / 2;
+
+    const mapContainer = document.getElementById('mapContainer');
+    const isFullscreenChart = mapContainer && mapContainer.classList.contains('map-fullscreen-chart');
+    if (isFullscreenChart) {
+        const profile = document.querySelector('.fullscreen-profile');
+        if (profile) {
+            const mapRect = leafletMap.getContainer().getBoundingClientRect();
+            const profileRect = profile.getBoundingClientRect();
+            const visibleMapHeight = Math.max(0, Math.min(mapSize.y, profileRect.top - mapRect.top));
+            if (visibleMapHeight > insetY * 2) {
+                safeBottom = visibleMapHeight - insetY;
+                desiredY = visibleMapHeight / 2;
+            }
+        }
+    }
+
+    const isInsideSafeArea = markerPoint.x >= insetX && markerPoint.x <= mapSize.x - insetX &&
+        markerPoint.y >= safeTop && markerPoint.y <= safeBottom;
+    if (isInsideSafeArea) return;
+
+    leafletMap.panTo(displayPos, { animate: false });
+    if (isFullscreenChart && desiredY !== mapSize.y / 2) {
+        leafletMap.panBy([0, mapSize.y / 2 - desiredY], { animate: false });
+    }
+}
+
+const trackRenderGroupCache = new WeakMap();
+function getTrackRenderGroups(points, mode, minElevation, maxElevation) {
+    let cache = trackRenderGroupCache.get(points);
+    if (!cache || cache.pointCount !== points.length) {
+        cache = { pointCount: points.length, variants: new Map() };
+        trackRenderGroupCache.set(points, cache);
+    }
+
+    const coordinateMode = useGCJ02Display ? 'gcj02' : 'wgs84';
+    const cacheKey = `${mode}:${coordinateMode}:${minElevation}:${maxElevation}`;
+    const cachedGroups = cache.variants.get(cacheKey);
+    if (cachedGroups) return cachedGroups;
+
+    const renderGroups = new Map();
+    for (let i = 1; i < points.length; i++) {
+        const value = mode === 'elevation'
+            ? points[i].ele
+            : (points[i].smoothedGradient + points[i - 1].smoothedGradient) / 2;
+        const bucket = getTrackRenderColor(mode, value, minElevation, maxElevation);
+        let group = renderGroups.get(bucket.key);
+        if (!group) {
+            group = { color: bucket.color, lines: [] };
+            renderGroups.set(bucket.key, group);
+        }
+        group.lines.push([displayLatLng(points[i - 1]), displayLatLng(points[i])]);
+    }
+
+    const groups = Array.from(renderGroups.values());
+    cache.variants.set(cacheKey, groups);
+    return groups;
+}
+
 function fitMapToTrack() {
     if (!trackData || !leafletMap) return;
 

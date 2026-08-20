@@ -183,19 +183,111 @@ function showToast(message, type = 'info') {
 let normalChartCanvas = null;
 let fullscreenChartCanvas = null;
 let fullscreenCenterPanY = 0;
+function ensureChartHoverOverlay(canvas) {
+    if (!canvas || !canvas.parentElement) return null;
+
+    let overlay = canvas._hoverOverlay;
+    if (!overlay || !overlay.isConnected || overlay.parentElement !== canvas.parentElement) {
+        overlay = canvas.parentElement.querySelector('.chart-hover-overlay');
+        if (!overlay) {
+            overlay = document.createElement('canvas');
+            overlay.className = 'chart-hover-overlay';
+            overlay.setAttribute('aria-hidden', 'true');
+            overlay.style.position = 'absolute';
+            overlay.style.inset = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.pointerEvents = 'none';
+            overlay.style.zIndex = '2';
+            canvas.parentElement.appendChild(overlay);
+        }
+        canvas._hoverOverlay = overlay;
+    }
+
+    const scale = canvas._scale;
+    const rect = scale ? null : canvas.getBoundingClientRect();
+    const cssWidth = scale ? scale.W : rect.width;
+    const cssHeight = scale ? scale.H : rect.height;
+    const dpr = window.devicePixelRatio || 1;
+    const width = Math.max(1, Math.round(cssWidth * dpr));
+    const height = Math.max(1, Math.round(cssHeight * dpr));
+    if (overlay.width !== width || overlay.height !== height || overlay._dpr !== dpr) {
+        overlay.width = width;
+        overlay.height = height;
+        overlay._dpr = dpr;
+    }
+    const ctx = overlay.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { canvas: overlay, ctx, width: cssWidth, height: cssHeight };
+}
+
+function clearChartHoverOverlay(canvas = chartCanvas) {
+    if (!canvas || !canvas._hoverOverlay) return;
+    const overlay = canvas._hoverOverlay;
+    const ctx = overlay.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, overlay.width / dpr, overlay.height / dpr);
+}
+
+function refreshChartHoverOverlay() {
+    if (!chartCanvas || !chartCanvas._scale) {
+        clearChartHoverOverlay();
+        return;
+    }
+
+    const overlayInfo = ensureChartHoverOverlay(chartCanvas);
+    if (!overlayInfo) return;
+    const { ctx, width, height } = overlayInfo;
+    ctx.clearRect(0, 0, width, height);
+
+    const activePointIdx = IS_MOBILE ? touchState.vlineIdx : hoveredPointIdx;
+    if (!trackData || activePointIdx < 0 || activePointIdx >= trackData.points.length) return;
+    const scale = chartCanvas._scale;
+    const point = trackData.points[activePointIdx];
+    if (point.distance < scale.viewStart || point.distance > scale.viewEnd) return;
+
+    const x = scale.xScale(point.distance);
+    const y = scale.yScale(point.ele);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(26, 46, 31, 0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(x, scale.padding.top);
+    ctx.lineTo(x, scale.padding.top + scale.chartH);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#1a2e1f';
+    ctx.beginPath();
+    ctx.arc(x, y, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#f5f1e8';
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+}
 function resizeActiveChartCanvas() {
     if (!chartCanvas) return;
     const rect = chartCanvas.getBoundingClientRect();
     const ratio = window.devicePixelRatio || 1;
-    chartCanvas.width = rect.width * ratio;
-    chartCanvas.height = rect.height * ratio;
+    const width = Math.max(1, Math.round(rect.width * ratio));
+    const height = Math.max(1, Math.round(rect.height * ratio));
+    if (chartCanvas.width !== width || chartCanvas.height !== height || chartCanvas._dpr !== ratio) {
+        chartCanvas.width = width;
+        chartCanvas.height = height;
+        chartCanvas._dpr = ratio;
+    }
     if (chartCtx) {
         chartCtx = chartCanvas.getContext('2d');
         chartCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
     }
+    ensureChartHoverOverlay(chartCanvas);
     if (trackData) drawChart();
 }
-// ★★★ 进入全屏时：把地图中心点平移到"剖面图上方可见区域"的中心（缩放不变）；
+
+
 // 退出全屏时按记录值反向平移还原 ★★★
 function applyFullscreenCenterPan() {
     fullscreenCenterPanY = 0;

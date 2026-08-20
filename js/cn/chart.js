@@ -7,9 +7,14 @@ function drawChart() {
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
 
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    ctx.scale(dpr, dpr);
+    const pixelWidth = Math.max(1, Math.round(rect.width * dpr));
+    const pixelHeight = Math.max(1, Math.round(rect.height * dpr));
+    if (canvas.width !== pixelWidth || canvas.height !== pixelHeight || canvas._dpr !== dpr) {
+        canvas.width = pixelWidth;
+        canvas.height = pixelHeight;
+        canvas._dpr = dpr;
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     const W = rect.width;
     const H = rect.height;
@@ -134,74 +139,58 @@ function drawChart() {
     ctx.rect(padding.left, padding.top, chartW, chartH);
     ctx.clip();
 
-    let firstVisibleIdx = 0;
-    for (let i = 0; i < points.length; i++) {
-        if (points[i].distance >= viewStart) {
-            firstVisibleIdx = i;
-            break;
+    const firstVisibleIdx = findFirstPointAtOrAfterDistance(points, viewStart);
+    const lastVisibleIdx = findLastPointAtOrBeforeDistance(points, viewEnd);
+    const startIdx = Math.max(0, firstVisibleIdx - 1);
+    const endIdx = Math.min(points.length - 1, lastVisibleIdx + 1);
+    const displayIndices = getChartDisplayPointIndices(points, startIdx, endIdx, chartW);
+    const renderIndices = displayIndices || Array.from({ length: endIdx - startIdx + 1 }, (_, index) => startIdx + index);
+    const fillPaths = new Map();
+    const strokePaths = new Map();
+    const baseline = padding.top + chartH;
+
+    for (let i = 1; i < renderIndices.length; i++) {
+        const previousIdx = renderIndices[i - 1];
+        const currentIdx = renderIndices[i];
+        const previousPoint = points[previousIdx];
+        const currentPoint = points[currentIdx];
+        const value = colorMode === 'elevation'
+            ? currentPoint.ele
+            : (currentPoint.smoothedGradient + previousPoint.smoothedGradient) / 2;
+        const renderColor = getChartRenderColor(colorMode, value, minEle, maxEle);
+        let fillPath = fillPaths.get(renderColor.key);
+        let strokePath = strokePaths.get(renderColor.key);
+        if (!fillPath) {
+            fillPath = { color: renderColor.rgba, path: new Path2D() };
+            strokePath = { color: renderColor.color, path: new Path2D() };
+            fillPaths.set(renderColor.key, fillPath);
+            strokePaths.set(renderColor.key, strokePath);
         }
-    }
-    let lastVisibleIdx = points.length - 1;
-    for (let i = points.length - 1; i >= 0; i--) {
-        if (points[i].distance <= viewEnd) {
-            lastVisibleIdx = i;
-            break;
-        }
+
+        const previousX = xScale(previousPoint.distance);
+        const previousY = yScale(previousPoint.ele);
+        const currentX = xScale(currentPoint.distance);
+        const currentY = yScale(currentPoint.ele);
+        fillPath.path.moveTo(previousX, previousY);
+        fillPath.path.lineTo(currentX, currentY);
+        fillPath.path.lineTo(currentX, baseline);
+        fillPath.path.lineTo(previousX, baseline);
+        fillPath.path.closePath();
+        strokePath.path.moveTo(previousX, previousY);
+        strokePath.path.lineTo(currentX, currentY);
     }
 
-    for (let i = firstVisibleIdx + 1; i <= lastVisibleIdx; i++) {
-        let color;
-        if (colorMode === 'elevation') {
-            color = getElevationColor(points[i].ele, minEle, maxEle);
-        } else {
-            const avgGrad = (points[i].smoothedGradient + points[i - 1].smoothedGradient) / 2;
-            color = getGradientColor(avgGrad);
-        }
-        const rgb = hexToRgb(color);
-        ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 1)`;
-
-        ctx.beginPath();
-        ctx.moveTo(xScale(points[i - 1].distance), yScale(points[i - 1].ele));
-        ctx.lineTo(xScale(points[i].distance), yScale(points[i].ele));
-        ctx.lineTo(xScale(points[i].distance), padding.top + chartH);
-        ctx.lineTo(xScale(points[i - 1].distance), padding.top + chartH);
-        ctx.closePath();
-        ctx.fill();
-    }
-
-    let startIdx = 0;
-    for (let i = 0; i < points.length; i++) {
-        if (points[i].distance >= viewStart) {
-            startIdx = Math.max(0, i - 1);
-            break;
-        }
-    }
-    let endIdx = points.length - 1;
-    for (let i = points.length - 1; i >= 0; i--) {
-        if (points[i].distance <= viewEnd) {
-            endIdx = Math.min(points.length - 1, i + 1);
-            break;
-        }
-    }
-
-    for (let i = startIdx + 1; i <= endIdx; i++) {
-        let color;
-        if (colorMode === 'elevation') {
-            color = getElevationColor(points[i].ele, minEle, maxEle);
-        } else {
-            const avgGrad = (points[i].smoothedGradient + points[i - 1].smoothedGradient) / 2;
-            color = getGradientColor(avgGrad);
-        }
+    fillPaths.forEach(({ color, path }) => {
+        ctx.fillStyle = color;
+        ctx.fill(path);
+    });
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    strokePaths.forEach(({ color, path }) => {
         ctx.strokeStyle = color;
-        ctx.lineWidth = 2.5;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        ctx.beginPath();
-        ctx.moveTo(xScale(points[i - 1].distance), yScale(points[i - 1].ele));
-        ctx.lineTo(xScale(points[i].distance), yScale(points[i].ele));
-        ctx.stroke();
-    }
+        ctx.stroke(path);
+    });
 
     ctx.restore();
 
@@ -217,61 +206,6 @@ function drawChart() {
         drawWaypoints(ctx, trackData.waypoints, xScale, yScale, viewStart, viewEnd, showNames);
     }
 
-    // 触摸和鼠标悬停指示
-    if (IS_MOBILE && touchState.vlineActive && touchState.vlineIdx >= 0) {
-        const pt = points[touchState.vlineIdx];
-        if (pt && pt.distance >= viewStart && pt.distance <= viewEnd) {
-            const x = xScale(pt.distance);
-            ctx.save();
-            ctx.strokeStyle = 'rgba(26, 46, 31, 0.4)';
-            ctx.lineWidth = 1.5;
-            ctx.setLineDash([4, 4]);
-            ctx.beginPath();
-            ctx.moveTo(x, padding.top);
-            ctx.lineTo(x, padding.top + chartH);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            ctx.restore();
-
-            const y = yScale(pt.ele);
-            ctx.fillStyle = '#1a2e1f';
-            ctx.beginPath();
-            ctx.arc(x, y, 6, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#f5f1e8';
-            ctx.beginPath();
-            ctx.arc(x, y, 3, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    }
-
-    if (!IS_MOBILE && hoveredPointIdx >= 0) {
-        const pt = points[hoveredPointIdx];
-        if (pt.distance >= viewStart && pt.distance <= viewEnd) {
-            const x = xScale(pt.distance);
-            ctx.save();
-            ctx.strokeStyle = 'rgba(26, 46, 31, 0.4)';
-            ctx.lineWidth = 1.5;
-            ctx.setLineDash([4, 4]);
-            ctx.beginPath();
-            ctx.moveTo(x, padding.top);
-            ctx.lineTo(x, padding.top + chartH);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            ctx.restore();
-
-            const y = yScale(pt.ele);
-            ctx.fillStyle = '#1a2e1f';
-            ctx.beginPath();
-            ctx.arc(x, y, 6, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#f5f1e8';
-            ctx.beginPath();
-            ctx.arc(x, y, 3, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    }
-
     ctx.fillStyle = 'rgba(45, 74, 53, 0.7)';
     ctx.font = '600 12px Inter, sans-serif';
     ctx.textAlign = 'center';
@@ -284,6 +218,8 @@ function drawChart() {
     ctx.restore();
 
     canvas._scale = { xScale, yScale, padding, chartW, chartH, W, H, viewStart, viewEnd };
+    ensureChartHoverOverlay(canvas);
+    refreshChartHoverOverlay();
 }
 function drawStartEndMarkers(ctx, points, xScale, yScale, viewStart, viewEnd) {
     if (points[0].distance >= viewStart && points[0].distance <= viewEnd) {
@@ -382,35 +318,8 @@ function drawWaypoints(ctx, waypoints, xScale, yScale, viewStart, viewEnd, showN
     });
 }
 function drawAnnotations(ctx, points, xScale, yScale, padding, chartW, chartH, viewStart, viewEnd) {
-    const segments = [];
-    let currentSeg = { type: points[1].gradient > 0 ? 'climb' : 'descent', start: 0, end: 1, ascent: 0,
-        descent: 0 };
-
-    for (let i = 1; i < points.length; i++) {
-        const isClimb = points[i].smoothedGradient > 1;
-        const isDescent = points[i].smoothedGradient < -1;
-
-        if (currentSeg.type === 'climb' && isClimb) {
-            currentSeg.end = i;
-            currentSeg.ascent += Math.max(0, points[i].ele - points[i - 1].ele);
-        } else if (currentSeg.type === 'descent' && isDescent) {
-            currentSeg.end = i;
-            currentSeg.descent += Math.max(0, points[i - 1].ele - points[i].ele);
-        } else {
-            if (currentSeg.end - currentSeg.start > 5) {
-                segments.push({ ...currentSeg });
-            }
-            currentSeg = { type: isClimb ? 'climb' : (isDescent ? 'descent' : 'flat'), start: i, end: i,
-                ascent: 0, descent: 0 };
-        }
-    }
-    if (currentSeg.end - currentSeg.start > 5) {
-        segments.push({ ...currentSeg });
-    }
-
-    const significant = segments.filter(s => s.ascent > 30 || s.descent > 30);
-    significant.sort((a, b) => (b.ascent + b.descent) - (a.ascent + a.descent));
-    const topSegments = significant.slice(0, 6);
+    const annotationModel = getChartAnnotationModel(points);
+    const topSegments = annotationModel.topSegments;
 
     topSegments.forEach((seg) => {
         const startPt = points[seg.start];
@@ -463,8 +372,8 @@ function drawAnnotations(ctx, points, xScale, yScale, padding, chartW, chartH, v
         ctx.setLineDash([]);
     });
 
-    const maxIdx = points.reduce((maxI, p, i, arr) => p.ele > arr[maxI].ele ? i : maxI, 0);
-    const minIdx = points.reduce((minI, p, i, arr) => p.ele < arr[minI].ele ? i : minI, 0);
+    const maxIdx = annotationModel.maxIdx;
+    const minIdx = annotationModel.minIdx;
 
     [
         { idx: maxIdx, label: '最高点', color: '#d4a017', offset: -25 },
