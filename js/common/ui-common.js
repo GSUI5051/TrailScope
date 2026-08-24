@@ -42,7 +42,14 @@ function updateZoomInfo() {
         info.classList.add('hidden');
     }
 }
+const estimatedTimeCache = new WeakMap();
 function estimateTime(data) {
+    const cached = estimatedTimeCache.get(data);
+    if (cached && cached.totalAscent === data.totalAscent && cached.totalDescent === data.totalDescent &&
+        cached.pointCount === data.points.length) {
+        return cached.value;
+    }
+
     const { totalDistance, totalAscent, totalDescent, points } = data;
 
     const baseTime = (totalDistance / 5) * 60;
@@ -62,13 +69,15 @@ function estimateTime(data) {
     const restMin = totalWalkMin * 0.15;
     const totalMin = totalWalkMin + restMin;
 
-    return {
+    const value = {
         totalHours: totalMin / 60,
         walkHours: totalWalkMin / 60,
         restHours: restMin / 60,
         avgPace: totalMin / totalDistance,
         calories: Math.round(70 * (totalDistance * 0.7 + totalAscent * 0.0106))
     };
+    estimatedTimeCache.set(data, { totalAscent, totalDescent, pointCount: points.length, value });
+    return value;
 }
 function changePageSize() {
     const select = document.getElementById('pageSizeSelect');
@@ -182,7 +191,6 @@ function showToast(message, type = 'info') {
 }
 let normalChartCanvas = null;
 let fullscreenChartCanvas = null;
-let fullscreenCenterPanY = 0;
 function ensureChartHoverOverlay(canvas) {
     if (!canvas || !canvas.parentElement) return null;
 
@@ -274,46 +282,108 @@ function resizeActiveChartCanvas() {
     const ratio = window.devicePixelRatio || 1;
     const width = Math.max(1, Math.round(rect.width * ratio));
     const height = Math.max(1, Math.round(rect.height * ratio));
-    if (chartCanvas.width !== width || chartCanvas.height !== height || chartCanvas._dpr !== ratio) {
+    const dimensionsChanged = chartCanvas.width !== width || chartCanvas.height !== height ||
+        chartCanvas._dpr !== ratio || chartCanvas._cssWidth !== rect.width || chartCanvas._cssHeight !== rect.height;
+    if (dimensionsChanged) {
         chartCanvas.width = width;
         chartCanvas.height = height;
         chartCanvas._dpr = ratio;
+        chartCanvas._cssWidth = rect.width;
+        chartCanvas._cssHeight = rect.height;
     }
-    if (chartCtx) {
+    if (chartCtx && dimensionsChanged) {
         chartCtx = chartCanvas.getContext('2d');
         chartCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
     }
-    ensureChartHoverOverlay(chartCanvas);
-    if (trackData) drawChart();
-}
-
-
-// 退出全屏时按记录值反向平移还原 ★★★
-function applyFullscreenCenterPan() {
-    fullscreenCenterPanY = 0;
-    if (!trackData || !leafletMap) return;
-
-    const container = document.getElementById('mapContainer');
-    if (!container || !container.classList.contains('map-fullscreen-chart')) return;
-
-    const profile = document.querySelector('.fullscreen-profile');
-    if (!profile) return;
-
-    const mapRect = leafletMap.getContainer().getBoundingClientRect();
-    const profileRect = profile.getBoundingClientRect();
-    if (profileRect.height > 0 && profileRect.top > mapRect.top) {
-        const viewportCenterY = mapRect.top + mapRect.height / 2;
-        fullscreenCenterPanY = viewportCenterY - (mapRect.top + profileRect.top) / 2;
-        leafletMap.panBy([0, fullscreenCenterPanY], { animate: false });
+    if (dimensionsChanged || !chartCanvas._hoverOverlay) {
+        ensureChartHoverOverlay(chartCanvas);
     }
+    if (trackData && (dimensionsChanged || !chartCanvas._scale)) drawChart();
 }
-function restoreFullscreenCenterPan() {
-    if (!leafletMap || !fullscreenCenterPanY) return;
-    leafletMap.panBy([0, -fullscreenCenterPanY], { animate: false });
-    fullscreenCenterPanY = 0;
+
+
+// ★★★ 切换地图全屏时保持地图中心点与缩放级别，仅调整中心锚定位置（不使用 pan 函数）：
+// 未全屏：中心点在地图窗口正中；全屏：中心点位于排除海拔剖面图面板后的可视区域正中。
+// 通过 project/unproject 计算目标经纬度后 setView 重锚定（内部 _resetView 将 pane 归零
+// 并重算 pixelOrigin，结果确定且无累积漂移）。
+let fullscreenSavedCenter = null;
+let fullscreenSavedZoom = null;
+let fullscreenEnterPanY = 0;
+let fullscreenEntryTimer = null;
+let fullscreenEntryGeneration = 0;
+
+function cancelFullscreenRefreshTimers() {
+    if (fullscreenEntryTimer) {
+        clearTimeout(fullscreenEntryTimer);
+        fullscreenEntryTimer = null;
+    }
+    clearTimeout(fullscreenResizeTimer);
+    clearTimeout(fullscreenResizeTimer2);
+}
+function releaseFullscreenChartResources() {
+    if (!fullscreenChartCanvas) return;
+    fullscreenChartCanvas._destroyChartInteraction?.();
+    const overlay = fullscreenChartCanvas._hoverOverlay;
+    if (overlay) {
+        overlay.width = 1;
+        overlay.height = 1;
+    }
+    fullscreenChartCanvas.width = 1;
+    fullscreenChartCanvas.height = 1;
+    fullscreenChartCanvas._hoverOverlay = null;
+    fullscreenChartCanvas._tooltip = null;
+}
+
+function reAnchorMapView(entering) {
+    if (!leafletMap) return;
+
+    const size = leafletMap.getSize();
+
+    if (entering) {
+        // 进入全屏：使用进入前保存的中心点与缩放级别（多次调用幂等）
+        const center = fullscreenSavedCenter || leafletMap.getCenter();
+        const zoom = fullscreenSavedZoom !== null ? fullscreenSavedZoom : leafletMap.getZoom();
+
+        let targetY = size.y / 2;
+        const panel = document.getElementById('fullscreenProfile');
+        if (panel) {
+            const mapRect = leafletMap.getContainer().getBoundingClientRect();
+            const panelRect = panel.getBoundingClientRect();
+            const visibleBottom = Math.max(0, panelRect.top - mapRect.top);
+            targetY = Math.min(size.y / 2, Math.max(0, visibleBottom / 2));
+        }
+
+        // 使保存的中心点渲染在可见地图区域正中：
+        // 新的地图中心 = 保存中心向南偏移 (size.y / 2 - targetY) 像素
+        fullscreenEnterPanY = size.y / 2 - targetY;
+        const desired = leafletMap.unproject(
+            leafletMap.project(center, zoom).add([0, fullscreenEnterPanY]), zoom);
+        const current = leafletMap.getCenter();
+        const currentPoint = leafletMap.project(current, zoom);
+        const desiredPoint = leafletMap.project(desired, zoom);
+        if (leafletMap.getZoom() !== zoom || currentPoint.distanceTo(desiredPoint) > 0.5) {
+            leafletMap.setView(desired, zoom, { animate: false, reset: true });
+        }
+    } else {
+        // 退出全屏：把全屏可见区域正中的点放回地图窗口正中
+        // （保留全屏期间的平移与缩放，中心缓存保持一致）
+        const zoom = leafletMap.getZoom();
+        const trueCenter = leafletMap.containerPointToLatLng([size.x / 2, size.y / 2]);
+        const desired = leafletMap.unproject(
+            leafletMap.project(trueCenter, zoom).add([0, -fullscreenEnterPanY]), zoom);
+        const current = leafletMap.getCenter();
+        const currentPoint = leafletMap.project(current, zoom);
+        const desiredPoint = leafletMap.project(desired, zoom);
+        if (currentPoint.distanceTo(desiredPoint) > 0.5) {
+            leafletMap.setView(desired, zoom, { animate: false, reset: true });
+        }
+    }
 }
 function exitMapFullscreen() {
     const map = document.getElementById('mapContainer');
+    cancelFullscreenRefreshTimers();
+    fullscreenEntryGeneration++;
+    invalidateFullscreenFollowGeometry();
 
     if (document.fullscreenElement) {
         document.exitFullscreen?.();
@@ -322,6 +392,7 @@ function exitMapFullscreen() {
         map.classList.remove('portrait-mode');
         document.getElementById('mapLocationLegend')?.classList.remove('hidden');
         document.getElementById('mapSourceControl')?.classList.remove('hidden');
+        releaseFullscreenChartResources();
         document.getElementById('fullscreenProfile')?.remove();
         document.getElementById('fullscreenChartToolbar')?.remove();
 
@@ -331,61 +402,77 @@ function exitMapFullscreen() {
             setupChartInteraction();
             resizeActiveChartCanvas();
         }
+        normalChartCanvas = null;
+        fullscreenChartCanvas = null;
 
         updateFullscreenButton(false);
         leafletMap?.invalidateSize();
-        restoreFullscreenCenterPan();
+        reAnchorMapView(false);
     }
 }
 let fullscreenResizeTimer = null;
 let fullscreenResizeTimer2 = null;
 window.addEventListener('resize', () => {
     if (document.getElementById('fullscreenProfile')) {
-        // ★★★ 全屏中旋转屏幕：按方向切换 portrait-mode 类，并刷新图表与地图（含中心平移重算） ★★★
+        // ★★★ 全屏中旋转屏幕：按方向切换 portrait-mode 类，并刷新图表与地图尺寸
+        // （中心锚定保持不变，与参考实现一致） ★★★
         if (IS_MOBILE) {
             document.getElementById('mapContainer')?.classList.toggle('portrait-mode', isPortraitViewport());
         }
+        invalidateFullscreenFollowGeometry();
         resizeActiveChartCanvas();
         leafletMap?.invalidateSize();
-        applyFullscreenCenterPan();
 
         // ★★★ Edge/Firefox 旋转后布局稳定较慢且不再触发 resize：防抖延迟再刷新，
         // 避免图表按过渡中的尺寸绘制成一条横线（两次延迟，覆盖慢稳定场景） ★★★
         clearTimeout(fullscreenResizeTimer);
         fullscreenResizeTimer = setTimeout(() => {
+            fullscreenResizeTimer = null;
+            if (!document.getElementById('fullscreenProfile')) return;
             resizeActiveChartCanvas();
             leafletMap?.invalidateSize();
         }, 350);
         clearTimeout(fullscreenResizeTimer2);
         fullscreenResizeTimer2 = setTimeout(() => {
+            fullscreenResizeTimer2 = null;
+            if (!document.getElementById('fullscreenProfile')) return;
             resizeActiveChartCanvas();
             leafletMap?.invalidateSize();
         }, 900);
     }
 });
 document.addEventListener('fullscreenchange', () => {
-    if (!document.fullscreenElement) {
-        const map = document.getElementById('mapContainer');
-        map.classList.remove('map-fullscreen-chart');
-        map.classList.remove('portrait-mode');
-        document.getElementById('mapLocationLegend')?.classList.remove('hidden');
-        document.getElementById('mapSourceControl')?.classList.remove('hidden');
-        document.getElementById('fullscreenProfile')?.remove();
-        document.getElementById('fullscreenChartToolbar')?.remove();
-
-        if (normalChartCanvas) {
-            chartCanvas = normalChartCanvas;
-            chartCtx = chartCanvas.getContext('2d');
-            setupChartInteraction();
-            resizeActiveChartCanvas();
-            normalChartCanvas = null;
-            fullscreenChartCanvas = null;
-        }
-
-        updateFullscreenButton(false);
+    if (document.fullscreenElement) {
+        // ★★★ 进入原生全屏后，按最终尺寸重新锚定地图中心点（保持中心点与缩放级别不变） ★★★
+        invalidateFullscreenFollowGeometry();
         leafletMap?.invalidateSize();
-        restoreFullscreenCenterPan();
+        reAnchorMapView(true);
+        return;
     }
+    cancelFullscreenRefreshTimers();
+    fullscreenEntryGeneration++;
+    invalidateFullscreenFollowGeometry();
+    const map = document.getElementById('mapContainer');
+    map.classList.remove('map-fullscreen-chart');
+    map.classList.remove('portrait-mode');
+    document.getElementById('mapLocationLegend')?.classList.remove('hidden');
+    document.getElementById('mapSourceControl')?.classList.remove('hidden');
+    releaseFullscreenChartResources();
+    document.getElementById('fullscreenProfile')?.remove();
+    document.getElementById('fullscreenChartToolbar')?.remove();
+
+    if (normalChartCanvas) {
+        chartCanvas = normalChartCanvas;
+        chartCtx = chartCanvas.getContext('2d');
+        setupChartInteraction();
+        resizeActiveChartCanvas();
+        normalChartCanvas = null;
+        fullscreenChartCanvas = null;
+    }
+
+    updateFullscreenButton(false);
+    leafletMap?.invalidateSize();
+    reAnchorMapView(false);
 });
 if (!CanvasRenderingContext2D.prototype.roundRect) {
     CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {

@@ -9,7 +9,7 @@ function initMap() {
         preferCanvas: true
     }).setView([30.185, 102.065], 13);
 
-    changeMapSource('tiandituluwang');
+    changeMapSource('tiandituluwang', true);
 
     leafletMap.on('click', function() {
         hideWaypointInfoOverlay();
@@ -18,7 +18,7 @@ function initMap() {
         }
     });
 }
-function changeMapSource(source) {
+function changeMapSource(source, skipTrackDraw = false) {
     if (!leafletMap) return;
 
     if (!source) {
@@ -26,7 +26,9 @@ function changeMapSource(source) {
     }
 
     currentMapSource = source;
+    const previousCoordinateMode = useGCJ02Display;
     useGCJ02Display = (source === 'amaproad' || source === 'amapsatellite' || source === 'gaode_hybrid');
+    const coordinateModeChanged = previousCoordinateMode !== useGCJ02Display;
     const config = mapSources[source];
 
     if (!config) return;
@@ -145,7 +147,7 @@ function changeMapSource(source) {
     const fsMapSource = document.getElementById('fullscreenMapSourceSelect');
     if (fsMapSource) fsMapSource.value = source;
 
-    if (trackData) drawMap(true);
+    if (trackData && !skipTrackDraw && coordinateModeChanged) drawMap(true);
 }
 function drawMap(skipFit = false) {
     if (!trackData || !leafletMap) return;

@@ -36,8 +36,9 @@ function getTrackRenderColor(mode, value, minEle, maxEle) {
     const bucket = Math.min(TRACK_RENDER_BUCKETS - 1, Math.floor(ratio * TRACK_RENDER_BUCKETS));
     const representativeRatio = (bucket + 0.5) / TRACK_RENDER_BUCKETS;
     const key = `${mode}:${sign}:${bucket}`;
-    let color = trackRenderColorCache.get(key);
-    if (!color) {
+    let cached = trackRenderColorCache.get(key);
+    if (!cached) {
+        let color;
         if (mode === 'elevation') {
             const representativeElevation = minEle + representativeRatio * (maxEle - minEle);
             color = getElevationColor(representativeElevation, minEle, maxEle);
@@ -45,10 +46,11 @@ function getTrackRenderColor(mode, value, minEle, maxEle) {
             const representativeGradient = (sign === '-' ? -1 : 1) * representativeRatio * MAX_GRADIENT;
             color = getGradientColor(representativeGradient);
         }
-        trackRenderColorCache.set(key, color);
+        cached = { key, color };
+        trackRenderColorCache.set(key, cached);
     }
 
-    return { key, color };
+    return cached;
 }
 
 function getChartRenderColor(mode, value, minEle, maxEle) {

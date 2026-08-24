@@ -615,7 +615,38 @@ function assessRisks(data) {
 
     return { risks, riskLevel, riskPercent };
 }
+function resetSegmentAnalysisCache() {
+    allSegments = [];
+    totalSegments = 0;
+    cachedSegmentsTrack = null;
+    cachedSegmentsMode = null;
+    cachedSegmentsElevationMode = null;
+    cachedSegmentsPointCount = -1;
+}
+
 function analyzeSegments(data, mode) {
+    if (!data || !data.points) return [];
+
+    const pointCount = data.points.length;
+    const currentElevationMode = elevationMode || 'raw';
+    if (cachedSegmentsTrack === data &&
+        cachedSegmentsMode === mode &&
+        cachedSegmentsElevationMode === currentElevationMode &&
+        cachedSegmentsPointCount === pointCount) {
+        return allSegments;
+    }
+
+    const segments = computeSegments(data, mode);
+    cachedSegmentsTrack = data;
+    cachedSegmentsMode = mode;
+    cachedSegmentsElevationMode = currentElevationMode;
+    cachedSegmentsPointCount = data.points.length;
+    allSegments = segments;
+    totalSegments = segments.length;
+    return segments;
+}
+
+function computeSegments(data, mode) {
     const points = data.points;
     const segments = [];
 
@@ -623,7 +654,12 @@ function analyzeSegments(data, mode) {
         const wps = data.waypoints;
         const breakpoints = [0];
 
-        wps.forEach(wp => breakpoints.push(wp.trackIdx));
+        // ★★★ Re-locate each waypoint by its recorded distance instead of the trackIdx from
+        // load time: distance-based segmentation inserts virtual points into `points`,
+        // invalidating all trackIdx values and misaligning segment start/end markers with
+        // waypoint markers in the elevation profile. Binary search by distance keeps the
+        // boundaries exactly on the waypoints. ★★★
+        wps.forEach(wp => breakpoints.push(findNearestPointIndexByDistance(points, wp.distance)));
         breakpoints.push(points.length - 1);
 
         const uniqueBreakpoints = [...new Set(breakpoints)].sort((a, b) => a - b);
@@ -684,30 +720,22 @@ function analyzeSegments(data, mode) {
         for (let seg = 0; seg < numFullSegs; seg++) {
             const targetDist = (seg + 1) * segSize;
 
-            // Find the first point with distance >= targetDist
             let i = segStartIdx + 1;
-            while (i < points.length && points[i].distance < targetDist) {
-                i++;
-            }
+            while (i < points.length && points[i].distance < targetDist) i++;
             if (i >= points.length) break;
 
             const prev = points[i - 1];
             const curr = points[i];
-
-            // If current point distance almost exactly equals target, use it directly
             if (Math.abs(curr.distance - targetDist) < 1e-12) {
                 segments.push(createSegment(points, segStartIdx, i, 'auto'));
                 segStartIdx = i;
             } else {
-                // Linear interpolation to create exact boundary virtual point
                 const segLen = curr.distance - prev.distance;
                 if (segLen < 1e-12) {
-                    // Degenerate case: skip
                     segStartIdx = i;
                     continue;
                 }
                 const t = (targetDist - prev.distance) / segLen;
-
                 const vpt = {
                     lat: prev.lat + (curr.lat - prev.lat) * t,
                     lon: prev.lon + (curr.lon - prev.lon) * t,
@@ -717,10 +745,7 @@ function analyzeSegments(data, mode) {
                     gradient: curr.gradient,
                     smoothedGradient: curr.smoothedGradient
                 };
-
-                // Insert virtual point before curr
                 points.splice(i, 0, vpt);
-
                 segments.push(createSegment(points, segStartIdx, i, 'auto'));
                 segStartIdx = i;
             }
@@ -743,7 +768,6 @@ function createSegment(points, startIdx, endIdx, type) {
     const distance = endPt.distance - startPt.distance;
     const horizontalDistance = (endPt.horizontalDistance || 0) - (startPt.horizontalDistance || 0);
 
-    const segPoints = points.slice(startIdx, endIdx + 1);
     const mode = elevationMode || 'raw';
     const elevResult = ElevationCalculator.computeSegment(points, startIdx, endIdx, mode);
     const ascent = elevResult.ascent;

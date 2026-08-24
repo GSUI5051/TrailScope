@@ -2,11 +2,18 @@
 function setupChartInteraction() {
     const canvas = chartCanvas;
     const tooltip = canvas._tooltip || document.getElementById('chartTooltip');
-    if (canvas._chartInteractionBound) return;
+    if (canvas._chartInteractionBound) {
+        if (canvas._clearMobileVLine) window.clearMobileVLine = canvas._clearMobileVLine;
+        return;
+    }
     canvas._chartInteractionBound = true;
 
     let hoverFrame = 0;
     let pendingHover = null;
+    let touchFrame = 0;
+    let pendingTouch = null;
+    let lastMobileVlineIdx = -1;
+    let lastMobileVlineMode = null;
     let tooltipWidth = 0;
     let tooltipHeight = 0;
     let hoverDisplayMode = null;
@@ -227,24 +234,21 @@ function setupChartInteraction() {
         canvas.addEventListener('touchend', handleTouchEndMobile, { passive: false });
         canvas.addEventListener('touchcancel', handleTouchCancelMobile, { passive: false });
         canvas.style.touchAction = 'none';
+        canvas._clearMobileVLine = clearMobileVLine;
 
-        document.addEventListener('click', function(e) {
-            const chartWrapper = document.getElementById('chartWrapper');
-            const canvasEl = chartCanvas;
-            if (chartWrapper && canvasEl && !chartWrapper.contains(e.target) && !canvasEl.contains(e
-                .target)) {
-                clearMobileVLine();
-            }
-        });
-
-        document.addEventListener('touchstart', function(e) {
-            const chartWrapper = document.getElementById('chartWrapper');
-            const canvasEl = chartCanvas;
-            if (chartWrapper && canvasEl && !chartWrapper.contains(e.target) && !canvasEl.contains(e
-                .target)) {
-                clearMobileVLine();
-            }
-        }, { passive: true });
+        if (!window.__trailScopeMobileOutsideListenersBound) {
+            const clearOutside = (e) => {
+                const chartWrapper = document.getElementById('chartWrapper');
+                const canvasEl = chartCanvas;
+                if (chartWrapper && canvasEl && !chartWrapper.contains(e.target) && !canvasEl.contains(e.target)) {
+                    window.clearMobileVLine?.();
+                }
+            };
+            document.addEventListener('click', clearOutside);
+            document.addEventListener('touchstart', clearOutside, { passive: true });
+            window.__trailScopeMobileOutsideListenersBound = true;
+        }
+        window.clearMobileVLine = clearMobileVLine;
     }
 
     // 手机端触摸处理函数
@@ -275,6 +279,8 @@ function setupChartInteraction() {
                 touchState.isPinching = false;
                 touchState.touchStartTime = Date.now();
                 touchState.isTap = true;
+                lastMobileVlineIdx = -1;
+                lastMobileVlineMode = null;
 
                 updateMobileVLine(x, y);
             }
@@ -288,34 +294,43 @@ function setupChartInteraction() {
         }
     }
 
+    function processSingleTouchMove(x, y) {
+        if (!trackData || !canvas._scale || !touchState.isTouching || touchState.isPinching) return;
+
+        const dx = x - touchState.startX;
+        const dy = y - touchState.startY;
+        const moveDist = Math.sqrt(dx * dx + dy * dy);
+        touchState.hasMoved = true;
+
+        if (moveDist > 5) {
+            touchState.isDragging = true;
+            touchState.isTap = false;
+        }
+
+        updateMobileVLine(x, y);
+        touchState.lastX = x;
+        touchState.lastY = y;
+    }
+
     function handleTouchMoveMobile(e) {
         if (!trackData || !canvas._scale) return;
         e.preventDefault();
 
-        const rect = canvas.getBoundingClientRect();
         const touches = e.touches;
-
         if (touches.length === 1 && touchState.isTouching && !touchState.isPinching) {
+            const rect = canvas.getBoundingClientRect();
             const touch = touches[0];
             const x = touch.clientX - rect.left;
             const y = touch.clientY - rect.top;
-
-            const dx = x - touchState.startX;
-            const dy = y - touchState.startY;
-            const moveDist = Math.sqrt(dx * dx + dy * dy);
-
-            touchState.hasMoved = true;
-
-            const { padding, chartW, chartH, W, H, viewStart, viewEnd } = canvas._scale;
-
-            if (moveDist > 5) {
-                touchState.isDragging = true;
-                touchState.isTap = false;
+            pendingTouch = { x, y };
+            if (!touchFrame) {
+                touchFrame = requestAnimationFrame(() => {
+                    touchFrame = 0;
+                    const nextTouch = pendingTouch;
+                    pendingTouch = null;
+                    if (nextTouch) processSingleTouchMove(nextTouch.x, nextTouch.y);
+                });
             }
-
-            updateMobileVLine(x, y);
-            touchState.lastX = x;
-            touchState.lastY = y;
         } else if (touches.length === 2 && touchState.isPinching) {
             e.preventDefault();
             pinchZoomMobile(touches);
@@ -325,6 +340,14 @@ function setupChartInteraction() {
     function handleTouchEndMobile(e) {
         if (!trackData || !canvas._scale) return;
         e.preventDefault();
+
+        if (touchFrame) {
+            cancelAnimationFrame(touchFrame);
+            touchFrame = 0;
+            const nextTouch = pendingTouch;
+            pendingTouch = null;
+            if (nextTouch) processSingleTouchMove(nextTouch.x, nextTouch.y);
+        }
 
         // 只有显示名称时才处理点击航路点
         if (waypointDisplayMode === 'show-names' && touchState.isTouching && !touchState.isDragging && touchState
@@ -349,53 +372,6 @@ function setupChartInteraction() {
             }
         }
 
-        if (touchState.isTouching && touchState.hasMoved) {
-            touchState.vlineActive = true;
-            const tooltip = canvas._tooltip || document.getElementById('chartTooltip');
-            if (touchState.vlineIdx >= 0 && touchState.vlineIdx < trackData.points.length) {
-                const pt = trackData.points[touchState.vlineIdx];
-                const points = trackData.points;
-
-                let waypointHover = null;
-                if (waypointDisplayMode !== 'hide-all') {
-                    for (let i = 0; i < trackData.waypoints.length; i++) {
-                        const wp = trackData.waypoints[i];
-                        if (Math.abs(wp.distance - pt.distance) < (trackData.totalDistance / points.length) *
-                            3) {
-                            waypointHover = wp;
-                            break;
-                        }
-                    }
-                }
-
-                if (waypointHover) {
-                    tooltip.innerHTML = `
-                        <div style="font-weight: 700; margin-bottom: 4px; color: #d4a017;">📍 ${waypointHover.name}</div>
-                        <div>距离：<span style="font-weight: 600;">${pt.distance.toFixed(2)} km</span></div>
-                        <div>海拔：<span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${Math.round(pt.ele)} m</span></div>
-                        <div>坡度：<span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
-                      `;
-                } else {
-                    tooltip.innerHTML = `
-                        <div>距离：<span style="font-weight: 600;">${pt.distance.toFixed(2)} km</span></div>
-                        <div>海拔：<span style="font-weight: 600; color: ${getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation)};">${Math.round(pt.ele)} m</span></div>
-                        <div>坡度：<span style="font-weight: 600; color: ${getGradientColor(pt.smoothedGradient)};">${pt.smoothedGradient > 0 ? '+' : ''}${pt.smoothedGradient.toFixed(1)}% （${getGradientLabel(pt.smoothedGradient)}）</span></div>
-                      `;
-                }
-                tooltip.classList.add('visible');
-                const canvasRect = canvas.getBoundingClientRect();
-                const { chartW, W, padding, viewStart, viewEnd } = canvas._scale;
-                const vlineX = (pt.distance - viewStart) / (viewEnd - viewStart) * chartW + padding.left;
-                let tx = vlineX + 12;
-                let ty = tooltip.offsetHeight + 12;
-                if (tx + tooltip.offsetWidth > W) tx = vlineX - tooltip.offsetWidth - 12;
-                if (tx < 0) tx = 4;
-                tooltip.style.left = tx + 'px';
-                tooltip.style.top = ty + 'px';
-                updateMapCurrentPoint(touchState.vlineIdx);
-                refreshChartHoverOverlay();
-            }
-        }
 
         touchState.isTouching = false;
         touchState.isDragging = false;
@@ -468,6 +444,8 @@ function setupChartInteraction() {
             tooltip.classList.remove('visible');
             touchState.vlineActive = false;
             touchState.vlineIdx = -1;
+            lastMobileVlineIdx = -1;
+            lastMobileVlineMode = null;
             updateMapCurrentPoint(-1);
             clearChartHoverOverlay(canvas);
             return;
@@ -478,11 +456,24 @@ function setupChartInteraction() {
         const targetDist = viewStart + distRatio * (viewEnd - viewStart);
 
         const nearestIdx = findNearestPointIndexByDistance(points, targetDist);
+        const pointChanged = nearestIdx !== lastMobileVlineIdx || lastMobileVlineMode !== waypointDisplayMode;
 
         touchState.vlineIdx = nearestIdx;
         touchState.vlineActive = true;
 
         const pt = points[nearestIdx];
+        if (!pointChanged) {
+            const vlineX = (pt.distance - viewStart) / (viewEnd - viewStart) * chartW + padding.left;
+            let tx = vlineX + 12;
+            let ty = tooltipHeight + 12;
+            if (tx + tooltipWidth > W) tx = vlineX - tooltipWidth - 12;
+            if (tx < 0) tx = 4;
+            tooltip.style.left = tx + 'px';
+            tooltip.style.top = ty + 'px';
+            return;
+        }
+        lastMobileVlineIdx = nearestIdx;
+        lastMobileVlineMode = waypointDisplayMode;
 
         const threshold = trackData.totalDistance / points.length * 3;
         const waypointHover = waypointDisplayMode === 'hide-all'
@@ -507,9 +498,11 @@ function setupChartInteraction() {
         tooltip.classList.add('visible');
 
         const vlineX = (pt.distance - viewStart) / (viewEnd - viewStart) * chartW + padding.left;
+        tooltipWidth = tooltip.offsetWidth;
+        tooltipHeight = tooltip.offsetHeight;
         let tx = vlineX + 12;
-        let ty = tooltip.offsetHeight + 12;
-        if (tx + tooltip.offsetWidth > W) tx = vlineX - tooltip.offsetWidth - 12;
+        let ty = tooltipHeight + 12;
+        if (tx + tooltipWidth > W) tx = vlineX - tooltipWidth - 12;
         if (tx < 0) tx = 4;
         tooltip.style.left = tx + 'px';
         tooltip.style.top = ty + 'px';
@@ -519,15 +512,29 @@ function setupChartInteraction() {
     }
 
     function clearMobileVLine() {
+        if (touchFrame) cancelAnimationFrame(touchFrame);
+        touchFrame = 0;
+        pendingTouch = null;
         const tooltip = document.getElementById('chartTooltip');
         if (tooltip) tooltip.classList.remove('visible');
         touchState.vlineActive = false;
         touchState.vlineIdx = -1;
         touchState.hasMoved = false;
+        lastMobileVlineIdx = -1;
+        lastMobileVlineMode = null;
         updateMapCurrentPoint(-1);
         clearChartHoverOverlay(canvas);
     }
 
+    canvas._clearMobileVLine = clearMobileVLine;
+    canvas._destroyChartInteraction = () => {
+        if (hoverFrame) cancelAnimationFrame(hoverFrame);
+        if (touchFrame) cancelAnimationFrame(touchFrame);
+        hoverFrame = 0;
+        touchFrame = 0;
+        pendingHover = null;
+        pendingTouch = null;
+    };
     window.clearMobileVLine = clearMobileVLine;
 }
 

@@ -29,14 +29,15 @@ The video covers its key modules - loading GPX tracks, reading maps, analyzing e
 ## ✨ Features
 
 - **📂 GPX / KML / KMZ Parsing & Visualization**  
-  Supports `.gpx`, `.kml`, and `.kmz` tracks, including KML paths and text waypoints. Images, videos, and audio attachments inside KMZ are ignored while text annotations are preserved.
+  Supports `.gpx`, `.kml`, and `.kmz` tracks, including KML paths and text waypoints. Images, videos, and audio attachments inside KMZ are ignored while text annotations are preserved. Input files are limited to 32 MiB; parsed tracks are limited to 200,000 points and 20,000 waypoints.
 
 - **🗺️ Interactive Map**  
-  Renders with Leaflet, offers multiple map sources (OpenStreetMap, Windy Outdoor Map, Google Satellite, Amap, etc.), color‑coded by grade or elevation. Track segments that share a render color are grouped into multi-polylines to reduce Leaflet layer overhead without removing original coordinates.
+  Renders with Leaflet, offers multiple map sources (OpenStreetMap, Windy Outdoor Map, Google Satellite, Amap, etc.), color‑coded by grade or elevation. Map coordinates are shared per coordinate system, contiguous edges in the same render-color bucket are merged into multi-point subpaths, and only the most recent derived render variants are retained. No original route vertices are removed from the displayed track.
+  In full-screen mode, the pre-fullscreen center is re-anchored to the center of the visible map area above the profile. While hovering or swiping the profile, the “current position” marker stays pinned at that visible-area center and the map moves beneath it.
 
 - **📈 Elevation Profile**  
   Displays elevation changes along the entire route; supports zoom, pan, and hover/touch to inspect distance, elevation, and grade at any point.  
-  Switch between "Grade" and "Elevation" coloring modes. Long tracks use screen-aware min/max decimation only in the derived display path; the full-resolution points remain the source for analysis, inspection, map linkage, and export.
+  Switch between "Grade" and "Elevation" coloring modes. Long tracks use screen-aware min/max decimation only for drawing; route statistics and point inspection continue to use the complete working point sequence. Fixed-distance segmentation may add exact interpolated boundary points without simplifying the route.
 
 - **📊 Comprehensive Statistics**  
   - Total distance, total elevation gain/loss (D+/D-), max/min elevation  
@@ -71,10 +72,10 @@ The video covers its key modules - loading GPX tracks, reading maps, analyzing e
   Toggle between metric (km, m) and imperial (mi, ft) units instantly; all displayed values update accordingly.
 
 - **📱 Mobile Optimized**  
-  Touch‑friendly interactions; supports swipe gestures to explore the profile; full‑screen map mode adapts to portrait/landscape orientations. Cursor and touch indicators use a lightweight overlay canvas, avoiding full profile redraws during pointer movement.
+  Touch‑friendly interactions; supports swipe gestures to explore the profile; full‑screen map mode adapts to portrait/landscape orientations. Cursor and touch indicators use a lightweight overlay canvas, avoiding full profile redraws during pointer movement. Single-finger movement is animation-frame coalesced, and the full-screen current-position marker remains pinned to the center of the upper visible map area.
 
 - **⚙️ Rendering & Loading Efficiency**  
-  Batches same-color profile paths with `Path2D`, caches derived annotation and map render data, precompiles the Tailwind stylesheet, and loads JSZip only when a KMZ file is imported. These optimizations affect rendering and resource scheduling only; quantitative analysis continues to use the original track data.
+  Batches same-color profile paths with `Path2D`, caches segment analysis and derived annotation/map data, shares map coordinates between render modes, precompiles the Tailwind stylesheet, and loads JSZip only when a KMZ file is imported. GPX parsing initializes final point shapes in one pass, reuses each edge's horizontal-distance result for 3D distance, ignores obsolete asynchronous read results, and cancels obsolete delayed renders when another track is selected.
 
 - **🔒 Privacy First**  
   All processing is done locally in your browser; no data is ever sent to a server. Your data, only yours.
@@ -88,7 +89,7 @@ The video covers its key modules - loading GPX tracks, reading maps, analyzing e
    - For offline usage, [Click here to download all the code](https://github.com/GSUI5051/TrailScope/archive/refs/heads/main.zip), unzip and launch `TrailScope-English.html` in your browser.
 
 2. **Load a Track**  
-   - Click the upload zone and select a `.gpx`, `.kml`, or `.kmz` file, or drag and drop it to the upload zone. KMZ is a compressed KML; media attachments are ignored and text waypoints are retained.  
+   - Click the upload zone and select a `.gpx`, `.kml`, or `.kmz` file, or drag and drop it to the upload zone. KMZ is a compressed KML; media attachments are ignored and text waypoints are retained. Files up to 32 MiB are accepted (up to 200,000 track points and 20,000 waypoints).  
    - Alternatively, click the **DEMO** button to load a sample track.
 
 3. **Explore the Analysis**  
@@ -217,7 +218,7 @@ Issues and pull requests are welcome! If you have better algorithms, additional 
 
 - Please review the code structure before making changes.
 - Ensure compatibility with both desktop and mobile devices when adding new features.
-- Keep parsing and quantitative analysis on the full-resolution track. Any decimation or grouping added for performance should remain inside the derived rendering path.
+- Keep parsing, point inspection, and quantitative analysis at full route resolution. Drawing-only decimation/grouping must remain in derived render caches; fixed-distance segmentation may add exact interpolated boundary points but must not simplify or discard route vertices.
 - When Tailwind utility classes change in HTML or generated JavaScript templates, rebuild `css/tailwind.generated.css` before publishing.
 
 ---

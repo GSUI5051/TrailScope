@@ -413,7 +413,38 @@ function assessRisks(data) {
 
     return { risks, riskLevel, riskPercent };
 }
+function resetSegmentAnalysisCache() {
+    allSegments = [];
+    totalSegments = 0;
+    cachedSegmentsTrack = null;
+    cachedSegmentsMode = null;
+    cachedSegmentsElevationMode = null;
+    cachedSegmentsPointCount = -1;
+}
+
 function analyzeSegments(data, mode) {
+    if (!data || !data.points) return [];
+
+    const pointCount = data.points.length;
+    const currentElevationMode = elevationMode || 'raw';
+    if (cachedSegmentsTrack === data &&
+        cachedSegmentsMode === mode &&
+        cachedSegmentsElevationMode === currentElevationMode &&
+        cachedSegmentsPointCount === pointCount) {
+        return allSegments;
+    }
+
+    const segments = computeSegments(data, mode);
+    cachedSegmentsTrack = data;
+    cachedSegmentsMode = mode;
+    cachedSegmentsElevationMode = currentElevationMode;
+    cachedSegmentsPointCount = data.points.length;
+    allSegments = segments;
+    totalSegments = segments.length;
+    return segments;
+}
+
+function computeSegments(data, mode) {
     const points = data.points;
     const segments = [];
 
@@ -421,7 +452,10 @@ function analyzeSegments(data, mode) {
         const wps = data.waypoints;
         const breakpoints = [0];
 
-        wps.forEach(wp => breakpoints.push(wp.trackIdx));
+        // ★★★ 按航路点记录的距离重新定位其在当前点序列中的索引，而不是直接使用加载时的
+        // trackIdx：距离分段模式会在 points 中插入虚拟点，导致 trackIdx 全部失效、
+        // 剖面图中分段起点/终点标记与航路点标记错位。按距离二分可保证边界严格落在航路点上 ★★★
+        wps.forEach(wp => breakpoints.push(findNearestPointIndexByDistance(points, wp.distance)));
         breakpoints.push(points.length - 1);
 
         const uniqueBreakpoints = [...new Set(breakpoints)].sort((a, b) => a - b);
@@ -482,30 +516,22 @@ function analyzeSegments(data, mode) {
         for (let seg = 0; seg < numFullSegs; seg++) {
             const targetDist = (seg + 1) * segSize;
 
-            // 找到第一个距离 >= targetDist 的轨迹点
             let i = segStartIdx + 1;
-            while (i < points.length && points[i].distance < targetDist) {
-                i++;
-            }
+            while (i < points.length && points[i].distance < targetDist) i++;
             if (i >= points.length) break;
 
             const prev = points[i - 1];
             const curr = points[i];
-
-            // 如果当前点距离几乎恰好等于目标，则直接使用（避免不必要的插值）
             if (Math.abs(curr.distance - targetDist) < 1e-12) {
                 segments.push(createSegment(points, segStartIdx, i, 'auto'));
                 segStartIdx = i;
             } else {
-                // 线性插值创建精确边界虚拟点
                 const segLen = curr.distance - prev.distance;
                 if (segLen < 1e-12) {
-                    // 退化情况：跳过
                     segStartIdx = i;
                     continue;
                 }
                 const t = (targetDist - prev.distance) / segLen;
-
                 const vpt = {
                     lat: prev.lat + (curr.lat - prev.lat) * t,
                     lon: prev.lon + (curr.lon - prev.lon) * t,
@@ -515,10 +541,7 @@ function analyzeSegments(data, mode) {
                     gradient: curr.gradient,
                     smoothedGradient: curr.smoothedGradient
                 };
-
-                // 在 curr 之前插入虚拟点
                 points.splice(i, 0, vpt);
-
                 segments.push(createSegment(points, segStartIdx, i, 'auto'));
                 segStartIdx = i;
             }

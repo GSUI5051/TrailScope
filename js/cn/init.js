@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
-            if (trackData) {
+            if (trackData && !document.getElementById('fullscreenProfile')) {
                 drawChart();
                 if (leafletMap) leafletMap.invalidateSize();
             }

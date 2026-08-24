@@ -6,6 +6,48 @@ function hideWaypointInfoOverlay() {
     }
     isWaypointInfoPinned = false;
 }
+function clearRenderedTrackLayers() {
+    if (leafletMap) {
+        trackLayers.forEach(layer => leafletMap.removeLayer(layer));
+        waypointMarkers.forEach(marker => leafletMap.removeLayer(marker));
+        segmentHighlightLayers.forEach(layer => leafletMap.removeLayer(layer));
+        if (currentMarker) leafletMap.removeLayer(currentMarker);
+    }
+    trackLayers = [];
+    waypointMarkers = [];
+    segmentHighlightLayers = [];
+    currentMarker = null;
+    currentMarkerPointIdx = -1;
+}
+let fullscreenFollowGeometry = null;
+function invalidateFullscreenFollowGeometry() {
+    fullscreenFollowGeometry = null;
+}
+function getFullscreenFollowGeometry(mapSize) {
+    const cachedProfile = fullscreenFollowGeometry?.profile;
+    if (fullscreenFollowGeometry && cachedProfile?.isConnected &&
+        fullscreenFollowGeometry.mapWidth === mapSize.x &&
+        fullscreenFollowGeometry.mapHeight === mapSize.y) {
+        return fullscreenFollowGeometry;
+    }
+
+    const profile = cachedProfile?.isConnected ? cachedProfile : document.querySelector('.fullscreen-profile');
+    if (!profile) return null;
+
+    const mapRect = leafletMap.getContainer().getBoundingClientRect();
+    const profileRect = profile.getBoundingClientRect();
+    const visibleMapHeight = Math.max(0, Math.min(mapSize.y, profileRect.top - mapRect.top));
+    const insetY = Math.min(80, Math.max(28, mapSize.y * 0.16));
+    const desiredY = visibleMapHeight > insetY * 2 ? visibleMapHeight / 2 : mapSize.y / 2;
+    fullscreenFollowGeometry = {
+        mapWidth: mapSize.x,
+        mapHeight: mapSize.y,
+        profile,
+        desiredY
+    };
+    return fullscreenFollowGeometry;
+}
+
 function keepMapPointVisible(displayPos) {
     if (!mapLinkageEnabled || !leafletMap) return;
 
@@ -17,21 +59,30 @@ function keepMapPointVisible(displayPos) {
     const insetY = Math.min(80, Math.max(28, mapSize.y * 0.16));
     let safeTop = insetY;
     let safeBottom = mapSize.y - insetY;
-    let desiredY = mapSize.y / 2;
 
-    const mapContainer = document.getElementById('mapContainer');
-    const isFullscreenChart = mapContainer && mapContainer.classList.contains('map-fullscreen-chart');
+    const isFullscreenChart = !!fullscreenFollowGeometry ||
+        document.getElementById('mapContainer')?.classList.contains('map-fullscreen-chart');
     if (isFullscreenChart) {
-        const profile = document.querySelector('.fullscreen-profile');
-        if (profile) {
-            const mapRect = leafletMap.getContainer().getBoundingClientRect();
-            const profileRect = profile.getBoundingClientRect();
-            const visibleMapHeight = Math.max(0, Math.min(mapSize.y, profileRect.top - mapRect.top));
-            if (visibleMapHeight > insetY * 2) {
-                safeBottom = visibleMapHeight - insetY;
-                desiredY = visibleMapHeight / 2;
+        const geometry = getFullscreenFollowGeometry(mapSize);
+        const desiredY = geometry ? geometry.desiredY : mapSize.y / 2;
+        const targetX = mapSize.x / 2;
+        const offsetX = markerPoint.x - targetX;
+        const offsetY = markerPoint.y - desiredY;
+
+        // panBy uses the same final container-point delta as panTo + the vertical
+        // compensation, but avoids a second Leaflet view update for every hit.
+        if (Math.abs(offsetX) > 0.5 || Math.abs(offsetY) > 0.5) {
+            if (Math.abs(offsetX) <= mapSize.x && Math.abs(offsetY) <= mapSize.y) {
+                leafletMap.panBy([offsetX, offsetY], { animate: false });
+            } else {
+                // Keep Leaflet's large-offset fallback for points outside the viewport.
+                leafletMap.panTo(displayPos, { animate: false });
+                if (desiredY !== mapSize.y / 2) {
+                    leafletMap.panBy([0, mapSize.y / 2 - desiredY], { animate: false });
+                }
             }
         }
+        return;
     }
 
     const isInsideSafeArea = markerPoint.x >= insetX && markerPoint.x <= mapSize.x - insetX &&
@@ -39,25 +90,51 @@ function keepMapPointVisible(displayPos) {
     if (isInsideSafeArea) return;
 
     leafletMap.panTo(displayPos, { animate: false });
-    if (isFullscreenChart && desiredY !== mapSize.y / 2) {
-        leafletMap.panBy([0, mapSize.y / 2 - desiredY], { animate: false });
-    }
 }
 
 const trackRenderGroupCache = new WeakMap();
-function getTrackRenderGroups(points, mode, minElevation, maxElevation) {
+function getTrackMapCache(points) {
     let cache = trackRenderGroupCache.get(points);
     if (!cache || cache.pointCount !== points.length) {
-        cache = { pointCount: points.length, variants: new Map() };
+        cache = { pointCount: points.length, coordinates: new Map(), variants: new Map() };
         trackRenderGroupCache.set(points, cache);
     }
+    return cache;
+}
+function getTrackDisplayCoordinates(points) {
+    const cache = getTrackMapCache(points);
+    const coordinateMode = useGCJ02Display ? 'gcj02' : 'wgs84';
+    let coordinates = cache.coordinates.get(coordinateMode);
+    if (coordinates) return coordinates;
 
+    coordinates = new Array(points.length);
+    for (let i = 0; i < points.length; i++) {
+        const point = points[i];
+        if (coordinateMode === 'gcj02') {
+            const display = wgs84ToGcj02(point.lat, point.lon);
+            coordinates[i] = L.latLng(display[0], display[1]);
+        } else {
+            coordinates[i] = L.latLng(point.lat, point.lon);
+        }
+    }
+    cache.coordinates.set(coordinateMode, coordinates);
+    return coordinates;
+}
+function getTrackRenderGroups(points, mode, minElevation, maxElevation) {
+    const cache = getTrackMapCache(points);
     const coordinateMode = useGCJ02Display ? 'gcj02' : 'wgs84';
     const cacheKey = `${mode}:${coordinateMode}:${minElevation}:${maxElevation}`;
     const cachedGroups = cache.variants.get(cacheKey);
-    if (cachedGroups) return cachedGroups;
+    if (cachedGroups) {
+        cache.variants.delete(cacheKey);
+        cache.variants.set(cacheKey, cachedGroups);
+        return cachedGroups;
+    }
 
+    const coordinates = getTrackDisplayCoordinates(points);
     const renderGroups = new Map();
+    let previousBucketKey = null;
+    let currentLine = null;
     for (let i = 1; i < points.length; i++) {
         const value = mode === 'elevation'
             ? points[i].ele
@@ -68,11 +145,21 @@ function getTrackRenderGroups(points, mode, minElevation, maxElevation) {
             group = { color: bucket.color, lines: [] };
             renderGroups.set(bucket.key, group);
         }
-        group.lines.push([displayLatLng(points[i - 1]), displayLatLng(points[i])]);
+
+        if (bucket.key === previousBucketKey && currentLine) {
+            currentLine.push(coordinates[i]);
+        } else {
+            currentLine = [coordinates[i - 1], coordinates[i]];
+            group.lines.push(currentLine);
+        }
+        previousBucketKey = bucket.key;
     }
 
     const groups = Array.from(renderGroups.values());
     cache.variants.set(cacheKey, groups);
+    while (cache.variants.size > 2) {
+        cache.variants.delete(cache.variants.keys().next().value);
+    }
     return groups;
 }
 
@@ -80,7 +167,8 @@ function fitMapToTrack() {
     if (!trackData || !leafletMap) return;
 
     const points = trackData.points;
-    const bounds = L.latLngBounds(points.map(p => displayLatLng(p)));
+    const coordinates = getTrackDisplayCoordinates(points);
+    const bounds = L.latLngBounds(coordinates);
     const fullscreen = document.getElementById('fullscreenProfile');
     const isPortrait = document.getElementById('mapContainer')?.classList?.contains('portrait-mode');
     if (fullscreen && isPortrait) {
@@ -89,6 +177,7 @@ function fitMapToTrack() {
             paddingBottomRight: [30, 30]
         });
     } else {
+        // 全屏横屏：地图覆盖整个屏幕，底部预留剖面图面板高度，使轨迹完整落在可视区域内
         leafletMap.fitBounds(bounds, {
             paddingTopLeft: [30, 30],
             paddingBottomRight: [30, fullscreen ? Math.round(innerHeight * 0.42) : 30]
@@ -118,9 +207,8 @@ function highlightSegmentOnMap(segmentIdx) {
 
     const seg = segments[segmentIdx];
     const points = trackData.points;
-
-    const segPoints = points.slice(seg.startIdx, seg.endIdx + 1);
-    const segLatLngs = segPoints.map(p => displayLatLng(p));
+    const coordinates = getTrackDisplayCoordinates(points);
+    const segLatLngs = coordinates.slice(seg.startIdx, seg.endIdx + 1);
 
     const highlightLine = L.polyline(segLatLngs, {
         color: '#d4a017',

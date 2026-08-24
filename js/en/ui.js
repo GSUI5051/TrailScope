@@ -70,7 +70,11 @@ function updateUI() {
         initMap();
     }
 
-    setTimeout(() => {
+    const renderData = trackData;
+    if (initialRenderTimer) clearTimeout(initialRenderTimer);
+    initialRenderTimer = setTimeout(() => {
+        initialRenderTimer = null;
+        if (trackData !== renderData) return;
         drawChart();
         drawMap();
     }, 100);
@@ -431,9 +435,14 @@ async function parseUploadedFile(file, extension) {
 async function handleFile(file) {
     if (!file) return;
 
+    const loadGeneration = ++fileLoadGeneration;
     const extension = file.name.toLowerCase().split('.').pop();
     if (!['gpx', 'kml', 'kmz'].includes(extension)) {
         showToast('Only .gpx, .kml, or .kmz files are supported', 'error');
+        return;
+    }
+    if (file.size > 32 * 1024 * 1024) {
+        showToast('Track file is too large (maximum 32 MB)', 'error');
         return;
     }
 
@@ -442,12 +451,17 @@ async function handleFile(file) {
 
     try {
         const { points, waypoints, isRtept } = await parseUploadedFile(file, extension);
+        if (loadGeneration !== fileLoadGeneration) return;
         if (points.length < 2) {
             showToast(`No enough track points found in ${extension.toUpperCase()} file`, 'error');
             return;
         }
 
-        trackData = processTrack(points, waypoints);
+        const nextTrackData = processTrack(points, waypoints);
+        if (loadGeneration !== fileLoadGeneration) return;
+        clearRenderedTrackLayers();
+        resetSegmentAnalysisCache();
+        trackData = nextTrackData;
         document.getElementById('clearFileBtn').classList.remove('hidden');
         zoomLevel = 1;
         zoomCenter = 0.5;
@@ -474,11 +488,18 @@ async function handleFile(file) {
         updateUI();
         showToast('Track analysis complete', 'success');
     } catch (err) {
+        if (loadGeneration !== fileLoadGeneration) return;
         console.error(err);
         showToast('Failed to analyze track file: ' + err.message, 'error');
     }
 }
 function clearFile() {
+    fileLoadGeneration++;
+    if (initialRenderTimer) {
+        clearTimeout(initialRenderTimer);
+        initialRenderTimer = null;
+    }
+    resetSegmentAnalysisCache();
     document.getElementById('fileInput').value = '';
     document.getElementById('fileName').textContent = 'No GPX, KML, or KMZ file loaded';
     document.getElementById('clearFileBtn').classList.add('hidden');
@@ -507,19 +528,7 @@ function clearFile() {
         clearMobileVLine();
     }
 
-    if (leafletMap) {
-        trackLayers.forEach(layer => leafletMap.removeLayer(layer));
-        trackLayers = [];
-        waypointMarkers.forEach(marker => leafletMap.removeLayer(marker));
-        waypointMarkers = [];
-        if (currentMarker) {
-            leafletMap.removeLayer(currentMarker);
-            currentMarker = null;
-            currentMarkerPointIdx = -1;
-        }
-        segmentHighlightLayers.forEach(layer => leafletMap.removeLayer(layer));
-        segmentHighlightLayers = [];
-    }
+    clearRenderedTrackLayers();
 
     waypointDisplayMode = 'show-names';
     updateWaypointButton();
@@ -541,6 +550,7 @@ function exportChart() {
     showToast('Export Success', 'success');
 }
 function loadDemoData() {
+    const loadGeneration = ++fileLoadGeneration;
     fetch('./demo-en.gpx')
         .then(response => {
             if (!response.ok) {
@@ -549,6 +559,7 @@ function loadDemoData() {
             return response.text();
         })
         .then(gpxText => {
+            if (loadGeneration !== fileLoadGeneration) return;
             try {
                 const { points, waypoints, isRtept } = parseGPX(gpxText);
 
@@ -557,7 +568,10 @@ function loadDemoData() {
                     return;
                 }
 
-                trackData = processTrack(points, waypoints);
+                const nextTrackData = processTrack(points, waypoints);
+                if (loadGeneration !== fileLoadGeneration) return;
+                resetSegmentAnalysisCache();
+                trackData = nextTrackData;
 
                 document.getElementById('clearFileBtn').classList.remove('hidden');
 
@@ -655,6 +669,13 @@ function enterMapFullscreen() {
     if (map.classList.contains('map-fullscreen-chart')) {
         exitMapFullscreen();
         return;
+    }
+
+    // ★★★ Save the map center and zoom before entering fullscreen (kept unchanged when toggling,
+    // only the anchor position is adjusted) ★★★
+    if (leafletMap) {
+        fullscreenSavedCenter = leafletMap.getCenter();
+        fullscreenSavedZoom = leafletMap.getZoom();
     }
 
     normalChartCanvas = document.getElementById('elevationChart');
@@ -799,10 +820,26 @@ function enterMapFullscreen() {
     // 点击处理返回后的第一帧就是已绘制好的全屏内容，避免先显示深色空壳再绘制导致的黑屏 ★★★
     resizeActiveChartCanvas();
     leafletMap?.invalidateSize();
-    applyFullscreenCenterPan();
+    reAnchorMapView(true);
     updateFullscreenButton(true);
 
     map.requestFullscreen?.();
+
+    // ★★★ 原生全屏生效后视口尺寸才最终稳定：延迟 300ms 按最终尺寸重新锚定
+    // （reAnchorMapView 使用进入前保存的中心点，多次调用幂等） ★★★
+    const entryGeneration = ++fullscreenEntryGeneration;
+    if (fullscreenEntryTimer) clearTimeout(fullscreenEntryTimer);
+    fullscreenEntryTimer = setTimeout(() => {
+        fullscreenEntryTimer = null;
+        if (entryGeneration !== fullscreenEntryGeneration ||
+            !map.classList.contains('map-fullscreen-chart') ||
+            !document.getElementById('fullscreenProfile') ||
+            chartCanvas !== fullscreenChartCanvas) return;
+        resizeActiveChartCanvas();
+        leafletMap?.invalidateSize();
+        reAnchorMapView(true);
+        updateFullscreenButton(true);
+    }, 300);
 }
 
 

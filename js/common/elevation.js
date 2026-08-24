@@ -9,12 +9,31 @@ const ElevationCalculator = {
         }
     },
     computeSegment(points, startIdx, endIdx, mode) {
-        const segPoints = points.slice(startIdx, endIdx + 1);
         if (mode === 'raw') {
-            return this._computeRaw(segPoints);
-        } else {
-            return this._computeSmooth(segPoints);
+            let ascent = 0;
+            let descent = 0;
+            for (let i = startIdx + 1; i <= endIdx; i++) {
+                const diff = points[i].ele - points[i - 1].ele;
+                if (diff > 0) ascent += diff;
+                else descent += Math.abs(diff);
+            }
+            return { ascent, descent };
         }
+
+        let ascent = 0;
+        let descent = 0;
+        let residual = 0;
+        for (let i = startIdx + 1; i <= endIdx; i++) {
+            residual += points[i].ele - points[i - 1].ele;
+            if (residual > this.THRESHOLD) {
+                ascent += residual;
+                residual = 0;
+            } else if (residual < -this.THRESHOLD) {
+                descent += Math.abs(residual);
+                residual = 0;
+            }
+        }
+        return { ascent, descent };
     },
     _computeRaw(pts) {
         let ascent = 0,

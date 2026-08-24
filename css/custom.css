@@ -551,10 +551,15 @@
         .map-fullscreen-chart {
             position: fixed !important;
             inset: 0;
+            width: 100vw !important;
+            height: 100vh !important;
+            background: #1a2e1f;
             z-index: 9999;
         }
+        /* ★★★ 全屏时地图视窗覆盖整个屏幕（剖面图面板悬浮在地图之上），
+        进入全屏后由 reAnchorMapView 把地图中心点从窗口正中位移到可视区域正中 ★★★ */
         .map-fullscreen-chart #leafletMap {
-            position: absolute;
+            position: absolute !important;
             inset: 0;
             height: 100% !important;
         }
@@ -864,6 +869,12 @@
         .btn-sm-uniform i {
             font-size: 0.7rem;
             line-height: 1;
+        }
+
+        /* ★★★ 覆盖 Tailwind .hidden（custom.css 加载顺序靠后，display 声明会压过 .hidden）：
+        保证“取消高亮”等按钮仅在需要时展示 ★★★ */
+        .btn-sm-uniform.hidden {
+            display: none !important;
         }
 
         .btn-sm-uniform:disabled {

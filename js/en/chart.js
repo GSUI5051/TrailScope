@@ -177,13 +177,10 @@ function drawChart() {
         strokePath.path.lineTo(currentX, currentY);
     }
 
-    ctx.save();
-    ctx.globalAlpha = 0.3;
     fillPaths.forEach(({ color, path }) => {
         ctx.fillStyle = color;
         ctx.fill(path);
     });
-    ctx.restore();
     ctx.lineWidth = 2.5;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
