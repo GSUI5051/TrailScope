@@ -523,8 +523,13 @@ function toggleAnnotations() {
 function exportChart() {
     if (!trackData) return;
 
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const stamp = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) +
+        '-' + pad(now.getHours()) + '-' + pad(now.getMinutes()) + '-' + pad(now.getSeconds());
+
     const link = document.createElement('a');
-    link.download = 'elevation-profile.png';
+    link.download = 'elevation-profile-' + stamp + '.png';
     link.href = chartCanvas.toDataURL();
     link.click();
     showToast('图表已导出', 'success');

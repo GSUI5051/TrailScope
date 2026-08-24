@@ -1,14 +1,86 @@
-        /* 样式全部保留，与原来一致 */
+        :root,
+        html[data-theme="light"] {
+            color-scheme: light;
+            --theme-page-start: #f5f1e8;
+            --theme-page-mid: #e8dcc8;
+            --theme-page-mid-2: #d4c5a9;
+            --theme-page-end: #cd762a;
+            --theme-surface-card: rgba(255, 255, 255, 0.72);
+            --theme-surface-raised: rgba(245, 241, 232, 0.5);
+            --theme-surface-control: #ffffff;
+            --theme-surface-control-hover: #f5f1e8;
+            --theme-surface-soft: rgba(122, 148, 113, 0.1);
+            --theme-text-primary: #1a2e1f;
+            --theme-text-secondary: #2d4a35;
+            --theme-text-muted: rgba(45, 74, 53, 0.6);
+            --theme-border: rgba(122, 148, 113, 0.2);
+            --theme-border-card: rgba(255, 255, 255, 0.6);
+            --theme-shadow: 0 8px 32px rgba(26, 46, 31, 0.08);
+            --theme-shadow-hover: 0 12px 40px rgba(26, 46, 31, 0.12);
+            --theme-nav: rgba(245, 241, 232, 0.8);
+            --theme-link: #0000cc;
+            --theme-active-bg: #1a2e1f;
+            --theme-active-hover: #2d4a35;
+            --theme-active-text: #f5f1e8;
+            --theme-active-shadow: 0 2px 8px rgba(26, 46, 31, 0.25);
+            --theme-moss: #5c7a52;
+            --theme-sage: #7a9471;
+            --theme-earth: #8b7355;
+            --theme-red: #c54b3c;
+            --theme-amber: #d4a017;
+            --theme-blue: #3a6b8a;
+            --theme-map-overlay: transparent;
+            --theme-fullscreen-surface: rgba(245, 241, 232, 0.94);
+            --theme-fullscreen-portrait-surface: rgba(245, 241, 232, 0.95);
+        }
+
+        html[data-theme="dark"] {
+            color-scheme: dark;
+            --theme-page-start: #09110c;
+            --theme-page-mid: #101c14;
+            --theme-page-mid-2: #1d1c15;
+            --theme-page-end: #382215;
+            --theme-surface-card: rgba(18, 32, 23, 0.9);
+            --theme-surface-raised: rgba(34, 53, 39, 0.72);
+            --theme-surface-control: #17271d;
+            --theme-surface-control-hover: #213629;
+            --theme-surface-soft: rgba(144, 174, 132, 0.12);
+            --theme-text-primary: #edf3e9;
+            --theme-text-secondary: #c7d6c3;
+            --theme-text-muted: rgba(199, 214, 195, 0.7);
+            --theme-border: rgba(151, 177, 140, 0.22);
+            --theme-border-card: rgba(151, 177, 140, 0.2);
+            --theme-shadow: 0 10px 34px rgba(0, 0, 0, 0.3);
+            --theme-shadow-hover: 0 14px 44px rgba(0, 0, 0, 0.4);
+            --theme-nav: rgba(10, 19, 13, 0.9);
+            --theme-link: #8fbcff;
+            --theme-active-bg: #355442;
+            --theme-active-hover: #42664f;
+            --theme-active-text: #f2f6ef;
+            --theme-active-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            --theme-moss: #91b184;
+            --theme-sage: #a1b799;
+            --theme-earth: #c09a72;
+            --theme-red: #e27665;
+            --theme-amber: #e5b84f;
+            --theme-blue: #74aecb;
+            --theme-map-overlay: rgba(6, 17, 10, 0.8);
+            --theme-fullscreen-surface: rgba(18, 32, 23, 0.96);
+            --theme-fullscreen-portrait-surface: rgba(18, 32, 23, 0.97);
+        }
+
         body {
             font-family: 'Inter', sans-serif;
+            background-color: var(--theme-page-start);
+            color: var(--theme-text-secondary);
         }
 
         .glass-card {
-            background: rgba(255, 255, 255, 0.72);
+            background: var(--theme-surface-card);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 8px 32px rgba(26, 46, 31, 0.08);
+            border: 1px solid var(--theme-border-card);
+            box-shadow: var(--theme-shadow);
         }
 
         .glass-dark {
@@ -19,7 +91,7 @@
         }
 
         .gradient-bg {
-            background: linear-gradient(135deg, #f5f1e8 0%, #e8dcc8 30%, #d4c5a9 60%, #cd762a 100%);
+            background: linear-gradient(135deg, var(--theme-page-start) 0%, var(--theme-page-mid) 30%, var(--theme-page-mid-2) 60%, var(--theme-page-end) 100%);
         }
 
         .upload-zone {
@@ -34,13 +106,40 @@
             transform: scale(1.01);
         }
 
+        #fileInfo > div {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        #fileInfo > div > i,
+        #clearFileBtn {
+            flex: 0 0 auto;
+        }
+
+        #fileInfo > div > div {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        #fileName {
+            display: block;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        #clearFileBtn {
+            margin-left: 0.75rem;
+        }
+
         .stat-card {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .stat-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(26, 46, 31, 0.12);
+            box-shadow: var(--theme-shadow-hover);
         }
 
         .difficulty-bar {
@@ -197,7 +296,7 @@
         }
 
         .nav-blur {
-            background: rgba(245, 241, 232, 0.8);
+            background: var(--theme-nav);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
         }
@@ -208,7 +307,7 @@
             font-size: 12px;
             font-weight: 500;
             background: rgba(122, 148, 113, 0.15);
-            color: #2d4a35;
+            color: var(--theme-text-secondary);
             border: none;
             cursor: pointer;
             transition: all 0.2s;
@@ -219,8 +318,8 @@
         }
 
         .seg-btn.active {
-            background: #1a2e1f;
-            color: #f5f1e8;
+            background: var(--theme-active-bg);
+            color: var(--theme-active-text);
         }
 
         .zoom-btn {
@@ -265,7 +364,7 @@
         }
 
         .map-control-btn {
-            background: white;
+            background: var(--theme-surface-control);
             border: none;
             width: 36px;
             height: 36px;
@@ -276,12 +375,12 @@
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
-            color: #2d4a35;
+            color: var(--theme-text-secondary);
             font-size: 15px;
         }
 
         .map-control-btn:hover {
-            background: #f5f1e8;
+            background: var(--theme-surface-control-hover);
             transform: scale(1.05);
         }
 
@@ -296,7 +395,7 @@
         }
 
         .map-source-select {
-            background: white;
+            background: var(--theme-surface-control);
             border: none;
             height: 36px;
             border-radius: 8px;
@@ -305,22 +404,22 @@
             padding: 0 10px;
             font-size: 12px;
             font-weight: 500;
-            color: #2d4a35;
+            color: var(--theme-text-secondary);
             transition: all 0.2s;
             outline: none;
         }
 
         .map-source-select:hover {
-            background: #f5f1e8;
+            background: var(--theme-surface-control-hover);
         }
 
         .map-source-select option {
-            background: white;
-            color: #2d4a35;
+            background: var(--theme-surface-control);
+            color: var(--theme-text-secondary);
         }
 
         .color-mode-select {
-            background: white;
+            background: var(--theme-surface-control);
             border: none;
             height: 32px;
             border-radius: 8px;
@@ -329,18 +428,18 @@
             padding: 0 10px;
             font-size: 12px;
             font-weight: 500;
-            color: #2d4a35;
+            color: var(--theme-text-secondary);
             transition: all 0.2s;
             outline: none;
         }
 
         .color-mode-select:hover {
-            background: #f5f1e8;
+            background: var(--theme-surface-control-hover);
         }
 
         .color-mode-select option {
-            background: white;
-            color: #2d4a35;
+            background: var(--theme-surface-control);
+            color: var(--theme-text-secondary);
         }
 
         .custom-marker {
@@ -429,13 +528,13 @@
         .equipment-name {
             font-size: 0.875rem;
             font-weight: 500;
-            color: #1a2e1f;
+            color: var(--theme-text-primary);
             margin-bottom: 2px;
         }
 
         .equipment-desc {
             font-size: 0.75rem;
-            color: rgba(45, 74, 53, 0.6);
+            color: var(--theme-text-muted);
             line-height: 1.4;
         }
 
@@ -466,7 +565,7 @@
         }
 
         .page-size-select {
-            background: white;
+            background: var(--theme-surface-control);
             border: 1px solid rgba(122, 148, 113, 0.3);
             height: 28px;
             border-radius: 6px;
@@ -474,7 +573,7 @@
             padding: 0 8px;
             font-size: 12px;
             font-weight: 500;
-            color: #2d4a35;
+            color: var(--theme-text-secondary);
             outline: none;
         }
 
@@ -484,7 +583,7 @@
         }
 
         .nav-segment-btn {
-            background: white;
+            background: var(--theme-surface-control);
             border: none;
             width: 28px;
             height: 28px;
@@ -495,13 +594,13 @@
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
-            color: #2d4a35;
+            color: var(--theme-text-secondary);
             font-size: 12px;
             flex-shrink: 0;
         }
 
         .nav-segment-btn:hover:not(:disabled) {
-            background: #f5f1e8;
+            background: var(--theme-surface-control-hover);
             transform: scale(1.05);
         }
 
@@ -569,7 +668,7 @@
             right: 2%;
             bottom: 2%;
             height: min(38vh, 420px);
-            background: rgba(245, 241, 232, .94);
+            background: var(--theme-fullscreen-surface);
             border-radius: 20px;
             padding: 16px;
             z-index: 10000;
@@ -627,7 +726,7 @@
             left: 0;
             right: 0;
             height: 50% !important;
-            background: rgba(245, 241, 232, .95);
+            background: var(--theme-fullscreen-portrait-surface);
             border-radius: 0 !important;
             padding: 12px 12px 16px 12px;
             z-index: 2;
@@ -783,6 +882,9 @@
         .weather-tip-row:last-child {
             margin-bottom: 0rem;
         }
+        .weather-tip-row.hidden {
+            display: none !important;
+        }
         .weather-tips-container {
             display: flex;
             flex-direction: column;
@@ -798,7 +900,7 @@
             gap: 0.75rem;
             font-size: 1.1rem;
             font-weight: 600;
-            color: #1a2e1f;
+            color: var(--theme-text-primary);
             margin-bottom: 1rem;
         }
 
@@ -831,7 +933,7 @@
         .title-row .title-left h3 {
             font-size: 1.25rem;
             font-weight: 700;
-            color: #1a2e1f;
+            color: var(--theme-text-primary);
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -906,24 +1008,40 @@
             font-weight: 600;
             border: none;
             cursor: pointer;
-            transition: all 0.25s ease;
+            transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
             background: transparent;
-            color: #2d4a35;
+            color: var(--theme-text-secondary);
         }
         .unit-toggle-btn.active {
-            background: #1a2e1f;
-            color: #f5f1e8;
-            box-shadow: 0 2px 8px rgba(26, 46, 31, 0.25);
+            background: var(--theme-active-bg);
+            color: var(--theme-active-text);
+            box-shadow: var(--theme-active-shadow);
         }
         .unit-toggle-btn:hover:not(.active) {
             background: rgba(122, 148, 113, 0.2);
         }
+
+        html[data-theme-mode="light"] #systemThemeBtn.active,
+        html[data-theme-mode="dark"] #systemThemeBtn.active {
+            background: transparent;
+            color: var(--theme-text-secondary);
+            box-shadow: none;
+        }
+
+        html[data-theme-mode="light"] #lightThemeBtn,
+        html[data-theme-mode="system"] #systemThemeBtn,
+        html[data-theme-mode="dark"] #darkThemeBtn {
+            background: var(--theme-active-bg);
+            color: var(--theme-active-text);
+            box-shadow: var(--theme-active-shadow);
+        }
+
         .unit-toggle-group {
             display: inline-flex;
-            background: rgba(255, 255, 255, 0.5);
+            background: var(--theme-surface-raised);
             border-radius: 24px;
             padding: 3px;
-            border: 1px solid rgba(122, 148, 113, 0.2);
+            border: 1px solid var(--theme-border);
             backdrop-filter: blur(4px);
             -webkit-backdrop-filter: blur(4px);
         }
@@ -994,6 +1112,16 @@
             }
         }
 
+        @media (max-width: 767.98px) {
+            #upload .md\:grid-cols-2 {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            #upload .md\:grid-cols-2 > * {
+                min-width: 0;
+            }
+        }
+
 /* 天气输入框单位标签 */
         .weather-unit-label {
             display: inline-block;
@@ -1010,6 +1138,245 @@
             top: 50%;
             transform: translateY(-50%);
             font-size: 0.75rem;
-            color: rgba(45, 74, 53, 0.5);
+            color: var(--theme-text-muted);
             pointer-events: none;
+        }
+
+        .theme-link {
+            color: var(--theme-link);
+            font-weight: 600;
+        }
+
+        .theme-link:hover {
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        #leafletMap::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 300;
+            pointer-events: none;
+            background: var(--theme-map-overlay);
+        }
+
+        html[data-theme="dark"] .mountain-bg {
+            background-image:
+                radial-gradient(ellipse at 20% 80%, rgba(120, 155, 108, 0.15) 0%, transparent 52%),
+                radial-gradient(ellipse at 80% 20%, rgba(169, 108, 62, 0.13) 0%, transparent 52%),
+                radial-gradient(ellipse at 50% 50%, rgba(67, 111, 128, 0.11) 0%, transparent 72%);
+        }
+
+        html[data-theme="dark"] .to-accent-clay {
+            background-image: linear-gradient(to right, #91b184, #c09a72, #d98045) !important;
+        }
+
+        html[data-theme="dark"] #leafletMap,
+        html[data-theme="dark"] .leaflet-container {
+            background: #0c1710;
+        }
+
+        html[data-theme="dark"] .glass-dark,
+        html[data-theme="dark"] .tooltip,
+        html[data-theme="dark"] .segment-tooltip,
+        html[data-theme="dark"] .waypoint-popup-content {
+            background: rgba(8, 16, 11, 0.94);
+            border-color: rgba(151, 177, 140, 0.24);
+        }
+
+        html[data-theme="dark"] .text-trail-dark {
+            color: var(--theme-text-primary) !important;
+        }
+
+        html[data-theme="dark"] .text-trail-mid {
+            color: var(--theme-text-secondary) !important;
+        }
+
+        html[data-theme="dark"] .text-trail-mid\/80,
+        html[data-theme="dark"] .text-trail-mid\/70 {
+            color: rgba(199, 214, 195, 0.8) !important;
+        }
+
+        html[data-theme="dark"] .text-trail-mid\/60 {
+            color: rgba(199, 214, 195, 0.7) !important;
+        }
+
+        html[data-theme="dark"] .text-trail-mid\/50 {
+            color: rgba(199, 214, 195, 0.58) !important;
+        }
+
+        html[data-theme="dark"] .text-trail-moss,
+        html[data-theme="dark"] .text-trail-moss\/60 {
+            color: var(--theme-moss) !important;
+        }
+
+        html[data-theme="dark"] .text-trail-sage {
+            color: var(--theme-sage) !important;
+        }
+
+        html[data-theme="dark"] .text-trail-earth {
+            color: var(--theme-earth) !important;
+        }
+
+        html[data-theme="dark"] .text-accent-red {
+            color: var(--theme-red) !important;
+        }
+
+        html[data-theme="dark"] .text-accent-amber {
+            color: var(--theme-amber) !important;
+        }
+
+        html[data-theme="dark"] .text-accent-blue {
+            color: var(--theme-blue) !important;
+        }
+
+        html[data-theme="dark"] .bg-trail-dark {
+            background-color: var(--theme-active-bg) !important;
+        }
+
+        html[data-theme="dark"] .hover\:bg-trail-mid:hover {
+            background-color: var(--theme-active-hover) !important;
+        }
+
+        html[data-theme="dark"] .bg-trail-cream\/50 {
+            background-color: rgba(49, 70, 53, 0.58) !important;
+        }
+
+        html[data-theme="dark"] .bg-trail-sage\/10,
+        html[data-theme="dark"] .bg-trail-sage\/15,
+        html[data-theme="dark"] .bg-trail-sage\/20,
+        html[data-theme="dark"] .bg-trail-sage\/30,
+        html[data-theme="dark"] .bg-trail-moss\/10,
+        html[data-theme="dark"] .bg-trail-moss\/15,
+        html[data-theme="dark"] .bg-trail-moss\/20,
+        html[data-theme="dark"] .bg-trail-earth\/15,
+        html[data-theme="dark"] .bg-trail-earth\/20,
+        html[data-theme="dark"] .bg-accent-red\/15,
+        html[data-theme="dark"] .bg-accent-blue\/15 {
+            background-color: var(--theme-surface-soft) !important;
+        }
+
+        html[data-theme="dark"] .border-trail-sage\/10,
+        html[data-theme="dark"] .border-trail-sage\/15,
+        html[data-theme="dark"] .border-trail-sage\/20 {
+            border-color: var(--theme-border) !important;
+        }
+
+        html[data-theme="dark"] .upload-zone:hover,
+        html[data-theme="dark"] .upload-zone.dragover,
+        html[data-theme="dark"] .segment-row:hover,
+        html[data-theme="dark"] .advanced-toggle-btn:hover {
+            background: rgba(145, 177, 132, 0.1);
+        }
+
+        html[data-theme="dark"] .segment-row.active {
+            background: rgba(145, 177, 132, 0.17);
+            border-left-color: var(--theme-moss);
+        }
+
+        html[data-theme="dark"] .seg-label-uniform,
+        html[data-theme="dark"] .pagination-btn,
+        html[data-theme="dark"] .seg-btn {
+            background: rgba(145, 177, 132, 0.14);
+            color: var(--theme-text-secondary);
+        }
+
+        html[data-theme="dark"] .seg-btn.active,
+        html[data-theme="dark"] .pagination-btn.active,
+        html[data-theme="dark"] .map-control-btn.active-linkage {
+            background: var(--theme-active-bg);
+            color: var(--theme-active-text);
+        }
+
+        html[data-theme="dark"] .equipment-item {
+            border-bottom-color: rgba(151, 177, 140, 0.14);
+        }
+
+        html[data-theme="dark"] input,
+        html[data-theme="dark"] select,
+        html[data-theme="dark"] textarea {
+            background-color: var(--theme-surface-control);
+            border-color: var(--theme-border);
+            color: var(--theme-text-primary);
+            caret-color: var(--theme-text-primary);
+        }
+
+        html[data-theme="dark"] input::placeholder,
+        html[data-theme="dark"] textarea::placeholder {
+            color: rgba(199, 214, 195, 0.48);
+        }
+
+        html[data-theme="dark"] input:focus,
+        html[data-theme="dark"] select:focus,
+        html[data-theme="dark"] textarea:focus {
+            border-color: var(--theme-moss);
+            box-shadow: 0 0 0 3px rgba(145, 177, 132, 0.18);
+            outline: none;
+        }
+
+        html[data-theme="dark"] .leaflet-tooltip {
+            background: rgba(8, 16, 11, 0.94);
+            border-color: rgba(151, 177, 140, 0.3);
+            color: var(--theme-text-primary);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        html[data-theme="dark"] .leaflet-tooltip-top::before {
+            border-top-color: rgba(151, 177, 140, 0.3);
+        }
+
+        html[data-theme="dark"] .leaflet-tooltip-bottom::before {
+            border-bottom-color: rgba(151, 177, 140, 0.3);
+        }
+
+        html[data-theme="dark"] .leaflet-tooltip-left::before {
+            border-left-color: rgba(151, 177, 140, 0.3);
+        }
+
+        html[data-theme="dark"] .leaflet-tooltip-right::before {
+            border-right-color: rgba(151, 177, 140, 0.3);
+        }
+
+        html[data-theme="dark"] #weatherResult [style*="color:#0a2463"] {
+            color: #8fbcff !important;
+        }
+
+        html[data-theme="dark"] #weatherResult [style*="color:#4a90d9"] {
+            color: #8fbcff !important;
+        }
+
+        html[data-theme="dark"] #weatherResult [style*="color:#2e7d32"] {
+            color: #87ca81 !important;
+        }
+
+        html[data-theme="dark"] #weatherResult [style*="color:#e65100"] {
+            color: #ff9e55 !important;
+        }
+
+        html[data-theme="dark"] #weatherResult [style*="color:#c62828"] {
+            color: #ff776f !important;
+        }
+
+        html[data-theme="dark"] #segments [style*="color: #7a9471"],
+        html[data-theme="dark"] #difficultyLabel[style*="color: rgb(122, 148, 113)"] {
+            color: var(--theme-sage) !important;
+        }
+
+        html[data-theme="dark"] #segments [style*="color: #8b7355"] {
+            color: var(--theme-earth) !important;
+        }
+
+        html[data-theme="dark"] .map-fullscreen-chart {
+            background: var(--theme-page-start);
+        }
+
+        html[data-theme="dark"] .scroll-thin {
+            scrollbar-color: rgba(151, 177, 140, 0.42) rgba(151, 177, 140, 0.1);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .unit-toggle-btn {
+                transition: none;
+            }
         }

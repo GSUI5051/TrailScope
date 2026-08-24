@@ -55,10 +55,6 @@ function keepMapPointVisible(displayPos) {
     if (!mapSize || mapSize.x <= 0 || mapSize.y <= 0) return;
 
     const markerPoint = leafletMap.latLngToContainerPoint(displayPos);
-    const insetX = Math.min(96, Math.max(32, mapSize.x * 0.16));
-    const insetY = Math.min(80, Math.max(28, mapSize.y * 0.16));
-    let safeTop = insetY;
-    let safeBottom = mapSize.y - insetY;
 
     const isFullscreenChart = !!fullscreenFollowGeometry ||
         document.getElementById('mapContainer')?.classList.contains('map-fullscreen-chart');
@@ -85,11 +81,21 @@ function keepMapPointVisible(displayPos) {
         return;
     }
 
-    const isInsideSafeArea = markerPoint.x >= insetX && markerPoint.x <= mapSize.x - insetX &&
-        markerPoint.y >= safeTop && markerPoint.y <= safeBottom;
-    if (isInsideSafeArea) return;
-
-    leafletMap.panTo(displayPos, { animate: false });
+    // Non-fullscreen: always center the current position at the map window center
+    // (panBy keeps the same final container-point delta as panTo but avoids a
+    // full Leaflet view reset per hit); skip when it is already within 0.5px of
+    // the target to avoid a meaningless view update per hit.
+    const centerX = mapSize.x / 2;
+    const centerY = mapSize.y / 2;
+    const offsetX = markerPoint.x - centerX;
+    const offsetY = markerPoint.y - centerY;
+    if (Math.abs(offsetX) > 0.5 || Math.abs(offsetY) > 0.5) {
+        if (Math.abs(offsetX) <= mapSize.x && Math.abs(offsetY) <= mapSize.y) {
+            leafletMap.panBy([offsetX, offsetY], { animate: false });
+        } else {
+            leafletMap.panTo(displayPos, { animate: false });
+        }
+    }
 }
 
 const trackRenderGroupCache = new WeakMap();
@@ -208,7 +214,10 @@ function highlightSegmentOnMap(segmentIdx) {
     const seg = segments[segmentIdx];
     const points = trackData.points;
     const coordinates = getTrackDisplayCoordinates(points);
-    const segLatLngs = coordinates.slice(seg.startIdx, seg.endIdx + 1);
+    // ★★★ 短段直接引用子数组；长段从 55K 级坐标数组切片是主要复制开销，同样语义下复用原数组引用 ★★★
+    const segLatLngs = (seg.endIdx - seg.startIdx <= 1000)
+        ? coordinates.slice(seg.startIdx, seg.endIdx + 1)
+        : coordinates;
 
     const highlightLine = L.polyline(segLatLngs, {
         color: '#d4a017',
@@ -218,19 +227,8 @@ function highlightSegmentOnMap(segmentIdx) {
 
     segmentHighlightLayers.push(highlightLine);
 
-    const startIcon = L.divIcon({
-        className: '',
-        html: '<div class="custom-marker" style="background: #d4a017;">S</div>',
-        iconSize: [24, 24],
-        iconAnchor: [12, 12]
-    });
-
-    const endIcon = L.divIcon({
-        className: '',
-        html: '<div class="custom-marker" style="background: #d4a017;">E</div>',
-        iconSize: [24, 24],
-        iconAnchor: [12, 12]
-    });
+    const startIcon = cachedSegmentStartIcon;
+    const endIcon = cachedSegmentEndIcon;
 
     const startMarker = L.marker(displayLatLng(points[seg.startIdx]), { icon: startIcon })
         .addTo(leafletMap);

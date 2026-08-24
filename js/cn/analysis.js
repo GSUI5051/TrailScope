@@ -30,6 +30,11 @@ function assessDifficulty(data) {
 
     return { overall, label, color, distScore, ascentScore, gradScore };
 }
+function syncAdvancedWeatherResultVisibility() {
+    document.querySelectorAll('#weatherResult .wbgt-result-row').forEach(row => {
+        row.classList.toggle('hidden', !advancedPanelOpen);
+    });
+}
 function toggleAdvancedPanel() {
     const panel = document.getElementById('advancedPanel');
     const toggleLabel = document.getElementById('toggleLabel');
@@ -46,6 +51,7 @@ function toggleAdvancedPanel() {
         toggleLabel.textContent = '点击展开进阶气象分析项目';
         toggleArrow.classList.remove('open');
     }
+    syncAdvancedWeatherResultVisibility();
 }
 function analyzeWeather() {
     const t = document.getElementById('weatherTemp').value.trim();
@@ -250,13 +256,14 @@ function analyzeWeather() {
             }
 
             rows.push(
-                `<div class="weather-tip-row"><span class="weather-tip-icon" style="color:${wbgtColor}"><i class="fa-solid ${wbgtIcon}"></i></span><span class="weather-tip-text" style="font-weight:600; color:${wbgtColor};">WBGT ≈ ${WBGT.toFixed(1)}℃，${wbgtAdvice}</span></div>`
+                `<div class="weather-tip-row wbgt-result-row"><span class="weather-tip-icon" style="color:${wbgtColor}"><i class="fa-solid ${wbgtIcon}"></i></span><span class="weather-tip-text" style="font-weight:600; color:${wbgtColor};">WBGT ≈ ${WBGT.toFixed(1)}℃，${wbgtAdvice}</span></div>`
                 );
         }
     }
 
     const resultHtml = '<div class="weather-tips-container">' + rows.join('') + '</div>';
     document.getElementById('weatherResult').innerHTML = resultHtml;
+    syncAdvancedWeatherResultVisibility();
 
     if (trackData) updateUI();
 }

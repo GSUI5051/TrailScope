@@ -30,6 +30,36 @@ function assessDifficulty(data) {
 
     return { overall, label, color, distScore, ascentScore, gradScore };
 }
+function syncAdvancedWeatherResultVisibility() {
+    document.querySelectorAll('#weatherResult .wbgt-result-row').forEach(row => {
+        row.classList.toggle('hidden', !advancedPanelOpen);
+    });
+}
+function formatWeatherResultTemperature(celsius, displayMode = 'dual', decimals = 1) {
+    const celsiusValue = Number(celsius);
+    const isMetric = unitSystem === 'metric';
+    if (displayMode === 'threshold') {
+        const value = isMetric ? celsiusValue : celsiusToFahrenheit(celsiusValue);
+        return value.toFixed(decimals) + (isMetric ? '°C' : '°F');
+    }
+    const celsiusText = celsiusValue.toFixed(decimals);
+    const fahrenheitText = celsiusToFahrenheit(celsiusValue).toFixed(decimals);
+    return isMetric ?
+        `${celsiusText} ℃ (${fahrenheitText} ℉)` :
+        `${fahrenheitText} ℉ (${celsiusText} ℃)`;
+}
+function weatherResultTemperatureMarkup(celsius, displayMode = 'dual', decimals = 1) {
+    return `<span class="weather-result-temperature" data-celsius="${celsius}" data-display-mode="${displayMode}" data-decimals="${decimals}">${formatWeatherResultTemperature(celsius, displayMode, decimals)}</span>`;
+}
+function updateWeatherResultTemperatureUnits() {
+    document.querySelectorAll('#weatherResult .weather-result-temperature').forEach(element => {
+        element.textContent = formatWeatherResultTemperature(
+            Number(element.dataset.celsius),
+            element.dataset.displayMode,
+            Number(element.dataset.decimals)
+        );
+    });
+}
 function toggleAdvancedPanel() {
     const panel = document.getElementById('advancedPanel');
     const toggleLabel = document.getElementById('toggleLabel');
@@ -46,6 +76,7 @@ function toggleAdvancedPanel() {
         toggleLabel.textContent = 'Show advanced weather data';
         toggleArrow.classList.remove('open');
     }
+    syncAdvancedWeatherResultVisibility();
 }
 function analyzeWeather() {
     const isMetric = unitSystem === 'metric';
@@ -115,14 +146,14 @@ function analyzeWeather() {
     };
 
     if (heatIndexC >= 35) {
-        let msg = isMetric ?
-            'Extreme heat conditions (heat index ≥ 35°C): Long-distance hiking is not recommended. Avoid the hottest part of the day, carry sufficient water, and take additional heat precautions.' :
-            'Extreme heat conditions (heat index ≥ 95°F): Long-distance hiking is not recommended. Avoid the hottest part of the day, carry sufficient water, and take additional heat precautions.';
+        const msg = 'Extreme heat conditions (heat index ≥ ' +
+            weatherResultTemperatureMarkup(35, 'threshold', 0) +
+            '): Long-distance hiking is not recommended. Avoid the hottest part of the day, carry sufficient water, and take additional heat precautions.';
         tips.push(makeTip('fa-temperature-full', msg, 'text-accent-red'));
     } else if (heatIndexC >= 30) {
-        let msg = isMetric ?
-            'Hot and humid conditions (heat index ≥ 30°C): Increase water and electrolyte intake. Be aware of increased heat exhaustion risk.' :
-            'Hot and humid conditions (heat index ≥ 86°F): Increase water and electrolyte intake. Be aware of increased heat exhaustion risk.';
+        const msg = 'Hot and humid conditions (heat index ≥ ' +
+            weatherResultTemperatureMarkup(30, 'threshold', 0) +
+            '): Increase water and electrolyte intake. Be aware of increased heat exhaustion risk.';
         tips.push(makeTip('fa-temperature-full', msg, 'text-accent-amber'));
     }
     if (type.includes('typhoon') || windMs >= 32) {
@@ -241,10 +272,6 @@ function analyzeWeather() {
             const Tg = (B + C * tempC + 7680000) / (C + 256000);
             const WBGT = 0.7 * Tnwb + 0.2 * Tg + 0.1 * tempC;
 
-            let wbgtDisplay = isMetric ?
-                WBGT.toFixed(1) + ' ℃ (' + celsiusToFahrenheit(WBGT).toFixed(1) + ' ℉)' :
-                celsiusToFahrenheit(WBGT).toFixed(1) + ' ℉ (' + WBGT.toFixed(1) + ' ℃)';
-
             let wbgtAdvice = '';
             let wbgtColor = '#1a1a1a';
 
@@ -273,21 +300,20 @@ function analyzeWeather() {
             else wbgtIcon = 'fa-temperature-full';
 
             if (heatIndexC >= 27) {
-                let hiDisplay = isMetric ?
-                    heatIndexC.toFixed(1) + ' ℃ (' + celsiusToFahrenheit(heatIndexC).toFixed(1) + ' ℉)' :
-                    celsiusToFahrenheit(heatIndexC).toFixed(1) + ' ℉ (' + heatIndexC.toFixed(1) + '℃)';
                 rows.push(
-                    `<div class="weather-tip-row"><span class="weather-tip-icon text-accent-amber"><i class="fa-solid fa-temperature-full"></i></span><span class="weather-tip-text text-accent-amber font-semibold">Heat Index ≈ ${hiDisplay}</span></div>`
+                    `<div class="weather-tip-row"><span class="weather-tip-icon text-accent-amber"><i class="fa-solid fa-temperature-full"></i></span><span class="weather-tip-text text-accent-amber font-semibold">Heat Index ≈ ${weatherResultTemperatureMarkup(heatIndexC)}</span></div>`
                     );
             }
             rows.push(
-                `<div class="weather-tip-row"><span class="weather-tip-icon" style="color:${wbgtColor}"><i class="fa-solid ${wbgtIcon}"></i></span><span class="weather-tip-text" style="font-weight:600; color:${wbgtColor};">WBGT ≈ ${wbgtDisplay}，${wbgtAdvice}</span></div>`
+                `<div class="weather-tip-row wbgt-result-row"><span class="weather-tip-icon" style="color:${wbgtColor}"><i class="fa-solid ${wbgtIcon}"></i></span><span class="weather-tip-text" style="font-weight:600; color:${wbgtColor};">WBGT ≈ ${weatherResultTemperatureMarkup(WBGT)}，${wbgtAdvice}</span></div>`
                 );
         }
     }
 
     const resultHtml = '<div class="weather-tips-container">' + rows.join('') + '</div>';
     document.getElementById('weatherResult').innerHTML = resultHtml;
+    updateWeatherResultTemperatureUnits();
+    syncAdvancedWeatherResultVisibility();
 
     if (trackData) updateUI();
 }

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <script src="js/common/theme-init.js"></script>
     <title>TrailScope · 徒步轨迹分析器</title>
     <link rel="stylesheet" href="css/tailwind.generated.css" />
     <link rel="stylesheet" href="css/leaflet-1p9p4.css" />
@@ -66,10 +67,10 @@
                     若手机端路线地图全屏显示不正常，请更换浏览器后重试
                 </p>
                 <p class="text-base text-trail-mid/80 leading-relaxed max-w-2xl mx-auto">
-                    建议使用 <a href='https://www.google.cn/chrome/fallback/' style="font-weight:600; color:#0000cc"><span>Chrome 浏览器（点击可下载）</span></a>
+                    建议使用 <a href='https://www.google.cn/chrome/fallback/' class="theme-link"><span>Chrome 浏览器（点击可下载）</span></a>
                 </p>
-                <p class="text-base text-trail-mid/80 leading-relaxed max-w-2xl mx-auto" style="font-weight:600; color:#0000cc">
-                    <a href='TrailScope-English.html'><span>Click here for English version!</span></a>
+                <p class="text-base text-trail-mid/80 leading-relaxed max-w-2xl mx-auto">
+                    <a href='TrailScope-English.html' class="theme-link"><span>Click here for English version!</span></a>
                 </p>
 
                 <div class="flex items-center justify-center gap-3 mt-3 flex-wrap">
@@ -77,6 +78,15 @@
                     <div class="unit-toggle-group">
                         <button class="unit-toggle-btn active" id="rawElevBtn">原始数据</button>
                         <button class="unit-toggle-btn" id="smoothElevBtn">平滑处理 (4m)</button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-center gap-3 mt-3 flex-wrap">
+                    <span class="text-sm font-medium text-trail-mid/70">深色模式</span>
+                    <div class="unit-toggle-group" role="group" aria-label="深色模式">
+                        <button class="unit-toggle-btn" id="lightThemeBtn" aria-pressed="false">浅色</button>
+                        <button class="unit-toggle-btn active" id="systemThemeBtn" aria-pressed="true">系统</button>
+                        <button class="unit-toggle-btn" id="darkThemeBtn" aria-pressed="false">深色</button>
                     </div>
                 </div>
             </div>
@@ -125,8 +135,8 @@
                                 <p id="fileName" class="text-sm font-medium text-trail-dark">轨迹未加载或为空</p>
                             </div>
                         </div>
-                        <button id="clearFileBtn" class="hidden text-trail-mid/60 hover:text-accent-red transition">
-                            <i class="fa-solid fa-xmark"></i>
+                        <button id="clearFileBtn" class="hidden text-trail-mid/60 hover:text-accent-red transition" title="移除已加载轨迹" aria-label="移除已加载轨迹">
+                            <i class="fa-regular fa-trash-can"></i>
                         </button>
                     </div>
                 </div>
@@ -786,7 +796,7 @@
     <!-- Footer -->
     <footer class="max-w-7xl mx-auto px-6 py-8 text-center">
         <p class="text-xs text-trail-mid/50">
-            TrailScope · 徒步轨迹智能分析 · 所有数据均在本地浏览器中处理 · <a href='https://github.com/GSUI5051/TrailScope' style="font-weight:600; color:#0000cc"><span>开源免费（GitHub）</span></a><br><br><br>
+            TrailScope · 徒步轨迹智能分析 · 所有数据均在本地浏览器中处理 · <a href='https://github.com/GSUI5051/TrailScope' class="theme-link"><span>开源免费（GitHub）</span></a><br><br><br>
             2026 · 少女空间宇宙研究院
         </p>
     </footer>

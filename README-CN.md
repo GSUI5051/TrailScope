@@ -62,7 +62,7 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
 
 - **🎒 装备与补给建议**  
   根据路线难度、海拔、气象条件，自动生成基础装备、推荐装备及补给清单（饮水量、餐食、能量零食等）。  
-  补给量随单位制（公制/英制）自动转换，饮水量使用美制盎司（oz）显示。（仅限英文版）
+  补给量随单位制（公制/英制）自动转换，饮水量公制显示升（L）、英制显示美制盎司（oz）。（仅限英文版）
 
 - **📋 分段统计**  
   支持按“坡段”、“固定距离（1km）”、“航路点”三种方式进行分段，展示每段的距离、爬升、下降、平均坡度、最大坡度、耗时及难度评分。  
@@ -151,7 +151,8 @@ TrailScope/
 │   │   ├── coords.js           # GCJ-02 / WGS-84 坐标转换与显示坐标缓存
 │   │   ├── map-common.js       # 共享地图辅助与派生渲染组缓存
 │   │   ├── waypoints.js        # 航路点显示模式逻辑
-│   │   ├── ui-common.js        # 共享 UI 辅助（缩放、提示、分页等）
+│   │   ├── ui-common.js        # 共享 UI 辅助（缩放、提示、分页、深色模式控制器等）
+│   │   ├── theme-init.js       # 首帧前同步应用主题（无内联脚本），供 ui-common.js 复用
 │   │   ├── jszip.min.js        # 本地 JSZip 3.10.1，仅导入 KMZ 时加载
 │   │   └── kmz.js              # JSZip 按需加载与 KMZ 解压
 │   ├── cn/                     # 中文版专属模块
@@ -176,7 +177,7 @@ TrailScope/
 └── README-CN.md                # 本文件
 ```
 
-> **加载顺序：** 页面在 `<head>` 中加载 `css/tailwind.generated.css`，随后加载 `common/*` 共享运行时模块和语言模块（`cn/` 或 `en/`），最后加载 `bindings.js` 与 `init.js`。`kmz.js` 随共享模块加载，只有导入 KMZ 时才动态注入 `jszip.min.js`。保留的 Tailwind 运行时与配置文件不会被正式页面请求。
+> **加载顺序：** 页面在 `<head>` 中先同步加载 `js/common/theme-init.js`（首帧绘制前应用深色模式偏好，避免闪烁），随后加载 `css/tailwind.generated.css`，再加载 `common/*` 共享运行时模块和语言模块（`cn/` 或 `en/`），最后加载 `bindings.js` 与 `init.js`。`kmz.js` 随共享模块加载，只有导入 KMZ 时才动态注入 `jszip.min.js`。保留的 Tailwind 运行时与配置文件不会被正式页面请求。
 
 ---
 

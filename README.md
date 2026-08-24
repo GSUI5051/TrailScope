@@ -62,7 +62,7 @@ The video covers its key modules - loading GPX tracks, reading maps, analyzing e
 
 - **🎒 Gear & Supply Recommendations**  
   Generates essential gear, recommended gear, and supplies (water, meals, snacks) based on route difficulty, altitude, and weather conditions.  
-  Supplies automatically convert between metric and US Customary (or imperial) units; water is displayed in fluid ounces (oz) for imperial units.
+  Supplies automatically convert between metric and US Customary (or imperial) units; water is displayed in liters (L) for metric units and fluid ounces (oz) for imperial units.
 
 - **📋 Segment Statistics**  
   Split the route by "major grade variation", "fixed distance (1 km or 1 mi)", or "waypoints". Each segment shows distance, elevation gain/loss, average grade, max grade, time, and difficulty rating.  
@@ -151,7 +151,8 @@ TrailScope/
 │   │   ├── coords.js           # GCJ-02 / WGS-84 coordinate conversion and display cache
 │   │   ├── map-common.js       # shared map helpers and derived render-group cache
 │   │   ├── waypoints.js        # waypoint display mode logic
-│   │   ├── ui-common.js        # shared UI helpers (zoom, toast, pagination, …)
+│   │   ├── ui-common.js        # shared UI helpers (zoom, toast, pagination, dark-mode controller, …)
+│   │   ├── theme-init.js       # synchronous pre-paint theme bootstrap (no inline script), reused by ui-common.js
 │   │   ├── jszip.min.js        # vendored JSZip 3.10.1, loaded only for KMZ imports
 │   │   └── kmz.js              # on-demand JSZip loader and KMZ extraction
 │   ├── cn/                     # Chinese-only modules
@@ -176,7 +177,7 @@ TrailScope/
 └── README-CN.md                # Chinese README
 ```
 
-> **Loading order:** Pages load `css/tailwind.generated.css` from `<head>`, followed by the shared runtime modules in `common/*` and then the language modules (`cn/` or `en/`), with `bindings.js` and `init.js` last. `kmz.js` is loaded with the shared modules, while `jszip.min.js` is injected only when a KMZ import requires it. The retained Tailwind runtime/config files are not requested by the production pages.
+> **Loading order:** Pages load `js/common/theme-init.js` synchronously from `<head>` (applies the dark-mode preference before the first paint to avoid flashing), followed by `css/tailwind.generated.css`, then the shared runtime modules in `common/*` and the language modules (`cn/` or `en/`), with `bindings.js` and `init.js` last. `kmz.js` is loaded with the shared modules, while `jszip.min.js` is injected only when a KMZ import requires it. The retained Tailwind runtime/config files are not requested by the production pages.
 
 ---
 

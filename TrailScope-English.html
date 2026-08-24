@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <script src="js/common/theme-init.js"></script>
     <title>TrailScope · Track Analyzer</title>
     <link rel="stylesheet" href="css/tailwind.generated.css" />
     <link rel="stylesheet" href="css/leaflet-1p9p4.css" />
@@ -66,7 +67,7 @@
                     If fullscreen map display does not work properly on mobile, try another browser
                 </p>
                 <p class="text-base text-trail-mid/80 leading-relaxed max-w-2xl mx-auto">
-                    <a href='https://www.google.com/chrome/fallback/' style="font-weight:600; color:#0000cc"><span>Chrome Browser (Click to download)</span></a> is recommended.
+                    <a href='https://www.google.com/chrome/fallback/' class="theme-link"><span>Chrome Browser (Click to download)</span></a> is recommended.
                 </p>
 
                 <!-- 单位切换：Metric / Imperial -->
@@ -83,6 +84,15 @@
                     <div class="unit-toggle-group">
                         <button class="unit-toggle-btn active" id="rawElevBtn">Raw</button>
                         <button class="unit-toggle-btn" id="smoothElevBtn">Smooth (4m)</button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-center gap-3 mt-3 flex-wrap">
+                    <span class="text-sm font-medium text-trail-mid/70">Dark Mode </span>
+                    <div class="unit-toggle-group" role="group" aria-label="Dark Mode">
+                        <button class="unit-toggle-btn" id="lightThemeBtn" aria-pressed="false">Light</button>
+                        <button class="unit-toggle-btn active" id="systemThemeBtn" aria-pressed="true">System</button>
+                        <button class="unit-toggle-btn" id="darkThemeBtn" aria-pressed="false">Dark</button>
                     </div>
                 </div>
             </div>
@@ -131,8 +141,8 @@
                                 <p id="fileName" class="text-sm font-medium text-trail-dark">No track or empty track</p>
                             </div>
                         </div>
-                        <button id="clearFileBtn" class="hidden text-trail-mid/60 hover:text-accent-red transition">
-                            <i class="fa-solid fa-xmark"></i>
+                        <button id="clearFileBtn" class="hidden text-trail-mid/60 hover:text-accent-red transition" title="Remove loaded track" aria-label="Remove loaded track">
+                            <i class="fa-regular fa-trash-can"></i>
                         </button>
                     </div>
                 </div>
@@ -566,7 +576,7 @@
                 <label class="text-xs text-trail-mid">
                     <span id="weatherWindLabel" style="display:inline-block; padding-left:0.5rem;">Wind Speed / (m·s⁻¹)</span>
                     <div class="weather-input-wrap">
-                        <input id="weatherWind" type="number" step="any" class="w-full mt-1 rounded-lg border p-2" placeholder="Unit: m/s">
+                        <input id="weatherWind" type="number" step="any" class="w-full mt-1 rounded-lg border p-2" placeholder="Unit: m/s" title="When gusts are strong, a higher value may be selected.">
                     </div>
                 </label>
                 <label class="text-xs text-trail-mid">
@@ -616,11 +626,11 @@
                     </label>
                     <label class="text-xs text-trail-mid">
                         <span style="display:inline-block; padding-left:0.5rem;">Direct Radiation Ratio</span>
-                        <input id="directRadiationRatio" type="number" step="any" min="0" max="1" class="weather-adv-input w-full mt-1 rounded-lg border p-2" placeholder="Range: 0~1, Default 0.6">
+                        <input id="directRadiationRatio" type="number" step="any" min="0" max="1" class="weather-adv-input w-full mt-1 rounded-lg border p-2" placeholder="Range: 0~1, Default 0.6" title="Generally use 0.5–0.8; estimate using the UV index&#10;Use 0.7 for strong UV; use 0.4 with more cloud cover&#10;Leave blank to use the default value 0.6">
                     </label>
                     <label class="text-xs text-trail-mid">
                         <span style="display:inline-block; padding-left:0.5rem;">Solar Altitude Angle / °</span>
-                        <input id="solarAltitudeAngle" type="number" step="any" min="0" max="90" class="weather-adv-input w-full mt-1 rounded-lg border p-2" placeholder="Range: 0~90, Default 45">
+                        <input id="solarAltitudeAngle" type="number" step="any" min="0" max="90" class="weather-adv-input w-full mt-1 rounded-lg border p-2" placeholder="Range: 0~90, Default 45" title="30°–60°; leave blank to use the default value 45°">
                     </label>
                 </div>
                 <div class="text-xs text-trail-mid/50 mt-2 pl-1">
@@ -799,7 +809,7 @@
     <!-- Footer -->
     <footer class="max-w-7xl mx-auto px-6 py-8 text-center">
         <p class="text-xs text-trail-mid/50">
-            TrailScope · GPX track Analyzer · All data are handled locally · <a href='https://github.com/GSUI5051/TrailScope' style="font-weight:600; color:#0000cc"><span>FOSS (GitHub)</span></a><br><br><br>
+            TrailScope · GPX track Analyzer · All data are handled locally · <a href='https://github.com/GSUI5051/TrailScope' class="theme-link"><span>FOSS (GitHub)</span></a><br><br><br>
             2026 · Girls' Space and Universe Institute
         </p>
     </footer>

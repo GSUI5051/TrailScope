@@ -12,6 +12,8 @@ function setupChartInteraction() {
     let pendingHover = null;
     let touchFrame = 0;
     let pendingTouch = null;
+    let wheelFrame = 0;
+    let pendingWheel = null;
     let lastMobileVlineIdx = -1;
     let lastMobileVlineMode = null;
     let tooltipWidth = 0;
@@ -121,6 +123,9 @@ function setupChartInteraction() {
         if (hoverFrame) cancelAnimationFrame(hoverFrame);
         hoverFrame = 0;
         pendingHover = null;
+        if (wheelFrame) cancelAnimationFrame(wheelFrame);
+        wheelFrame = 0;
+        pendingWheel = null;
         hoverDisplayMode = null;
         tooltip.classList.remove('visible');
         updateMapCurrentPoint(-1);
@@ -188,11 +193,7 @@ function setupChartInteraction() {
         canvas.style.cursor = 'crosshair';
     });
 
-    canvas.addEventListener('wheel', function(e) {
-        if (IS_MOBILE) return;
-        e.preventDefault();
-        if (!trackData || !canvas._scale) return;
-
+    function handleWheelZoom(e) {
         const rect = canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const { padding, chartW, viewStart, viewEnd } = canvas._scale;
@@ -225,6 +226,24 @@ function setupChartInteraction() {
 
         updateZoomInfo();
         drawChart();
+    }
+
+    canvas.addEventListener('wheel', function(e) {
+        if (IS_MOBILE) return;
+        e.preventDefault();
+        if (!trackData || !canvas._scale) return;
+
+        // ★★★ 与 mousemove 相同：只保留最新一次 wheel 事件，下一帧只执行一次 drawChart，
+        // 触控板惯性滚动每秒上百次事件时避免每次同步全量重绘 ★★★
+        pendingWheel = e;
+        if (!wheelFrame) {
+            wheelFrame = requestAnimationFrame(() => {
+                wheelFrame = 0;
+                const nextWheel = pendingWheel;
+                pendingWheel = null;
+                if (nextWheel && trackData && canvas._scale) handleWheelZoom(nextWheel);
+            });
+        }
     }, { passive: false });
 
     // ===== 触摸事件（手机端） =====

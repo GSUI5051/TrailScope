@@ -85,6 +85,48 @@ function changeMapSource(source, skipTrackDraw = false) {
 
     if (trackData && !skipTrackDraw && coordinateModeChanged) drawMap(true);
 }
+const cachedStartIcon = L.divIcon({
+    className: '',
+    html: '<div class="custom-marker start-marker"><i class="fa-solid fa-flag"></i></div>',
+    iconSize: [24, 24],
+    iconAnchor: [12, 12]
+});
+
+const cachedEndIcon = L.divIcon({
+    className: '',
+    html: '<div class="custom-marker end-marker"><i class="fa-solid fa-flag-checkered"></i></div>',
+    iconSize: [24, 24],
+    iconAnchor: [12, 12]
+});
+
+const cachedWaypointIcon = L.divIcon({
+    className: '',
+    html: '<div class="custom-marker"><i class="fa-solid fa-map-pin" style="font-size: 10px;"></i></div>',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10]
+});
+
+const cachedCurrentIcon = L.divIcon({
+    className: '',
+    html: '<div class="custom-marker current-marker"></div>',
+    iconSize: [18, 18],
+    iconAnchor: [9, 9]
+});
+
+const cachedSegmentStartIcon = L.divIcon({
+    className: '',
+    html: '<div class="custom-marker" style="background: #d4a017;">S</div>',
+    iconSize: [24, 24],
+    iconAnchor: [12, 12]
+});
+
+const cachedSegmentEndIcon = L.divIcon({
+    className: '',
+    html: '<div class="custom-marker" style="background: #d4a017;">E</div>',
+    iconSize: [24, 24],
+    iconAnchor: [12, 12]
+});
+
 function drawMap(skipFit = false) {
     if (!trackData || !leafletMap) return;
 
@@ -115,24 +157,14 @@ function drawMap(skipFit = false) {
         trackLayers.push(segment);
     });
 
-    const startIcon = L.divIcon({
-        className: '',
-        html: '<div class="custom-marker start-marker"><i class="fa-solid fa-flag"></i></div>',
-        iconSize: [24, 24],
-        iconAnchor: [12, 12]
-    });
+    const startIcon = cachedStartIcon;
 
     const startMarker = L.marker(displayLatLng(points[0]), { icon: startIcon })
         .bindTooltip('Start', { permanent: false })
         .addTo(leafletMap);
     trackLayers.push(startMarker);
 
-    const endIcon = L.divIcon({
-        className: '',
-        html: '<div class="custom-marker end-marker"><i class="fa-solid fa-flag-checkered"></i></div>',
-        iconSize: [24, 24],
-        iconAnchor: [12, 12]
-    });
+    const endIcon = cachedEndIcon;
 
     const endMarker = L.marker(displayLatLng(points[points.length - 1]), { icon: endIcon })
         .bindTooltip('Finish', { permanent: false })
@@ -143,12 +175,7 @@ function drawMap(skipFit = false) {
     if (waypointDisplayMode !== 'hide-all') {
         const showNames = (waypointDisplayMode === 'show-names');
         trackData.waypoints.forEach((wp) => {
-            const wpIcon = L.divIcon({
-                className: '',
-                html: '<div class="custom-marker"><i class="fa-solid fa-map-pin" style="font-size: 10px;"></i></div>',
-                iconSize: [20, 20],
-                iconAnchor: [10, 10]
-            });
+            const wpIcon = cachedWaypointIcon;
 
             const marker = L.marker(displayWaypointLatLng(wp), { icon: wpIcon })
                 .addTo(leafletMap);
@@ -220,13 +247,7 @@ function updateMapCurrentPoint(pointIdx) {
     const pt = trackData.points[pointIdx];
     const displayPos = displayLatLng(pt);
     if (!currentMarker) {
-        const currentIcon = L.divIcon({
-            className: '',
-            html: '<div class="custom-marker current-marker"></div>',
-            iconSize: [18, 18],
-            iconAnchor: [9, 9]
-        });
-        currentMarker = L.marker(displayPos, { icon: currentIcon }).addTo(leafletMap);
+        currentMarker = L.marker(displayPos, { icon: cachedCurrentIcon }).addTo(leafletMap);
     } else if (currentMarkerPointIdx !== pointIdx) {
         currentMarker.setLatLng(displayPos);
     }

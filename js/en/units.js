@@ -4,39 +4,45 @@ const UnitHelper = {
     getSystem() { return unitSystem; },
 
     setSystem(sys) {
-        if (sys === 'metric' || sys === 'imperial') {
-            unitSystem = sys;
-            document.getElementById('metricUnitBtn').classList.toggle('active', sys === 'metric');
-            document.getElementById('imperialUnitBtn').classList.toggle('active', sys === 'imperial');
+        if (sys !== 'metric' && sys !== 'imperial') return;
 
-            // Update fixed-distance section button label (1 km ↔ 1 mi)
-            const segBtn = document.getElementById('segFixedDist');
-            if (segBtn) {
-                segBtn.textContent = sys === 'imperial' ? '1 mi' : '1 km';
+        const previousSystem = unitSystem;
+        unitSystem = sys;
+        document.getElementById('metricUnitBtn').classList.toggle('active', sys === 'metric');
+        document.getElementById('imperialUnitBtn').classList.toggle('active', sys === 'imperial');
+
+        // Update fixed-distance section button label (1 km ↔ 1 mi)
+        const segBtn = document.getElementById('segFixedDist');
+        if (segBtn) {
+            segBtn.textContent = sys === 'imperial' ? '1 mi' : '1 km';
+        }
+
+        updateWeatherUnitLabelsAndPlaceholders();
+        if (previousSystem === sys) return;
+
+        // If current section mode is distance-based, switch to the corresponding unit
+        if (typeof segmentMode === 'number') {
+            if (sys === 'imperial' && segmentMode === 1000) {
+                segmentMode = 1609.34;
+            } else if (sys === 'metric' && segmentMode === 1609.34) {
+                segmentMode = 1000;
             }
+        }
 
-            // If current section mode is distance-based, switch to the corresponding unit
-            if (typeof segmentMode === 'number') {
-                if (sys === 'imperial' && segmentMode === 1000) {
-                    segmentMode = 1609.34;
-                } else if (sys === 'metric' && segmentMode === 1609.34) {
-                    segmentMode = 1000;
-                }
+        convertWeatherInputValues(previousSystem, sys);
+        if (typeof updateWeatherResultTemperatureUnits === 'function') {
+            updateWeatherResultTemperatureUnits();
+        }
+        if (trackData) {
+            updateUI();
+            drawChart();
+            if (hoveredPointIdx >= 0) {
+                updateMapCurrentPoint(hoveredPointIdx);
             }
-
-            updateWeatherUnitLabelsAndPlaceholders();
-            convertWeatherInputValues();
-            if (trackData) {
-                updateUI();
-                drawChart();
-                if (hoveredPointIdx >= 0) {
-                    updateMapCurrentPoint(hoveredPointIdx);
-                }
-                if (activeSegmentIdx >= 0) {
-                    const segments = analyzeSegments(trackData, segmentMode);
-                    if (activeSegmentIdx < segments.length) {
-                        showMapSegmentInfo(activeSegmentIdx, segments);
-                    }
+            if (activeSegmentIdx >= 0) {
+                const segments = analyzeSegments(trackData, segmentMode);
+                if (activeSegmentIdx < segments.length) {
+                    showMapSegmentInfo(activeSegmentIdx, segments);
                 }
             }
         }
@@ -109,6 +115,9 @@ const UnitHelper = {
         return (liters * 33.814).toFixed(1);
     },
     waterVolumeLabel(liters) {
+        if (unitSystem === 'metric') {
+            return this.volume(liters, 1) + ' ' + this.volumeUnit(liters);
+        }
         return this.waterVolumeOz(liters) + ' oz';
     }
 };
@@ -215,9 +224,8 @@ function setUnitSystem(sys) {
 }
 
 // ★★★ 切换单位制时，把天气输入框中的数值从旧单位制换算到新单位制 ★★★
-function convertWeatherInputValues() {
-    const fromSys = unitSystem === 'metric' ? 'imperial' : 'metric';
-    convertWeatherInputs(fromSys, unitSystem);
+function convertWeatherInputValues(fromSystem, toSystem) {
+    convertWeatherInputs(fromSystem, toSystem);
 }
 
 

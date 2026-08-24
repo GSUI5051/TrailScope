@@ -8,18 +8,14 @@ function parseGPXPoint(element) {
     if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
 
     let ele = null;
-    let time = null;
     for (let child = element.firstElementChild; child; child = child.nextElementSibling) {
         if (child.localName === 'ele') {
             const value = parseFloat(child.textContent);
             ele = Number.isFinite(value) ? value : null;
-        } else if (child.localName === 'time') {
-            const value = new Date(child.textContent);
-            time = Number.isNaN(value.getTime()) ? null : value;
         }
     }
 
-    return { lat, lon, ele, time, distance: 0, horizontalDistance: 0, gradient: 0, smoothedGradient: 0 };
+    return { lat, lon, ele, distance: 0, horizontalDistance: 0, gradient: 0, smoothedGradient: 0 };
 }
 
 function parseGPX(gpxText) {
@@ -108,26 +104,16 @@ function kmlCoordinatesElement(root) {
 
 function kmlTrackPointsFromTrack(track) {
     const coords = kmlElementsByName(track, 'coord');
-    const whens = kmlElementsByName(track, 'when');
-    return coords.map((coordElement, index) => {
+    return coords.map(coordElement => {
         const tuple = kmlCoordinateTuple(coordElement.textContent);
-        if (!tuple) return null;
-        const rawTime = whens[index] ? whens[index].textContent.trim() : '';
-        const parsedTime = rawTime ? new Date(rawTime) : null;
-        return {
-            ...tuple,
-            time: parsedTime && !Number.isNaN(parsedTime.getTime()) ? parsedTime : null
-        };
+        return tuple;
     }).filter(Boolean);
 }
 
 function kmlLineStringPoints(lineString) {
     const coordinatesElement = kmlCoordinatesElement(lineString);
     if (!coordinatesElement) return [];
-    return coordinatesElement.textContent.trim().split(/\s+/).map(kmlCoordinateTuple).filter(Boolean).map(tuple => ({
-        ...tuple,
-        time: null
-    }));
+    return coordinatesElement.textContent.trim().split(/\s+/).map(kmlCoordinateTuple).filter(Boolean);
 }
 
 function parseKML(kmlText) {
