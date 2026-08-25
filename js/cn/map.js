@@ -99,27 +99,25 @@ function changeMapSource(source, skipTrackDraw = false) {
         const group = L.layerGroup([tiandituroadLayer, tianditumapLayer]);
         group.addTo(leafletMap);
 		currentTileLayer = group;
-    } else if (source === 'tianditudixing') {
-		const tiandituroadLayer = L.tileLayer(
-            'http://t{s}.tianditu.gov.cn/cta_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cta&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=50fdf5d2464091ca4951c7c2d7e017c4',
-			{ subdomains: ['0', '1', '2', '3', '4', '5', '6', '7'],
-			tileSize: 256,
-			maxZoom: 14,
-            attribution: '© 天地图' }
+    } else if (source === 'ESRIWorldTopoMap') {
+		const ESRIWorldTopo = L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+			{
+			maxZoom: 18,
+	attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'}
         );
-        const tiandituterrainLayer = L.tileLayer(
-            'http://t{s}.tianditu.gov.cn/ter_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ter&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=50fdf5d2464091ca4951c7c2d7e017c4',
-			{ subdomains: ['0', '1', '2', '3', '4', '5', '6', '7'],
-			tileSize: 256,
-			maxZoom: 14,
-            attribution: '© 天地图' }
+        const WayMarkedTrail = L.tileLayer(
+            'https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png',
+			{
+			maxZoom: 18,
+            attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Map style: &copy; <a href="https://waymarkedtrails.org">waymarkedtrails.org</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)' }
         );
-		tiandituterrainLayer.setZIndex(5);
-        tiandituroadLayer.setZIndex(10);
-        const group = L.layerGroup([tiandituroadLayer, tiandituterrainLayer]);
+		ESRIWorldTopo.setZIndex(5);
+        WayMarkedTrail.setZIndex(10);
+        const group = L.layerGroup([WayMarkedTrail, ESRIWorldTopo]);
         group.addTo(leafletMap);
 		currentTileLayer = group;
-	} else {
+    } else {
         const tileOptions = {
             maxZoom: config.maxZoom,
             attribution: config.attribution

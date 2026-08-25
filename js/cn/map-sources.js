@@ -7,17 +7,12 @@ const mapSources = {
         maxZoom: 19,
         attribution: '© OpenStreetMap contributors'
     },
-    windy: {
-        name: 'Windy',
-        url: 'https://tiles.windy.com/v1/maptiles/outdoor/256%402x/{z}/{x}/{y}',
+    ESRIWorldImagery: {
+        name: 'ESRI World Imagery',
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         subdomains: '',
-        maxZoom: 18,
-        attribution: '© Windy',
-        customHeaders: {
-            'origin': 'https://www.windy.com',
-            'priority': 'u=1, i',
-            'referer': 'https://www.windy.com/'
-        }
+        maxZoom: 19,
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
     },
     opentopomap: {
         name: 'OpenTopoMap',
@@ -47,19 +42,19 @@ const mapSources = {
         maxZoom: 18,
         attribution: '<a href="https://github.com/sletuffe/OpenTopoMap">&copy; OpenTopoMap-R</a> <a href="https://openmaps.fr/donate">❤️ Donation</a> <a href="http://www.openstreetmap.org/copyright">&copy; OpenStreetMap</a>'
     },
-    googlesatellite: {
-        name: '谷歌卫星图',
-        url: 'http://ggmap01.bosim.top:8880/gmap/{x}/{y}/{z}/lyrs=s&hl=en&scale=1/?gk=AIV4qSZ1NqAdsAjE1mhfrw&t=1718630666',
-        subdomains: '',
-        maxZoom: 20,
-        attribution: '© Google'
+    MapyOutdoor: {
+        name: 'Mapy Outdoor',
+        url: 'https://api.mapy.com/v1/maptiles/outdoor/256/{z}/{x}/{y}?apikey=dRyLZyNVqHzMf0pNCC4RGg7wrT9uNTbDQ3gJi98K1D4',
+		minZoom: 0,
+        maxZoom: 19,
+        attribution: '<a href="https://api.mapy.com/copyright" target="_blank">&copy; Seznam.cz a.s. a další</a>'
     },
-    googlehybrid: {
-        name: '谷歌混合图',
-        url: 'http://ggmap01.bosim.top:8880/gmap/{x}/{y}/{z}/lyrs=y&hl=en&scale=1/?gk=AIV4qSZ1NqAdsAjE1mhfrw&t=1718630666',
-        subdomains: '',
-        maxZoom: 20,
-        attribution: '© Google'
+    MapyAerial: {
+        name: 'Mapy Aerial',
+        url: 'https://api.mapy.com/v1/maptiles/aerial/256/{z}/{x}/{y}?apikey=dRyLZyNVqHzMf0pNCC4RGg7wrT9uNTbDQ3gJi98K1D4',
+		minZoom: 0,
+        maxZoom: 19,
+        attribution: '<a href="https://api.mapy.com/copyright" target="_blank">&copy; Seznam.cz a.s. a další</a>'
     },
     amaproad: {
         name: '高德路网图',
@@ -90,10 +85,10 @@ const mapSources = {
 		maxZoom: 18,
 		attribution: '© 天地图'
 	},
-	tianditudixing: {
-		name: '天地图地形图',
+	ESRIWorldTopoMap: {
+		name: 'ESRI-WorldTopoMap',
 		maxZoom: 18,
-		attribution: '© 天地图'
+		attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
 	}
 };
 

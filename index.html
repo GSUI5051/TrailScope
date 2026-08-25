@@ -267,18 +267,18 @@
                         <select id="mapSourceSelect" class="map-source-select" title="切换图源">
 							<option value="tiandituluwang" selected>天地图路网图</option>
 							<option value="tiandituweixing">天地图卫星图</option>
-							<option value="tianditudixing">天地图地形图</option>
                             <option value="amaproad">高德路网图</option>
                             <option value="amapsatellite">高德卫星图</option>
                             <option value="gaode_hybrid">高德混合图</option>
-                            <option value="googlesatellite">谷歌卫星图</option>
-                            <option value="googlehybrid">谷歌混合图</option>
                             <option value="osm">OpenStreetMap</option>
                             <option value="openhikingmap">OpenHikingMap</option>
                             <option value="opentopomap">OpenTopoMap</option>
                             <option value="opencyclemap">OpenCycleMap</option>
                             <option value="cyclosm">CyclOSM</option>
-                            <option value="windy">Windy</option>
+                            <option value="MapyOutdoor">Mapy 户外地图</option>
+                            <option value="MapyAerial">Mapy 卫星图</option>
+							<option value="ESRIWorldTopoMap">ESRI-WorldTopoMap</option>
+                            <option value="ESRIWorldImagery">ESRI-WorldImagery</option>
                         </select>
                     </div>
 
@@ -613,11 +613,11 @@
                     </label>
                     <label class="text-xs text-trail-mid">
                         <span style="display:inline-block; padding-left:0.5rem;">直接辐射比例</span>
-                        <input id="directRadiationRatio" type="number" step="any" min="0" max="1" class="weather-adv-input w-full mt-1 rounded-lg border p-2" placeholder="范围：0~1, 默认值 0.6" title="一般取 0.5~0.8, 用紫外线指数估算&#10;强紫外线取 0.7, 云量多时取 0.4&#10;留空时取默认值 0.6">
+                        <input id="directRadiationRatio" type="number" step="any" min="0" max="1" class="weather-adv-input w-full mt-1 rounded-lg border p-2" placeholder="范围：0~1, 默认值：0.6" title="一般取 0.5~0.8, 用紫外线指数估算&#10;强紫外线取 0.7, 云量多时取 0.4&#10;留空时取默认值 0.6">
                     </label>
                     <label class="text-xs text-trail-mid">
                         <span style="display:inline-block; padding-left:0.5rem;">太阳高度角 / °</span>
-                        <input id="solarAltitudeAngle" type="number" step="any" min="0" max="90" class="weather-adv-input w-full mt-1 rounded-lg border p-2" placeholder="范围：0°~90°, 默认值 45°" title="30°~60°，留空时取默认值 45°">
+                        <input id="solarAltitudeAngle" type="number" step="any" min="0" max="90" class="weather-adv-input w-full mt-1 rounded-lg border p-2" placeholder="范围：0~90, 默认值：45" title="30°~60°，留空时取默认值 45°">
                     </label>
                 </div>
                 <div class="text-xs text-trail-mid/50 mt-2 pl-1">

@@ -275,9 +275,11 @@
                             <option value="opentopomap">OpenTopoMap</option>
                             <option value="opencyclemap">OpenCycleMap</option>
                             <option value="cyclosm">CyclOSM</option>
-                            <option value="windy">Windy</option>
-                            <option value="googlesatellite">Google Satellite</option>
-                            <option value="googlehybrid">Google Hybrid</option>
+                            <option value="tianditusatellite">Tianditu Satellite</option>
+							<option value="MapyOutdoor">Mapy Outdoor</option>
+							<option value="MapyAerial">Mapy Aerial</option>
+							<option value="ESRIWorldTopoMap">ESRI-WorldTopoMap</option>
+                            <option value="ESRIWorldImagery">ESRI-WorldImagery</option>
                             <option value="amaproad">Amap Road</option>
                             <option value="amapsatellite">Amap Satellite</option>
                             <option value="gaode_hybrid">Amap Hybrid</option>
@@ -626,11 +628,11 @@
                     </label>
                     <label class="text-xs text-trail-mid">
                         <span style="display:inline-block; padding-left:0.5rem;">Direct Radiation Ratio</span>
-                        <input id="directRadiationRatio" type="number" step="any" min="0" max="1" class="weather-adv-input w-full mt-1 rounded-lg border p-2" placeholder="Range: 0~1, Default 0.6" title="Generally use 0.5–0.8; estimate using the UV index&#10;Use 0.7 for strong UV; use 0.4 with more cloud cover&#10;Leave blank to use the default value 0.6">
+                        <input id="directRadiationRatio" type="number" step="any" min="0" max="1" class="weather-adv-input w-full mt-1 rounded-lg border p-2" placeholder="Range: 0~1, Default: 0.6" title="Generally use 0.5~0.8; estimate using the UV index&#10;Use 0.7 for strong UV; use 0.4 with more cloud cover&#10;Leave blank to use the default value 0.6">
                     </label>
                     <label class="text-xs text-trail-mid">
                         <span style="display:inline-block; padding-left:0.5rem;">Solar Altitude Angle / °</span>
-                        <input id="solarAltitudeAngle" type="number" step="any" min="0" max="90" class="weather-adv-input w-full mt-1 rounded-lg border p-2" placeholder="Range: 0~90, Default 45" title="30°–60°; leave blank to use the default value 45°">
+                        <input id="solarAltitudeAngle" type="number" step="any" min="0" max="90" class="weather-adv-input w-full mt-1 rounded-lg border p-2" placeholder="Range: 0~90, Default: 45" title="30°~60°; leave blank to use the default value 45°">
                     </label>
                 </div>
                 <div class="text-xs text-trail-mid/50 mt-2 pl-1">

@@ -55,6 +55,24 @@ function changeMapSource(source, skipTrackDraw = false) {
         const group = L.layerGroup([roadLayer, satelliteLayer]);
         group.addTo(leafletMap);
         currentTileLayer = group;
+    } else if (source === 'ESRIWorldTopoMap') {
+		const ESRIWorldTopo = L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+			{
+			maxZoom: 18,
+	attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'}
+        );
+        const WayMarkedTrail = L.tileLayer(
+            'https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png',
+			{
+			maxZoom: 18,
+            attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Map style: &copy; <a href="https://waymarkedtrails.org">waymarkedtrails.org</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)' }
+        );
+		ESRIWorldTopo.setZIndex(5);
+        WayMarkedTrail.setZIndex(10);
+        const group = L.layerGroup([WayMarkedTrail, ESRIWorldTopo]);
+        group.addTo(leafletMap);
+		currentTileLayer = group;
     } else {
         const tileOptions = {
             maxZoom: config.maxZoom,
