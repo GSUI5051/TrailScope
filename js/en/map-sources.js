@@ -82,7 +82,7 @@ const mapSources = {
 	},
     tianditusatellite: {
         name: 'Tianditu Satellite',
-        url: 'http://t{s}.tianditu.gov.cn/cia_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=50fdf5d2464091ca4951c7c2d7e017c4',
+        url: 'http://t{s}.tianditu.gov.cn/img_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=50fdf5d2464091ca4951c7c2d7e017c4',
         subdomains: ['0', '1', '2', '3', '4', '5', '6', '7'],
 		tileSize: 256,
         maxZoom: 18,
