@@ -13,7 +13,7 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
 ![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=flat&logo=Leaflet&logoColor=white)
 
-**TrailScope** 是一款纯前端的 GPX 轨迹分析工具，专为户外徒步、越野跑爱好者设计。上传 GPX 文件并输入气象数据，即可获得专业级的路线分析报告，涵盖海拔剖面、坡度分级、难度评估、分段统计、装备建议以及风险提示。
+**TrailScope** 是一款纯前端的 GPX 轨迹分析工具，专为户外徒步、越野跑爱好者设计。上传 GPX 文件并输入气象数据，就能得到一份完整的路线分析报告：海拔剖面、坡度分级、难度评估、分段统计、装备建议和风险提示。
 
 ---
 
@@ -22,7 +22,7 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
 想快速了解 TrailScope 的核心功能与使用方式？  
 介绍视频：[TrailScope 功能介绍](https://www.bilibili.com/video/BV1Kduo6eEX4/) | [TrailScope 功能介绍（线路二）](https://youtu.be/k4cJetP-9Eg)
 
-视频涵盖了从加载 GPX 轨迹、阅读路线地图和海拔剖面图，到天气评估的完整流程，适合新用户快速上手。
+视频演示了从加载 GPX 轨迹、看路线地图和海拔剖面图，到天气评估的完整流程。
 
 ---
 
@@ -54,10 +54,10 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
   自动给出 1~5 级体能需求描述。
 
 - **⚠️ 风险识别**  
-  根据路线特征（高海拔、陡坡、长距离、大爬升等）并结合气象数据，自动识别潜在风险，并给出综合风险等级。
+  根据路线特征（高海拔、陡坡、长距离、大爬升等）和气象数据，标出潜在风险并给出综合风险等级。
 
 - **☀️ 气象分析**  
-  输入温度、湿度、风速、天气类型，结合路线海拔，提供针对性的装备和行动建议。  
+  输入温度、湿度、风速、天气类型，结合路线海拔，给出对应天气的装备和行动建议。  
   可基于进阶参数（湿球温度、露点、太阳辐射、气压等）估算 WBGT（湿球黑球温度）指数，评估热应激风险。
 
 - **🎒 装备与补给建议**  
@@ -200,13 +200,7 @@ TrailScope/
 
 TrailScope 提供的数据分析仅用于路线规划参考。
 
-户外运动存在风险，请根据：
-
-- 自身体能
-- 天气情况
-- 装备条件
-
-进行安全判断。
+户外运动存在风险，出发前请确认自身体能、天气、装备和路线情况。
 
 ---
 
@@ -237,9 +231,9 @@ TrailScope 提供的数据分析仅用于路线规划参考。
 
 ## 🌟 致谢
 
-- 灵感来源于各种优秀的户外地图软件和已有的 gpx 分析工具（两步路，Strava, Zepp, Mapy, Organic Maps, GPX Studio）。
-- 感谢所有开源社区提供的优秀库（Leaflet, Tailwind CSS, Font Awesome）。
-- 感谢所有地图供应人员。
+- 灵感来自两步路、Strava、Zepp、Mapy、Organic Maps、GPX Studio 等户外地图软件和 GPX 分析工具。
+- 感谢 Leaflet、Tailwind CSS、Font Awesome 等开源库。
+- 感谢所有地图服务商。
 - 特别感谢广大户外徒步与越野跑爱好者提供的轨迹数据。
 
 ---

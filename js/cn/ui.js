@@ -114,9 +114,9 @@ function updateUI() {
     fitnessDots.forEach((dot, i) => {
         setTimeout(() => {
             if (i < fitnessLevel) {
-                const colors = ['#5c7a52', '#7a9471', '#d4a017', '#cd762a', '#c54b3c'];
-                dot.style.background = colors[i];
-                dot.style.transition = 'background 0.3s';
+                dot.classList.add('fitness-lv-' + (i + 1));
+            } else {
+                dot.classList.remove('fitness-lv-' + (i + 1));
             }
         }, i * 100);
     });

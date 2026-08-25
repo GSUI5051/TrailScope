@@ -146,34 +146,34 @@ function analyzeWeather() {
     };
 
     if (heatIndexC >= 35) {
-        const msg = 'Extreme heat conditions (heat index ≥ ' +
+        const msg = 'Heat index ≥ ' +
             weatherResultTemperatureMarkup(35, 'threshold', 0) +
-            '): Long-distance hiking is not recommended. Avoid the hottest part of the day, carry sufficient water, and take additional heat precautions.';
+            ': skip long hikes and the hottest hours, and carry extra water.';
         tips.push(makeTip('fa-temperature-full', msg, 'text-accent-red'));
     } else if (heatIndexC >= 30) {
-        const msg = 'Hot and humid conditions (heat index ≥ ' +
+        const msg = 'Heat index ≥ ' +
             weatherResultTemperatureMarkup(30, 'threshold', 0) +
-            '): Increase water and electrolyte intake. Be aware of increased heat exhaustion risk.';
+            ': drink more, add electrolytes, and watch for heat exhaustion.';
         tips.push(makeTip('fa-temperature-full', msg, 'text-accent-amber'));
     }
     if (type.includes('typhoon') || windMs >= 32) {
-        tips.push(makeTip('fa-hurricane', 'Typhoon or severe wind conditions: Outdoor activities may be unsafe. Consider postponing your hike and avoid exposed terrain.',
+        tips.push(makeTip('fa-hurricane', 'Typhoon or strong wind: postpone the hike and stay off exposed terrain.',
             'text-accent-red'));
     }
     if (tempC <= 5) {
-        tips.push(makeTip('fa-temperature-empty', 'Cold conditions: Wear appropriate layers and carry sufficient insulation to reduce the risk of hypothermia.',
+        tips.push(makeTip('fa-temperature-empty', 'Cold: dress in layers and carry warm insulation to avoid hypothermia.',
             'text-accent-blue'));
     }
     if (type.includes('Showers') || type.includes('Light Rain')) {
-        tips.push(makeTip('fa-cloud-rain', 'Rainy conditions: Bring waterproof gear and use caution on wet, slippery trails.',
+        tips.push(makeTip('fa-cloud-rain', 'Rain: bring waterproofs and take care on slick trails.',
             'text-accent-blue'));
     }
     if (type.includes('Moderate')) {
-        tips.push(makeTip('fa-cloud-showers-heavy', 'Heavy rain conditions: Trail conditions may become hazardous. Consider postponing your hike, especially on steep or exposed routes.',
+        tips.push(makeTip('fa-cloud-showers-heavy', 'Heavy rain: trails can get dangerous. Postpone the hike, especially on steep or exposed routes.',
             'text-accent-red'));
     }
     if (windMs >= 8) {
-        tips.push(makeTip('fa-wind', 'Strong winds: Add wind protection layers and use caution on exposed ridges and open terrain.',
+        tips.push(makeTip('fa-wind', 'Strong wind: add a windproof layer and be careful on exposed ridges.',
             'text-accent-blue'));
     }
 
@@ -182,7 +182,7 @@ function analyzeWeather() {
     if (tips.length) {
         tips.forEach(tip => rows.push(tip));
     } else {
-        rows.push(makeTip('fa-check', 'Current weather condition is safe for hiking.', 'text-trail-moss'));
+        rows.push(makeTip('fa-check', 'No extra weather risks right now.', 'text-trail-moss'));
     }
 
     if (advancedPanelOpen) {
@@ -201,7 +201,7 @@ function analyzeWeather() {
             pressureInput !== '';
 
         if (!allAdvancedFilled) {
-            rows.push(makeTip('fa-triangle-exclamation', 'No sufficient data for advanced weather analysis.',
+            rows.push(makeTip('fa-triangle-exclamation', 'Not enough data for the advanced analysis.',
                 'text-accent-amber'));
         } else {
             let wbVal = Number(wetBulbInput);
@@ -276,19 +276,19 @@ function analyzeWeather() {
             let wbgtColor = '#1a1a1a';
 
             if (WBGT <= 10) {
-                wbgtAdvice = 'Cold conditions: Wear appropriate layers and take precautions to reduce the risk of hypothermia.';
+                wbgtAdvice = 'Cold. Dress warmly and watch for hypothermia.';
                 wbgtColor = '#0a2463';
             } else if (WBGT > 10 && WBGT <= 18) {
-                wbgtAdvice = 'Comfortable conditions: Maintain a steady pace and follow your normal hydration and nutrition plan.';
+                wbgtAdvice = 'Comfortable. Keep your usual pace, fluids, and food.';
                 wbgtColor = '#4a90d9';
             } else if (WBGT > 18 && WBGT <= 23) {
-                wbgtAdvice = 'Moderate heat stress conditions: Manage your effort level and maintain regular hydration.';
+                wbgtAdvice = 'Mild heat stress. Ease off a little and drink regularly.';
                 wbgtColor = '#2e7d32';
             } else if (WBGT > 23 && WBGT <= 28) {
-                wbgtAdvice = 'High heat stress conditions: Increase water and electrolyte intake. Monitor for signs of heat exhaustion.';
+                wbgtAdvice = 'High heat stress. Drink more, add electrolytes, watch for heat exhaustion.';
                 wbgtColor = '#e65100';
             } else if (WBGT > 28) {
-                wbgtAdvice = 'Extreme heat stress conditions: Avoid high-intensity outdoor activities and consider postponing strenuous hikes.';
+                wbgtAdvice = 'Extreme heat stress. No hard efforts; postpone strenuous hikes.';
                 wbgtColor = '#c62828';
             }
 
@@ -326,7 +326,7 @@ function getWeatherEquipmentModifier() {
         r.supplies.push({
             icon: 'fa-bottle-water',
             name: 'Electrolytes',
-            desc: 'Replace fluids and salts during hot-weather hikes to reduce heat illness risk.'
+            desc: 'Replaces the fluids and salts you lose to sweat.'
         });
 
         r.recommended.push({
@@ -371,7 +371,7 @@ function generateEquipmentRecommendation(data, difficulty, risk) {
         {
             icon: 'fa-mobile-screen',
             name: 'Phone + Power Bank',
-            desc: 'Keep communication available.'
+            desc: 'So you can stay in touch.'
         },
         {
             icon: 'fa-id-card',
@@ -392,7 +392,7 @@ function generateEquipmentRecommendation(data, difficulty, risk) {
         recommended.push({
             icon: 'fa-person-hiking',
             name: 'Trekking Poles',
-            desc: 'Reduce knee strain and improve stability on steep terrain.'
+            desc: 'Easier on the knees and steadier on steep ground.'
         });
     }
 
@@ -502,7 +502,7 @@ function assessRisks(data) {
                 level: 'high',
                 icon: 'fa-temperature-full',
                 title: 'High Heat Risk',
-                desc: 'Hot conditions may increase the risk of heat exhaustion and dehydration. Carry sufficient water and manage your effort.'
+                desc: 'Hot weather — risk of heat exhaustion and dehydration. Carry plenty of water and take it easy.'
             });
         }
 
@@ -511,7 +511,7 @@ function assessRisks(data) {
                 level: 'high',
                 icon: 'fa-snowflake',
                 title: 'Cold Weather Risk',
-                desc: 'Freezing conditions may increase the risk of hypothermia. Bring appropriate insulation and prepare for changing conditions.'
+                desc: 'Freezing weather — risk of hypothermia. Bring warm layers.'
             });
         }
 
@@ -520,7 +520,7 @@ function assessRisks(data) {
                 level: 'high',
                 icon: 'fa-cloud-showers-heavy',
                 title: 'Heavy Rain Risk',
-                desc: 'Heavy rain may create hazardous trail conditions. Consider postponing hikes on steep, exposed, or poorly drained routes.'
+                desc: 'Heavy rain can make trails dangerous. Postpone hikes on steep, exposed, or badly drained routes.'
             });
         }
 
@@ -529,7 +529,7 @@ function assessRisks(data) {
                 level: 'medium',
                 icon: 'fa-cloud-rain',
                 title: 'Wet Trail Conditions',
-                desc: 'Wet surfaces may become slippery. Use caution on rocks, roots, steep sections, and downhill terrain.'
+                desc: 'Wet surfaces get slippery. Take care on rocks, roots, steep sections, and downhills.'
             });
         }
     }
@@ -542,7 +542,7 @@ function assessRisks(data) {
             level: 'high',
             icon: 'fa-mountain',
             title: 'High Altitude Risk',
-            desc: `Highest elevation ${UnitHelper.elevationLabel(maxElevation, 0)}. Altitude-related issues may occur. Consider proper acclimatization before hiking.`
+            desc: `Highest elevation ${UnitHelper.elevationLabel(maxElevation, 0)}. Altitude sickness is possible. Acclimatize before you go.`
         });
 
     } else if (maxElevation > 2000) {
@@ -550,7 +550,7 @@ function assessRisks(data) {
             level: 'medium',
             icon: 'fa-mountain',
             title: 'High Elevation',
-            desc: `Highest elevation ${UnitHelper.elevationLabel(maxElevation, 0)}. Be aware of increased UV exposure and temperature changes.`
+            desc: `Highest elevation ${UnitHelper.elevationLabel(maxElevation, 0)}. Strong UV and big temperature swings.`
         });
     }
 
@@ -559,7 +559,7 @@ function assessRisks(data) {
             level: 'high',
             icon: 'fa-arrow-trend-up',
             title: 'Extremely Steep Ascent',
-            desc: `Maximum uphill grade ${uphillMaxGradient.toFixed(1)}%. Very steep climbs may require strong fitness and trekking poles.`
+            desc: `Maximum uphill grade ${uphillMaxGradient.toFixed(1)}%. Steep climbing needs solid fitness and poles.`
         });
 
     } else if (uphillMaxGradient > 25) {
@@ -567,7 +567,7 @@ function assessRisks(data) {
             level: 'medium',
             icon: 'fa-arrow-trend-up',
             title: 'Steep Ascent',
-            desc: `Maximum uphill grade ${uphillMaxGradient.toFixed(1)}%. Requires good endurance and careful pacing.`
+            desc: `Maximum uphill grade ${uphillMaxGradient.toFixed(1)}%. Pace yourself and conserve energy.`
         });
     }
 
@@ -576,7 +576,7 @@ function assessRisks(data) {
             level: 'high',
             icon: 'fa-arrow-trend-down',
             title: 'Extremely Steep Descent',
-            desc: `Maximum downhill grade ${Math.abs(downhillMaxGradient).toFixed(1)}%. Increased fall risk. Use caution and consider trekking poles.`
+            desc: `Maximum downhill grade ${Math.abs(downhillMaxGradient).toFixed(1)}%. High fall risk. Be careful and use poles.`
         });
 
     } else if (downhillMaxGradient < -25) {
@@ -584,7 +584,7 @@ function assessRisks(data) {
             level: 'medium',
             icon: 'fa-arrow-trend-down',
             title: 'Steep Descent',
-            desc: `Maximum downhill grade ${Math.abs(downhillMaxGradient).toFixed(1)}%. Take care to reduce knee strain and maintain stable footing.`
+            desc: `Maximum downhill grade ${Math.abs(downhillMaxGradient).toFixed(1)}%. Look after your knees and watch your footing.`
         });
     }
 
@@ -593,7 +593,7 @@ function assessRisks(data) {
             level: 'high',
             icon: 'fa-route',
             title: 'Long Distance Route',
-            desc: `Total distance ${UnitHelper.distanceLabel(totalDistance, 1)}. Requires good endurance and sufficient supplies.`
+            desc: `Total distance ${UnitHelper.distanceLabel(totalDistance, 1)}. Needs endurance and enough supplies.`
         });
 
     } else if (totalDistance > 15) {
@@ -601,7 +601,7 @@ function assessRisks(data) {
             level: 'medium',
             icon: 'fa-route',
             title: 'Moderate Distance Route',
-            desc: `Total distance ${UnitHelper.distanceLabel(totalDistance, 1)}. Plan water and resupply points in advance.`
+            desc: `Total distance ${UnitHelper.distanceLabel(totalDistance, 1)}. Plan water and resupply stops ahead.`
         });
     }
 
@@ -610,7 +610,7 @@ function assessRisks(data) {
             level: 'high',
             icon: 'fa-mountain',
             title: 'Large Elevation Gain',
-            desc: `Elevation gain ${UnitHelper.elevationLabel(totalAscent, 0)}. Requires strong cardiovascular endurance.`
+            desc: `Elevation gain ${UnitHelper.elevationLabel(totalAscent, 0)}. Hard on the heart and lungs.`
         });
     }
 
@@ -619,7 +619,7 @@ function assessRisks(data) {
             level: 'medium',
             icon: 'fa-arrow-trend-down',
             title: 'Large Elevation Loss',
-            desc: `Elevation loss ${UnitHelper.elevationLabel(totalDescent, 0)}. Descending for long periods may increase knee strain.`
+            desc: `Elevation loss ${UnitHelper.elevationLabel(totalDescent, 0)}. Long downhills wear on the knees.`
         });
     }
 
@@ -878,32 +878,32 @@ function calculateGradientDistribution(data) {
 
     const uphill = [
         { name: 'Flat (≤5%)', color: upColors[0], distance: 0, level: 0,
-            tip: 'Maintain a comfortable walking pace and steady breathing.' },
+            tip: 'Walk at a comfortable pace and keep breathing steady.' },
         { name: 'Gentle (5-10%)', color: upColors[1], distance: 0, level: 1,
-            tip: 'Slow your pace slightly, lean forward naturally, and use shorter steps.' },
+            tip: 'Ease off a little, lean forward, take shorter steps.' },
         { name: 'Moderate (10-15%)', color: upColors[2], distance: 0, level: 2,
-            tip: 'Consider using trekking poles. Shorten your stride and maintain a steady rhythm.' },
+            tip: 'Poles help here. Shorten your stride and find a rhythm.' },
         { name: 'Steep (15-25%)', color: upColors[3], distance: 0, level: 3,
-            tip: 'Use switchbacks when possible. Take regular breaks and maintain hydration and energy levels.' },
+            tip: 'Use switchbacks. Stop often, drink, eat.' },
         { name: 'Very Steep (25-35%)', color: upColors[4], distance: 0, level: 4,
-            tip: 'Hands may be needed for balance. Check each foothold carefully and use additional support if necessary.' },
+            tip: 'Use your hands for balance. Test every foothold.' },
         { name: 'Extremely Steep (>35%)', color: upColors[5], distance: 0, level: 5,
-            tip: 'Potentially hazardous terrain. Consider an alternative route. Technical equipment and proper protection may be required.' }
+            tip: 'Serious terrain. Reroute if you can; otherwise bring proper gear and protection.' }
     ];
 
     const downhill = [
         { name: 'Flat (≤5%)', color: downColors[0], distance: 0, level: 0,
             tip: 'Walk normally and watch for uneven or slippery surfaces.' },
         { name: 'Gentle (5-10%)', color: downColors[1], distance: 0, level: 1,
-            tip: 'Keep knees slightly bent, land with controlled steps, and avoid rushing downhill.' },
+            tip: 'Keep knees soft, step deliberately, don\'t rush.' },
         { name: 'Moderate (10-15%)', color: downColors[2], distance: 0, level: 2,
-            tip: 'Use trekking poles to reduce knee strain and maintain controlled footing.' },
+            tip: 'Poles save your knees and steady your footing.' },
         { name: 'Steep (15-25%)', color: downColors[3], distance: 0, level: 3,
-            tip: 'Move carefully and place each step deliberately. Avoid jumping or uncontrolled downhill movement.' },
+            tip: 'Place each step carefully. No jumping or running down.' },
         { name: 'Very Steep (25-35%)', color: downColors[4], distance: 0, level: 4,
-            tip: 'Face the slope when necessary, maintain a low center of gravity, and use handholds for stability.' },
+            tip: 'Face the slope, stay low, use handholds.' },
         { name: 'Extremely Steep (>35%)', color: downColors[5], distance: 0, level: 5,
-            tip: 'Highly technical terrain with significant fall risk. Proper scrambling or rope techniques may be required.' }
+            tip: 'Technical terrain with real fall risk. Know scrambling or rope techniques.' }
     ];
 
     for (let i = 1; i < points.length; i++) {

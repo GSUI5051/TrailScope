@@ -13,7 +13,7 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
 ![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=flat&logo=Leaflet&logoColor=white)
 
-**TrailScope** is a pure front-end GPX track analysis tool designed for hikers and trail runners. Upload your GPX file，input weather data, get a professional route analysis report, including elevation profile, grade visualization, difficulty rating, segment statistics, gear recommendations, and safety considerations.
+**TrailScope** is a pure front-end GPX track analysis tool for hikers and trail runners. Upload a GPX file, add the weather, and get a full route report: elevation profile, grade coloring, difficulty rating, segment stats, gear suggestions, and safety notes.
 
 ---
 
@@ -22,7 +22,7 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
 Want a quick walkthrough of TrailScope's core features and workflow?  
 Watch intro: [TrailScope Feature Overview](https://youtu.be/GeVyon0YSvM)
 
-The video covers its key modules - loading GPX tracks, reading maps, analyzing elevation profiles and weather assessment - ideal for getting started.
+It walks through loading a GPX track, reading the map and elevation profile, and running a weather assessment.
 
 ---
 
@@ -54,10 +54,10 @@ The video covers its key modules - loading GPX tracks, reading maps, analyzing e
   Provides a 1–5 fitness level description.
 
 - **⚠️ Safety Consideration**  
-  Automatically identifies potential risks from route characteristics (high altitude, steep sections, long distance, large elevation gain/loss, etc.) and weather condition, gives an overall safety concern level.
+  Flags potential risks from the route (high altitude, steep sections, long distance, large elevation gain/loss) and the weather, then gives an overall safety level.
 
 - **☀️ Weather Analysis**  
-  Input temperature, humidity, wind speed, and weather type; get tailored gear advice and action suggestions.  
+  Enter temperature, humidity, wind speed, and weather type; get gear advice and what to do for those conditions.  
   Advanced parameters (wet‑bulb temperature, dew point, solar radiation, air pressure, etc.) allow estimation of the WBGT (Wet‑Bulb Globe Temperature) for heat‑stress assessment.
 
 - **🎒 Gear & Supply Recommendations**  
@@ -198,18 +198,11 @@ TrailScope/
 
 # ⚠️ Disclaimer
 
-TrailScope provides analysis for planning purposes only.
+TrailScope is for trip planning only.
 
-Outdoor activities involve risks.
+Outdoor activities carry risks.
 
-Always consider:
-
-- fitness level
-- weather conditions
-- equipment
-- route conditions
-
-before starting your adventure.
+Before you go, check your fitness level, the weather, your gear, and the route conditions.
 
 ---
 
@@ -240,7 +233,7 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 
 ## 🌟 Acknowledgements
 
-- Inspired by awesome outdoor softwares and existed gpx visualizers (Strava, Zepp, Mapy, Organic Maps, GPX Studio).
+- Inspired by outdoor apps and GPX tools like Strava, Zepp, Mapy, Organic Maps, and GPX Studio.
 - Thanks to all open‑source libraries (Leaflet, Tailwind CSS, Font Awesome).
 - Thanks to OpenStreetMap, Google map, Amap and all map providers.
 - Special thanks to outdoor enthusiasts and trail runners for their track data.

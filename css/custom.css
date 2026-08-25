@@ -1257,6 +1257,24 @@
             background-color: var(--theme-surface-soft) !important;
         }
 
+        /* Fitness level indicator dots: lit via classes so theme switching recolors them automatically.
+           Dark values follow the dark theme palette (--theme-moss/sage/amber/red, clay from to-accent-clay). */
+        .fitness-dot {
+            transition: background-color 0.3s;
+        }
+
+        .fitness-lv-1 { background-color: #5c7a52 !important; }
+        .fitness-lv-2 { background-color: #7a9471 !important; }
+        .fitness-lv-3 { background-color: #d4a017 !important; }
+        .fitness-lv-4 { background-color: #cd762a !important; }
+        .fitness-lv-5 { background-color: #c54b3c !important; }
+
+        html[data-theme="dark"] .fitness-lv-1 { background-color: #91b184 !important; }
+        html[data-theme="dark"] .fitness-lv-2 { background-color: #a1b799 !important; }
+        html[data-theme="dark"] .fitness-lv-3 { background-color: #e5b84f !important; }
+        html[data-theme="dark"] .fitness-lv-4 { background-color: #d98045 !important; }
+        html[data-theme="dark"] .fitness-lv-5 { background-color: #e27665 !important; }
+
         html[data-theme="dark"] .border-trail-sage\/10,
         html[data-theme="dark"] .border-trail-sage\/15,
         html[data-theme="dark"] .border-trail-sage\/20 {

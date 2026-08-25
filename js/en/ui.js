@@ -115,8 +115,8 @@ function updateUI() {
         'Suitable for beginners.',
         'Basic fitness level.\n\nSuitable for occasional hikers.',
         'Moderate fitness required.\n\nSome previous hiking experience recommended.',
-        'Physically demanding route requiring good endurance. \n\nExpect significant elevation gain, long duration, or challenging terrain.',
-        'For experienced hikers.\n\nMay involve steep climbs, difficult terrain, exposure, route-finding challenges, or longer durations.'
+        'Physically demanding route — you need solid endurance.\n\nExpect big climbs, long days, or rough terrain.',
+        'For experienced hikers.\n\nSteep climbs, exposed ground, route-finding, long days — expect some or all of these.'
     ];
     document.getElementById('fitnessDesc').textContent = fitnessDescs[fitnessLevel - 1];
 
@@ -124,9 +124,9 @@ function updateUI() {
     fitnessDots.forEach((dot, i) => {
         setTimeout(() => {
             if (i < fitnessLevel) {
-                const colors = ['#5c7a52', '#7a9471', '#d4a017', '#cd762a', '#c54b3c'];
-                dot.style.background = colors[i];
-                dot.style.transition = 'background 0.3s';
+                dot.classList.add('fitness-lv-' + (i + 1));
+            } else {
+                dot.classList.remove('fitness-lv-' + (i + 1));
             }
         }, i * 100);
     });
@@ -139,7 +139,7 @@ function updateUI() {
         riskList.innerHTML = `
             <div class="flex items-center gap-3 p-3 rounded-xl bg-trail-moss/10">
                 <i class="fa-solid fa-circle-check text-trail-moss"></i>
-                <p class="text-sm text-trail-mid">No significant safety concern needed.</p>
+                <p class="text-sm text-trail-mid">Nothing major to worry about on this route.</p>
             </div>
             `;
     } else {
@@ -552,7 +552,7 @@ function exportChart() {
     link.download = 'elevation-profile-' + stamp + '.png';
     link.href = chartCanvas.toDataURL();
     link.click();
-    showToast('Export Success', 'success');
+    showToast('Chart exported', 'success');
 }
 function loadDemoData() {
     const loadGeneration = ++fileLoadGeneration;
@@ -607,7 +607,7 @@ function loadDemoData() {
 
                 updateUI();
 
-                showToast('Load demo track successful!', 'success');
+                showToast('Demo track loaded', 'success');
 
             } catch (err) {
                 console.error(err);
