@@ -1161,6 +1161,11 @@
             background: var(--theme-map-overlay);
         }
 
+        /* 深色下已通过 CSS 滤镜压暗的图源（卫星图/路网图）不再叠加静态遮罩，避免双重压暗 */
+        html[data-theme="dark"] #leafletMap.dark-tile-filtered::after {
+            background: transparent;
+        }
+
         html[data-theme="dark"] .mountain-bg {
             background-image:
                 radial-gradient(ellipse at 20% 80%, rgba(120, 155, 108, 0.15) 0%, transparent 52%),

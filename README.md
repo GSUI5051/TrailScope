@@ -32,8 +32,11 @@ It walks through loading a GPX track, reading the map and elevation profile, and
   Supports `.gpx`, `.kml`, and `.kmz` tracks, including KML paths and text waypoints. Images, videos, and audio attachments inside KMZ are ignored while text annotations are preserved. Input files are limited to 32 MiB; parsed tracks are limited to 200,000 points and 20,000 waypoints.
 
 - **🗺️ Interactive Map**  
-  Renders with Leaflet, offers multiple map sources (OpenStreetMap, Windy Outdoor Map, Google Satellite, Amap, etc.), color‑coded by grade or elevation. Map coordinates are shared per coordinate system, contiguous edges in the same render-color bucket are merged into multi-point subpaths, and only the most recent derived render variants are retained. No original route vertices are removed from the displayed track.
+  Renders with Leaflet, offers 17 map sources in Chinese and 16 in English (OpenStreetMap, Amap, Tianditu, ESRI, Mapy, Thunderforest, and more), color‑coded by grade or elevation. Map coordinates are shared per coordinate system, contiguous edges in the same render-color bucket are merged into multi-point subpaths, and only the most recent derived render variants are retained. No original route vertices are removed from the displayed track.
   In full-screen mode, the pre-fullscreen center is re-anchored to the center of the visible map area above the profile. While hovering or swiping the profile, the “current position” marker stays pinned at that visible-area center and the map moves beneath it.
+
+- **🌙 Dark Mode**  
+  A Light / System / Dark toggle (default: System) shared by all three pages; the choice is applied before the first paint, so there is no theme flash. In dark mode every map source switches to a dark tile filter: satellite layers are color-inverted, road and terrain layers get tuned brightness and contrast. Switching themes never re-runs track analysis; only display colors change.
 
 - **📈 Elevation Profile**  
   Displays elevation changes along the entire route; supports zoom, pan, and hover/touch to inspect distance, elevation, and grade at any point.  
@@ -116,6 +119,7 @@ It walks through loading a GPX track, reading the map and elevation profile, and
 - **HTML5 / CSS3** – Structure and styling, with a precompiled Tailwind CSS stylesheet for layout
 - **JavaScript (ES6+)** – All logic
 - **Leaflet** – Map rendering and interaction
+- **Leaflet.TileLayer.ColorFilter** – Dark-mode tile filters for every map source
 - **Canvas API / Path2D** – Elevation profile and lightweight interaction overlay drawing
 - **Font Awesome** – Icons
 - **Local GPX / KML Parsing** – DOM‑based XML parsing
@@ -142,6 +146,8 @@ TrailScope/
 │   ├── common/                 # shared modules & vendor libs (loaded by both pages)
 │   │   ├── tailwind-3p4p17.js  # retained vendor source; not loaded by production pages
 │   │   ├── leaflet-1p9p4.js    # vendor: Leaflet
+│   │   ├── leaflet-custom-headers.js # vendor: custom HTTP headers for tile requests
+│   │   ├── leaflet-tilelayer-colorfilter.min.js # vendor: dark-mode tile filter plugin
 │   │   ├── tailwind-config.js  # retained Tailwind theme source for stylesheet rebuilds
 │   │   ├── device.js           # UA / device detection
 │   │   ├── colors.js           # gradient colors and cached render color buckets
@@ -235,7 +241,7 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 
 - Inspired by outdoor apps and GPX tools like Strava, Zepp, Mapy, Organic Maps, and GPX Studio.
 - Thanks to all open‑source libraries (Leaflet, Tailwind CSS, Font Awesome).
-- Thanks to OpenStreetMap, Google map, Amap and all map providers.
+- Thanks to OpenStreetMap, Amap and all map providers.
 - Special thanks to outdoor enthusiasts and trail runners for their track data.
 
 ---

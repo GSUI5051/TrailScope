@@ -66,6 +66,7 @@ function applyThemeMode(mode, persist = true) {
     if (typeof trackData !== 'undefined' && trackData && typeof drawChart === 'function' && chartCanvas) {
         drawChart({ segments: Array.isArray(allSegments) ? allSegments : [] });
     }
+    if (typeof updateMapTileFilter === 'function') updateMapTileFilter();
 }
 
 function setThemeMode(mode) {
@@ -90,6 +91,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function closeWaypointInfo() {
     document.getElementById('waypointInfo').classList.add('hidden');
+}
+
+// 全屏图源下拉的选项直接克隆自主下拉（HTML 里维护的唯一列表），
+// 以后新增/移除图源只需改主下拉 <option>，无需维护全屏列表。
+function syncFullscreenMapSourceSelect() {
+    const fsSelect = document.getElementById('fullscreenMapSourceSelect');
+    const mainSelect = document.getElementById('mapSourceSelect');
+    if (!fsSelect || !mainSelect) return;
+    fsSelect.innerHTML = mainSelect.innerHTML;
 }
 function clearHighlight() {
     activeSegmentIdx = -1;

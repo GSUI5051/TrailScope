@@ -32,8 +32,11 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
   支持 `.gpx`、`.kml`、`.kmz` 轨迹导入，包括 KML 路径和文字航路点。KMZ 内的图片、视频和语音附件会被忽略，但文字标注点会保留。输入文件最大支持 32 MiB，解析后最多支持 200,000 个轨迹点和 20,000 个航路点。
 
 - **🗺️ 交互式地图**  
-  基于 Leaflet 渲染，提供多种地图源（高德、谷歌、OpenStreetMap、Windy等），按坡度或海拔着色显示路线。地图坐标按坐标系共享缓存，连续同色轨迹边合并为多点子路径，并仅保留最近使用的派生渲染变体；显示轨迹不会删除任何原始路线顶点。
+  基于 Leaflet 渲染，提供 17 种地图源（中文版）或 16 种（英文版），包括高德、天地图、OpenStreetMap、ESRI、Mapy、Thunderforest 等，按坡度或海拔着色显示路线。地图坐标按坐标系共享缓存，连续同色轨迹边合并为多点子路径，并仅保留最近使用的派生渲染变体；显示轨迹不会删除任何原始路线顶点。
   进入全屏后，进入前的地图中心会重锚定到剖面图面板以上可视区域的正中。滑动剖面图时，“当前位置”标记固定在该可视区域正中，地图在标记下方跟随移动。
+
+- **🌙 深色模式**  
+  浅色 / 系统 / 深色三态切换（默认跟随系统），三个页面共享同一偏好，并在首帧绘制前同步应用，不会出现主题闪烁。深色模式下所有地图源自动切换暗色瓦片滤镜：卫星图反转色调，路网与地形图单独调整亮度和对比度。切换主题不会重新计算轨迹数据，只改变显示颜色。
 
 - **📈 海拔剖面图**  
   展示全程海拔变化，支持缩放、平移，鼠标悬停/触摸查看任意点的距离、海拔和坡度。  
@@ -116,6 +119,7 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
 - **HTML5 / CSS3** – 结构与样式，使用预编译的 Tailwind CSS 辅助布局
 - **JavaScript (ES6+)** – 全部业务逻辑
 - **Leaflet** – 地图渲染与交互
+- **Leaflet.TileLayer.ColorFilter** – 全部地图源的深色模式瓦片滤镜
 - **Canvas API / Path2D** – 海拔剖面图与轻量交互 overlay 绘制
 - **Font Awesome** – 图标库
 - **本地 GPX / KML 解析** – 使用 DOM 解析 XML 格式的 GPX/KML 文件
@@ -142,6 +146,8 @@ TrailScope/
 │   ├── common/                 # 共享模块与第三方库（两个页面共用）
 │   │   ├── tailwind-3p4p17.js  # 保留的 Tailwind vendor 源；正式页面不加载
 │   │   ├── leaflet-1p9p4.js    # 第三方：Leaflet
+│   │   ├── leaflet-custom-headers.js # 第三方：瓦片请求自定义 HTTP 头
+│   │   ├── leaflet-tilelayer-colorfilter.min.js # 第三方：深色模式瓦片滤镜
 │   │   ├── tailwind-config.js  # 保留的 Tailwind 主题源，用于重新构建样式
 │   │   ├── device.js           # 设备 / UA 检测
 │   │   ├── colors.js           # 坡度/海拔配色与渲染色桶缓存

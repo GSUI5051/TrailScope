@@ -6,6 +6,7 @@ let chartCanvas = null;
 let chartCtx = null;
 let leafletMap = null;
 let currentTileLayer = null;
+let currentFilteredTileLayers = [];
 let trackLayers = [];
 let currentMarker = null;
 let currentMarkerPointIdx = -1;

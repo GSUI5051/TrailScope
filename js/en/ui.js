@@ -707,22 +707,15 @@ function enterMapFullscreen() {
                         <option value="gradient">Grade</option>
                         <option value="elevation">Elevation</option>
                     </select>
-                    <select id="fullscreenMapSourceSelect" class="map-source-select" title="Map Source" onchange="document.getElementById('mapSourceSelect').value=this.value; changeMapSource();">
-                        <option value="osm" selected>OpenStreetMap</option>
-                        <option value="windy">Windy</option>
-                        <option value="opentopomap">OpenTopoMap</option>
-                        <option value="opencyclemap">OpenCycleMap</option>
-                        <option value="cyclosm">CyclOSM</option>
-                        <option value="googlesatellite">Google Satellite</option>
-                        <option value="googlehybrid">Google Hybrid</option>
-                        <option value="amaproad">Amap Road</option>
-                        <option value="amapsatellite">Amap Satellite</option>
-                        <option value="gaode_hybrid">Amap Hybrid</option>
-                    </select>
+                    <select id="fullscreenMapSourceSelect" class="map-source-select" title="Map Source" onchange="document.getElementById('mapSourceSelect').value=this.value; changeMapSource();"></select>
                 </div>
             </div>
             `;
     map.appendChild(toolbar);
+
+    // ★★★ Fullscreen map-source options are cloned from the main HTML dropdown,
+    // so the main list is the single source of truth ★★★
+    syncFullscreenMapSourceSelect();
 
     const panel = document.createElement('div');
     panel.className = 'fullscreen-profile';

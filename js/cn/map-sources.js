@@ -8,7 +8,7 @@ const mapSources = {
         attribution: '© OpenStreetMap contributors'
     },
     ESRIWorldImagery: {
-        name: 'ESRI World Imagery',
+        name: 'ESRI 卫星图',
         url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         subdomains: '',
         maxZoom: 19,
@@ -23,7 +23,28 @@ const mapSources = {
     },
     opencyclemap: {
         name: 'OpenCycleMap',
-        url: 'https://api.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=a5dd6a2f1c934394bce6b0fb077203eb',
+        url: 'https://api.thunderforest.com/cycle/{z}/{x}/{y}{r}.png?apikey=8008601e01cf4f2aaf9a8ad4a3867e4a',
+        subdomains: '',
+        maxZoom: 18,
+        attribution: '© Thunderforest'
+    },
+    TFOutdoor: {
+        name: '户外徒步路线图',
+        url: 'https://api.thunderforest.com/outdoors/{z}/{x}/{y}{r}.png?apikey=8008601e01cf4f2aaf9a8ad4a3867e4a',
+        subdomains: '',
+        maxZoom: 18,
+        attribution: '© Thunderforest'
+    },
+    TFLandscape: {
+        name: '户外等高线地图',
+        url: 'https://api.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=8008601e01cf4f2aaf9a8ad4a3867e4a',
+        subdomains: '',
+        maxZoom: 18,
+        attribution: '© Thunderforest'
+    },
+    TFAtlas: {
+        name: '全球地图',
+        url: 'https://api.thunderforest.com/atlas/{z}/{x}/{y}{r}.png?apikey=8008601e01cf4f2aaf9a8ad4a3867e4a',
         subdomains: '',
         maxZoom: 18,
         attribution: '© Thunderforest'
@@ -86,7 +107,7 @@ const mapSources = {
 		attribution: '© 天地图'
 	},
 	ESRIWorldTopoMap: {
-		name: 'ESRI-WorldTopoMap',
+		name: 'ESRI 地形图',
 		maxZoom: 18,
 		attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
 	}
