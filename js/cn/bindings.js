@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     bind('loadDemoBtn', 'click', () => loadDemoData());
+    bind('themeQuickBtn', 'click', () => toggleThemeQuick());
     bind('rawElevBtn', 'click', () => setElevationMode('raw'));
     bind('smoothElevBtn', 'click', () => setElevationMode('smooth'));
     bind('lightThemeBtn', 'click', () => setThemeMode('light'));

@@ -126,6 +126,7 @@ It walks through loading a GPX track, reading the map and elevation profile, and
 - **Font Awesome** – Icons
 - **Local GPX / KML Parsing** – DOM‑based XML parsing
 - **Local KMZ Extraction** – Vendored JSZip 3.10.1, loaded on demand for offline ZIP extraction
+- **Self-hosted Fonts** – Anton (Latin) and LianMengQiYiLuShuaiZhengRuiHeiTi (Chinese) shipped as local files in `webfonts/`, so the page renders fully offline
 
 > No backend is required for parsing or analysis. The static page can run locally, but map display still needs access to the selected tile provider.
 
@@ -145,7 +146,7 @@ TrailScope/
 │   ├── all.min.css             # Font Awesome
 │   └── custom.css              # custom styles shared by all three pages
 ├── js/
-│   ├── common/                 # shared modules & vendor libs (loaded by both pages)
+│   ├── common/                 # shared modules & vendor libs (loaded by all three pages)
 │   │   ├── tailwind-3p4p17.js  # retained vendor source; not loaded by production pages
 │   │   ├── leaflet-1p9p4.js    # vendor: Leaflet
 │   │   ├── leaflet-custom-headers.js # vendor: custom HTTP headers for tile requests
@@ -161,6 +162,7 @@ TrailScope/
 │   │   ├── waypoints.js        # waypoint display mode logic
 │   │   ├── ui-common.js        # shared UI helpers (zoom, toast, pagination, dark-mode controller, …)
 │   │   ├── theme-init.js       # synchronous pre-paint theme bootstrap (no inline script), reused by ui-common.js
+│   │   ├── language-redirect.js # experimental language-based redirect on hosted pages
 │   │   ├── jszip.min.js        # vendored JSZip 3.10.1, loaded only for KMZ imports
 │   │   └── kmz.js              # on-demand JSZip loader and KMZ extraction
 │   ├── cn/                     # Chinese-only modules
@@ -180,12 +182,13 @@ TrailScope/
 │       └── …                   # state / map-sources / … (same as cn/)
 ├── demo.gpx                    # Chinese demo track
 ├── demo-en.gpx                 # English demo track
-├── webfonts/                   # Font files
+├── webfonts/                   # self-hosted font files (available offline)
+├── LICENSE.txt                 # MIT License
 ├── README.md                   # This file
 └── README-CN.md                # Chinese README
 ```
 
-> **Loading order:** Pages load `js/common/theme-init.js` synchronously from `<head>` (applies the dark-mode preference before the first paint to avoid flashing), followed by `css/tailwind.generated.css`, then the shared runtime modules in `common/*` and the language modules (`cn/` or `en/`), with `bindings.js` and `init.js` last. `kmz.js` is loaded with the shared modules, while `jszip.min.js` is injected only when a KMZ import requires it. The retained Tailwind runtime/config files are not requested by the production pages.
+> **Loading order:** Pages load `js/common/theme-init.js` synchronously from `<head>` (applies the dark-mode preference before the first paint to avoid flashing), then `js/common/language-redirect.js` (on http(s) pages it redirects to the English page when the system language is not Chinese; it never runs on `file://` or after the visitor picked a language from the menu this session), followed by `css/tailwind.generated.css`, then the shared runtime modules in `common/*` and the language modules (`cn/` or `en/`), with `bindings.js` and `init.js` last. `kmz.js` is loaded with the shared modules, while `jszip.min.js` is injected only when a KMZ import requires it. The retained Tailwind runtime/config files are not requested by the production pages.
 
 ---
 

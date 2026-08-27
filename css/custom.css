@@ -5,7 +5,7 @@
             --theme-page-mid: #e8dcc8;
             --theme-page-mid-2: #d4c5a9;
             --theme-page-end: #cd762a;
-            --theme-surface-card: rgba(255, 255, 255, 0.72);
+            --theme-surface-card: rgba(255, 255, 255, 0.94);
             --theme-surface-raised: rgba(245, 241, 232, 0.5);
             --theme-surface-control: #ffffff;
             --theme-surface-control-hover: #f5f1e8;
@@ -29,6 +29,36 @@
             --theme-red: #c54b3c;
             --theme-amber: #d4a017;
             --theme-blue: #3a6b8a;
+            --theme-clay: #cd762a;
+            /* 难度评级色阶（休闲→极具挑战） */
+            --diff-recreation: #5c7a52;
+            --diff-easy: #7a9471;
+            --diff-moderate: #d4a017;
+            --diff-hard: #cd762a;
+            --diff-expert: #c54b3c;
+            --diff-extreme: #ff0000;
+            /* 分段类型 badge（TYPE 列） */
+            --seg-text-climb: #c54b3c;
+            --seg-text-descent: #3a6b8a;
+            --seg-text-mixed: #8b7355;
+            --seg-text-flat: #7a9471;
+            --seg-bg-climb: rgba(197, 75, 60, 0.1);
+            --seg-bg-descent: rgba(58, 107, 138, 0.1);
+            --seg-bg-mixed: rgba(139, 115, 85, 0.1);
+            --seg-bg-flat: rgba(122, 148, 113, 0.1);
+            /* 风险提示三档 tint（文本色复用 --theme-red/amber/sage） */
+            --risk-high-bg: rgba(197, 75, 60, 0.1);
+            --risk-high-border: rgba(197, 75, 60, 0.2);
+            --risk-medium-bg: rgba(212, 160, 23, 0.1);
+            --risk-medium-border: rgba(212, 160, 23, 0.2);
+            --risk-low-bg: rgba(122, 148, 113, 0.1);
+            --risk-low-border: rgba(122, 148, 113, 0.2);
+            /* 气象 WBGT 分级色 */
+            --wbgt-cold: #0a2463;
+            --wbgt-cool: #4a90d9;
+            --wbgt-mild: #2e7d32;
+            --wbgt-warm: #e65100;
+            --wbgt-hot: #c62828;
             --theme-map-overlay: transparent;
             --theme-fullscreen-surface: rgba(245, 241, 232, 0.94);
             --theme-fullscreen-portrait-surface: rgba(245, 241, 232, 0.95);
@@ -40,7 +70,7 @@
             --theme-page-mid: #1a1c20;
             --theme-page-mid-2: #1a1c20;
             --theme-page-end: #1a1c20;
-            --theme-surface-card: rgba(35, 38, 44, 0.9);
+            --theme-surface-card: rgba(35, 38, 44, 0.97);
             --theme-surface-raised: rgba(48, 52, 60, 0.72);
             --theme-surface-control: #22252b;
             --theme-surface-control-hover: #2a2e36;
@@ -64,6 +94,29 @@
             --theme-red: #e27665;
             --theme-amber: #e5b84f;
             --theme-blue: #74b0dc;
+            --theme-clay: #d98045;
+            /* 难度评级色阶（深色提亮，与 fitness-lv 深色值同族） */
+            --diff-recreation: #91b184;
+            --diff-easy: #a1b799;
+            --diff-moderate: #e5b84f;
+            --diff-hard: #d98045;
+            --diff-expert: #e27665;
+            --diff-extreme: #ff776f;
+            /* 分段类型 badge（深色提亮，climb/descent 沿用原审定值） */
+            --seg-text-climb: #e27665;
+            --seg-text-descent: #6da0c4;
+            --seg-text-mixed: #c09a72;
+            --seg-text-flat: #9cb8d8;
+            --seg-bg-climb: rgba(226, 118, 101, 0.16);
+            --seg-bg-descent: rgba(109, 160, 196, 0.16);
+            --seg-bg-mixed: rgba(192, 154, 114, 0.16);
+            --seg-bg-flat: rgba(156, 184, 216, 0.16);
+            /* 气象 WBGT 分级色（沿用原属性选择器覆盖的审定值） */
+            --wbgt-cold: #8fbcff;
+            --wbgt-cool: #8fbcff;
+            --wbgt-mild: #87ca81;
+            --wbgt-warm: #ff9e55;
+            --wbgt-hot: #ff776f;
             --theme-map-overlay: rgba(10, 11, 13, 0.8);
             --theme-fullscreen-surface: rgba(33, 36, 42, 0.96);
             --theme-fullscreen-portrait-surface: rgba(33, 36, 42, 0.97);
@@ -77,8 +130,6 @@
 
         .glass-card {
             background: var(--theme-surface-card);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--theme-border-card);
             box-shadow: var(--theme-shadow);
         }
@@ -96,7 +147,7 @@
 
         .upload-zone {
             border: 2px dashed rgba(122, 148, 113, 0.4);
-            transition: all 0.3s ease;
+            transition: border-color 0.3s ease, background-color 0.3s ease, transform 0.3s ease;
         }
 
         .upload-zone:hover,
@@ -134,7 +185,7 @@
         }
 
         .stat-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .stat-card:hover {
@@ -212,7 +263,7 @@
         }
 
         .segment-row {
-            transition: all 0.2s ease;
+            transition: background-color 0.2s ease, transform 0.2s ease;
             cursor: pointer;
         }
 
@@ -310,7 +361,7 @@
             color: var(--theme-text-secondary);
             border: none;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
 
         .seg-btn:hover {
@@ -333,7 +384,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
+            transition: background-color 0.2s ease, transform 0.2s ease;
             font-size: 14px;
         }
 
@@ -374,7 +425,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
+            transition: background-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
             color: var(--theme-text-secondary);
             font-size: 15px;
         }
@@ -405,8 +456,7 @@
             font-size: 12px;
             font-weight: 500;
             color: var(--theme-text-secondary);
-            transition: all 0.2s;
-            outline: none;
+            transition: background-color 0.2s ease;
         }
 
         .map-source-select:hover {
@@ -429,8 +479,7 @@
             font-size: 12px;
             font-weight: 500;
             color: var(--theme-text-secondary);
-            transition: all 0.2s;
-            outline: none;
+            transition: background-color 0.2s ease;
         }
 
         .color-mode-select:hover {
@@ -473,7 +522,7 @@
         }
 
         .tech-tip {
-            transition: all 0.2s;
+            transition: transform 0.2s ease;
             cursor: pointer;
         }
 
@@ -545,7 +594,7 @@
             color: #2d4a35;
             border: none;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: background-color 0.2s ease;
             font-size: 12px;
             font-weight: 500;
         }
@@ -574,7 +623,6 @@
             font-size: 12px;
             font-weight: 500;
             color: var(--theme-text-secondary);
-            outline: none;
         }
 
         .warning-text {
@@ -612,7 +660,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
+            transition: background-color 0.2s ease, transform 0.2s ease;
             color: var(--theme-text-secondary);
             font-size: 12px;
             flex-shrink: 0;
@@ -665,12 +713,11 @@
             margin: 0 !important;
         }
 
-        /* 地图全屏模式 */
+        /* 地图全屏模式：inset:0 已覆盖全屏，无需 100vw/100vh；
+           z 值层级（9999 覆盖层 < 10000 剖面面板 < 10001 工具条 < 10002 提示框）为全屏堆叠所需 */
         .map-fullscreen-chart {
             position: fixed !important;
             inset: 0;
-            width: 100vw !important;
-            height: 100vh !important;
             background: #1a2e1f;
             z-index: 9999;
         }
@@ -855,8 +902,65 @@
             color: #f5f1e8;
         }
 
+        /* 全屏模式小宽度（≤640px，电脑端窄窗口与手机端均生效）：图例左列 + 按钮右列 */
+        @media (max-width: 639.98px) {
+            .map-fullscreen-chart.portrait-mode .fullscreen-profile .flex.items-center.justify-between.gap-2.mb-2,
+            .map-fullscreen-chart .fullscreen-profile .flex.items-center.justify-between.gap-2.mb-2 {
+                flex-wrap: nowrap;
+                align-items: flex-start;
+            }
+            .map-fullscreen-chart.portrait-mode .fullscreen-profile #fullscreenProfileLegend,
+            .map-fullscreen-chart .fullscreen-profile #fullscreenProfileLegend {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+                flex-shrink: 1;
+                min-width: 0;
+                padding-bottom: 0;
+                overflow: visible;
+                white-space: normal;
+            }
+            .map-fullscreen-chart #fullscreenProfileLegend .fs-legend-wrapper {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 4px !important;
+            }
+            .map-fullscreen-chart #fullscreenProfileLegend #fs-gradientLegend,
+            .map-fullscreen-chart #fullscreenProfileLegend #fs-elevationLegend {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+            .map-fullscreen-chart #fullscreenProfileLegend .fs-location-legend {
+                margin-left: 0 !important;
+                flex-wrap: wrap;
+            }
+            .map-fullscreen-chart .fullscreen-profile .fs-fullscreen-btns {
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 4px;
+            }
+        }
+
+        /* 窗口模式小宽度（≤640px）：路线地图与海拔剖面图的图例改单列（上坡行/下坡行各占一行）；
+           分段统计分页控制改两行居中（每页显示行 + 页数按钮行） */
+        @media (max-width: 639.98px) {
+            #mapGradientLegend,
+            #gradientLegend {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+            #paginationContainer {
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+            }
+        }
+
         .advanced-toggle-btn {
-            transition: all 0.3s ease;
+            transition: background-color 0.3s ease;
             user-select: none;
         }
         .advanced-toggle-btn:hover {
@@ -993,7 +1097,7 @@
             border-radius: 0.5rem;
             font-size: 0.75rem;
             font-weight: 500;
-            transition: all 0.2s;
+            transition: background-color 0.2s ease, color 0.2s ease;
             gap: 0.375rem;
             white-space: nowrap;
             flex-shrink: 0;
@@ -1080,6 +1184,265 @@
             -webkit-backdrop-filter: blur(4px);
         }
 
+        /* 导航：锚点组 + 幽灵式演示按钮 + 移动端折叠菜单（details，无需 JS） */
+        .nav-anchors {
+            display: none;
+            gap: 1.25rem;
+            margin-left: auto;
+        }
+        @media (min-width: 1024px) {
+            .nav-anchors {
+                display: flex;
+            }
+        }
+        .nav-anchors a {
+            color: var(--theme-text-secondary);
+            padding: 4px 0;
+            border-bottom: 2px solid transparent;
+            transition: color 0.2s ease, border-color 0.2s ease;
+        }
+        .nav-anchors a:hover {
+            color: var(--theme-text-primary);
+            border-bottom-color: var(--theme-moss);
+        }
+
+        .nav-ghost-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.375rem;
+            height: 36px;
+            padding: 0 0.875rem;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--theme-text-secondary);
+            border: 1px solid var(--theme-border);
+            background: transparent;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+        .nav-ghost-btn:hover {
+            background: var(--theme-surface-soft);
+            color: var(--theme-text-primary);
+            border-color: var(--theme-moss);
+        }
+
+        /* 顶栏右侧快捷组：语言切换 + 深浅色快速切换；间距由外层 .nav-actions 的 gap-2 统一，
+           本组不再设 margin-right，保证四个按钮相邻间距恒为 8px */
+        .nav-quick-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .nav-icon-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid var(--theme-border);
+            background: transparent;
+            color: var(--theme-text-secondary);
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+        .nav-icon-btn:hover {
+            background: var(--theme-surface-soft);
+            color: var(--theme-text-primary);
+            border-color: var(--theme-moss);
+        }
+        .lang-panel {
+            min-width: 140px;
+        }
+        /* 语言面板：名称左对齐，勾选标记恒定右对齐 */
+        .nav-menu .lang-panel a {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+        .nav-menu .nav-menu-panel a[aria-current='true'] {
+            color: var(--theme-moss);
+        }
+
+        .nav-menu {
+            position: relative;
+        }
+        .nav-hamburger {
+            display: block;
+        }
+        @media (min-width: 1024px) {
+            .nav-hamburger {
+                display: none;
+            }
+        }
+        .nav-menu summary {
+            list-style: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid var(--theme-border);
+            color: var(--theme-text-secondary);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .nav-menu summary::-webkit-details-marker {
+            display: none;
+        }
+        .nav-menu[open] summary {
+            background: var(--theme-surface-soft);
+        }
+        .nav-menu .nav-menu-panel {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 208px;
+            padding: 0.5rem;
+            border-radius: 14px;
+            background: var(--theme-surface-card);
+            border: 1px solid var(--theme-border);
+            box-shadow: var(--theme-shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            z-index: 60;
+        }
+        .nav-menu .nav-menu-panel a {
+            padding: 0.55rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--theme-text-secondary);
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .nav-menu .nav-menu-panel a:hover {
+            background: var(--theme-surface-soft);
+            color: var(--theme-text-primary);
+        }
+
+        /* 顶栏右侧快捷组：锚点组显示时（≥1024px）由 .nav-anchors 的 margin-left:auto 统一右推；
+           锚点组隐藏时（<1024px）由本规则单独右推，避免双 auto 均分导致锚点组居中 */
+        .nav-actions {
+            margin-left: 0;
+        }
+        @media (max-width: 1023.98px) {
+            .nav-actions {
+                margin-left: auto;
+            }
+        }
+
+        /* 移动端顶栏压缩：演示按钮只留图标、隐藏副标题与快捷组间距收紧；≤359px 再隐藏字标 */
+        @media (max-width: 767.98px) {
+            .demo-label {
+                display: none;
+            }
+            .nav-subtitle {
+                display: none;
+            }
+            .nav-inner {
+                gap: 0.75rem;
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            .nav-icon-btn,
+            .nav-menu summary {
+                width: 32px;
+                height: 32px;
+            }
+            .nav-ghost-btn {
+                height: 32px;
+            }
+        }
+        @media (max-width: 359.98px) {
+            .nav-wordmark {
+                display: none;
+            }
+        }
+
+        /* Hero 强调词：实色墨字 + 陶土色手绘下划线（替代渐变文字填充）；
+           偏移 0.3em 对英文 Anton 合适；中文联盟起艺字形下沉更深，:lang(zh) 单独再下移，
+           使中英文下划线与字底的视觉松紧一致 */
+        .hero-accent {
+            text-decoration: underline;
+            text-decoration-color: var(--theme-clay);
+            text-decoration-thickness: 0.12em;
+            text-underline-offset: 0.3em;
+            text-decoration-skip-ink: none;
+        }
+        .hero-accent:lang(zh) {
+            text-underline-offset: 0.4em;
+        }
+
+        /* Hero 标题显示字体：Anton（拉丁）+ LianMengQiYiLuShuaiZhengRuiHeiTi（中文）按字符自动分派；
+           单字重 400（字体视觉已重，勿加 extrabold，避免伪粗体）；本地 webfonts，断网可用；
+           line-height 1.35 覆盖 leading-tight：美术黑体字形饱满，两行标题需稍宽行距 */
+        .hero-title {
+            font-family: 'Anton', 'LianMengQiYiLuShuaiZhengRuiHeiTi', 'Inter', sans-serif;
+            font-weight: 400;
+            letter-spacing: 0.015em;
+            line-height: 1.35;
+        }
+
+        /* 数字列：JetBrains Mono + 表格数字对齐 */
+        .num-font {
+            font-family: 'JetBrains Mono', monospace;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* 进度条/指示条：只过渡实际变化的属性（替代 transition-all） */
+        .bar-transition {
+            transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1), left 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 地图免责声明：颜色走主题令牌，深色自动提亮 */
+        .map-disclaimer {
+            color: var(--theme-red);
+        }
+
+        /* 分段类型 badge 配色（浅/深色均由令牌驱动，JS 只输出 seg-type-* 类名） */
+        .seg-type-climb { color: var(--seg-text-climb); background: var(--seg-bg-climb); }
+        .seg-type-descent { color: var(--seg-text-descent); background: var(--seg-bg-descent); }
+        .seg-type-mixed { color: var(--seg-text-mixed); background: var(--seg-bg-mixed); }
+        .seg-type-flat { color: var(--seg-text-flat); background: var(--seg-bg-flat); }
+
+        /* 页脚两行：行距与行间距离由行高/边距定义（不再用 <br><br><br>） */
+        .footer-copy {
+            margin: 0;
+            line-height: 1.6;
+        }
+        .footer-copy-spaced {
+            margin-top: 2.25rem;
+        }
+
+        /* 英文版风险提示段落：句间用行距，不用 <br>；
+           容器顶距 0.5rem 与指示条上方标签行的 mb-2 对称，指示条上下等距 */
+        .safety-note {
+            margin-top: 0.75rem;
+        }
+        .safety-note p {
+            margin: 0;
+            line-height: 1.7;
+        }
+        .safety-note p + p {
+            margin-top: 0.375rem;
+        }
+
+        /* 焦点环：键盘导航可见，瞬时出现（不动画） */
+        .map-source-select:focus-visible,
+        .color-mode-select:focus-visible,
+        .page-size-select:focus-visible,
+        button:focus-visible,
+        .nav-menu summary:focus-visible {
+            outline: 2px solid var(--theme-moss);
+            outline-offset: 2px;
+        }
+
         @media (max-width: 768px) {
             .stat-card {
                 padding: 0.75rem;
@@ -1133,16 +1496,53 @@
         .chart-wrapper {
             position: relative;
         }
-        .chart-vline {
-            display: none !important;
+
+        /* 移动端（lg 以下）：「路线地图 + 海拔剖面图」（lg:grid-cols-5）容器缺基础单列定义，
+           grid 隐式列按内容收缩导致卡片变窄 —— 补单列通栏 */
+        @media (max-width: 1023.98px) {
+            .lg\:grid-cols-5 {
+                grid-template-columns: minmax(0, 1fr);
+            }
         }
 
-        /* 移动端（lg 以下）：「路线地图 + 海拔剖面图」（lg:grid-cols-5）与「难度评估」
-           （lg:grid-cols-3）容器缺基础单列定义，grid 隐式列按内容收缩导致卡片变窄 —— 补单列通栏 */
+        /* 评估区 2+3+通栏：难度评级与"路线地图"等宽（2/5），耗时体能与"海拔剖面图"等宽（3/5），
+           风险提示通栏。仅电脑版（lg 以上）生效，移动端单列。 */
+        .assessment-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 1.5rem;
+        }
+        .assessment-grid .assessment-col-2 {
+            grid-column: span 2;
+        }
+        .assessment-grid .assessment-col-3 {
+            grid-column: span 3;
+        }
+        .assessment-grid .assessment-wide {
+            grid-column: 1 / -1;
+        }
         @media (max-width: 1023.98px) {
-            .lg\:grid-cols-5,
-            .lg\:grid-cols-3 {
+            .assessment-grid {
                 grid-template-columns: minmax(0, 1fr);
+            }
+            /* 单列网格下必须重置 span/通栏跨度，否则跨度超出显式轨道会生成 0 宽隐式轨道，
+               卡片宽度收缩（如 303/279）右侧留空 */
+            .assessment-grid .assessment-col-2,
+            .assessment-grid .assessment-col-3,
+            .assessment-grid .assessment-wide {
+                grid-column: auto;
+            }
+        }
+
+        /* 装备与补给：电脑版一行三列（保持原布局），移动端单列 */
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 1.5rem;
+        }
+        @media (min-width: 768px) {
+            .equipment-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
             }
         }
 
@@ -1161,7 +1561,7 @@
             display: inline-block;
             padding-left: 0.5rem;
             font-size: 0.75rem;
-            color: rgba(45, 74, 53, 0.7);
+            color: var(--theme-text-muted);
         }
         .weather-input-wrap {
             position: relative;
@@ -1204,10 +1604,6 @@
         /* 深色背景为纯色 #1a1c20（四段 page 变量同值，.gradient-bg 退化为纯色），关闭氛围径向光斑 */
         html[data-theme="dark"] .mountain-bg {
             background-image: none;
-        }
-
-        html[data-theme="dark"] .to-accent-clay {
-            background-image: linear-gradient(to right, #7ea6d4, #c09a72, #d98045) !important;
         }
 
         /* 深色下重写 Tailwind 渐变端点变量：logo 瓦片与上传区图标瓦片，防止残留浅色森林绿 */
@@ -1426,46 +1822,6 @@
             border-right-color: rgba(140, 147, 158, 0.3);
         }
 
-        html[data-theme="dark"] #weatherResult [style*="color:#0a2463"] {
-            color: #8fbcff !important;
-        }
-
-        html[data-theme="dark"] #weatherResult [style*="color:#4a90d9"] {
-            color: #8fbcff !important;
-        }
-
-        html[data-theme="dark"] #weatherResult [style*="color:#2e7d32"] {
-            color: #87ca81 !important;
-        }
-
-        html[data-theme="dark"] #weatherResult [style*="color:#e65100"] {
-            color: #ff9e55 !important;
-        }
-
-        html[data-theme="dark"] #weatherResult [style*="color:#c62828"] {
-            color: #ff776f !important;
-        }
-
-        html[data-theme="dark"] #segments [style*="color: #7a9471"],
-        html[data-theme="dark"] #difficultyLabel[style*="color: rgb(122, 148, 113)"] {
-            color: var(--theme-sage) !important;
-        }
-
-        html[data-theme="dark"] #segments [style*="color: #8b7355"] {
-            color: var(--theme-earth) !important;
-        }
-
-        /* Segment type badges: inline colors stay for light mode; brighten text and frame on dark cards. */
-        html[data-theme="dark"] .seg-type-climb {
-            color: var(--theme-red) !important;
-            background: rgba(226, 118, 101, 0.16) !important;
-        }
-
-        html[data-theme="dark"] .seg-type-descent {
-            color: #6da0c4 !important;
-            background: rgba(109, 160, 196, 0.16) !important;
-        }
-
         html[data-theme="dark"] .map-fullscreen-chart {
             background: var(--theme-page-start);
         }
@@ -1475,7 +1831,30 @@
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .unit-toggle-btn {
-                transition: none;
+            .unit-toggle-btn,
+            .stat-card,
+            .segment-row,
+            .tech-tip,
+            .zoom-btn,
+            .map-control-btn,
+            .advanced-toggle-btn,
+            .arrow-icon,
+            .upload-zone,
+            .btn-sm-uniform,
+            .nav-segment-btn,
+            .seg-btn,
+            .pagination-btn,
+            .fitness-dot,
+            .bar-transition,
+            .nav-anchors a,
+            .nav-ghost-btn,
+            .nav-menu summary,
+            .nav-menu .nav-menu-panel a,
+            #difficultyRing {
+                transition: none !important;
+            }
+            .pulse-dot,
+            .fade-in {
+                animation: none !important;
             }
         }

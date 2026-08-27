@@ -21,12 +21,12 @@ function assessDifficulty(data) {
 
     let label, color;
     if (overall < 20) { label = 'Casual';
-        color = '#5c7a52'; } else if (overall < 40) { label = 'Easy';
-        color = '#7a9471'; } else if (overall < 55) { label = 'Moderate';
-        color = '#d4a017'; } else if (overall < 70) { label = 'Strenuous';
-        color = '#cd762a'; } else if (overall < 85) { label = 'Expert';
-        color = '#c54b3c'; } else { label = 'Bomber';
-        color = '#ff0000'; }
+        color = 'var(--diff-recreation)'; } else if (overall < 40) { label = 'Easy';
+        color = 'var(--diff-easy)'; } else if (overall < 55) { label = 'Moderate';
+        color = 'var(--diff-moderate)'; } else if (overall < 70) { label = 'Strenuous';
+        color = 'var(--diff-hard)'; } else if (overall < 85) { label = 'Expert';
+        color = 'var(--diff-expert)'; } else { label = 'Bomber';
+        color = 'var(--diff-extreme)'; }
 
     return { overall, label, color, distScore, ascentScore, gradScore };
 }
@@ -273,23 +273,23 @@ function analyzeWeather() {
             const WBGT = 0.7 * Tnwb + 0.2 * Tg + 0.1 * tempC;
 
             let wbgtAdvice = '';
-            let wbgtColor = '#1a1a1a';
+            let wbgtColor = 'var(--theme-text-secondary)';
 
             if (WBGT <= 10) {
                 wbgtAdvice = 'Cold. Dress warmly and watch for hypothermia.';
-                wbgtColor = '#0a2463';
+                wbgtColor = 'var(--wbgt-cold)';
             } else if (WBGT > 10 && WBGT <= 18) {
                 wbgtAdvice = 'Comfortable. Keep your usual pace, fluids, and food.';
-                wbgtColor = '#4a90d9';
+                wbgtColor = 'var(--wbgt-cool)';
             } else if (WBGT > 18 && WBGT <= 23) {
                 wbgtAdvice = 'Mild heat stress. Ease off a little and drink regularly.';
-                wbgtColor = '#2e7d32';
+                wbgtColor = 'var(--wbgt-mild)';
             } else if (WBGT > 23 && WBGT <= 28) {
                 wbgtAdvice = 'High heat stress. Drink more, add electrolytes, watch for heat exhaustion.';
-                wbgtColor = '#e65100';
+                wbgtColor = 'var(--wbgt-warm)';
             } else if (WBGT > 28) {
                 wbgtAdvice = 'Extreme heat stress. No hard efforts; postpone strenuous hikes.';
-                wbgtColor = '#c62828';
+                wbgtColor = 'var(--wbgt-hot)';
             }
 
             let wbgtIcon;

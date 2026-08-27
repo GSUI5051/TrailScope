@@ -110,7 +110,7 @@ function updateUI() {
     const diff = assessDifficulty(trackData);
     document.getElementById('difficultyScore').textContent = diff.overall;
     document.getElementById('difficultyLabel').textContent = diff.label;
-    document.getElementById('difficultyLabel').style.background = diff.color + '22';
+    document.getElementById('difficultyLabel').style.background = `color-mix(in srgb, ${diff.color} 13%, transparent)`;
     document.getElementById('difficultyLabel').style.color = diff.color;
 
     const circumference = 2 * Math.PI * 48;
@@ -170,9 +170,9 @@ function updateUI() {
     } else {
         risk.risks.forEach(r => {
             const colors = {
-                high: { bg: 'rgba(197, 75, 60, 0.1)', text: '#c54b3c', border: 'rgba(197, 75, 60, 0.2)' },
-                medium: { bg: 'rgba(212, 160, 23, 0.1)', text: '#d4a017', border: 'rgba(212, 160, 23, 0.2)' },
-                low: { bg: 'rgba(122, 148, 113, 0.1)', text: '#7a9471', border: 'rgba(122, 148, 113, 0.2)' }
+                high: { bg: 'var(--risk-high-bg)', text: 'var(--theme-red)', border: 'var(--risk-high-border)' },
+                medium: { bg: 'var(--risk-medium-bg)', text: 'var(--theme-amber)', border: 'var(--risk-medium-border)' },
+                low: { bg: 'var(--risk-low-bg)', text: 'var(--theme-sage)', border: 'var(--risk-low-border)' }
             };
             const c = colors[r.level];
 
@@ -192,8 +192,8 @@ function updateUI() {
     }
 
     document.getElementById('riskLevel').textContent = risk.riskLevel;
-    document.getElementById('riskLevel').style.color = risk.riskPercent > 60 ? '#c54b3c' : (risk.riskPercent > 30 ?
-        '#d4a017' : '#7a9471');
+    document.getElementById('riskLevel').style.color = risk.riskPercent > 60 ? 'var(--theme-red)' : (risk.riskPercent > 30 ?
+        'var(--theme-amber)' : 'var(--theme-sage)');
     setTimeout(() => {
         document.getElementById('riskIndicator').style.left = `calc(${risk.riskPercent}% - 2px)`;
     }, 300);
@@ -243,7 +243,7 @@ function updateUI() {
             <div class="flex items-center gap-2 mb-3">
               <i class="fa-solid fa-arrow-trend-up text-accent-red text-sm"></i>
               <span class="text-sm font-semibold text-trail-dark">上坡分布</span>
-              <span class="text-xs text-trail-mid/50">(${trackData.uphillDistance.toFixed(1)}km)</span>
+              <span class="text-xs text-trail-mid/50 num-font">(${trackData.uphillDistance.toFixed(1)}km)</span>
             </div>
             <div class="space-y-3">
               ${dist.uphill.map(d => `
@@ -253,10 +253,10 @@ function updateUI() {
                       <div class="w-3 h-3 rounded" style="background: ${d.color}"></div>
                       <span class="text-xs text-trail-mid">${d.name}</span>
                     </div>
-                    <span class="text-xs font-medium text-trail-dark">${d.percentage.toFixed(1)}%</span>
+                    <span class="text-xs font-medium text-trail-dark num-font">${d.percentage.toFixed(1)}%</span>
                   </div>
                   <div class="h-1.5 rounded-full bg-trail-sage/10 overflow-hidden mb-1">
-                    <div class="h-full rounded-full transition-all duration-700" style="width: 0%; background: ${d.color}" data-target="${d.percentage}"></div>
+                    <div class="h-full rounded-full bar-transition" style="width: 0%; background: ${d.color}" data-target="${d.percentage}"></div>
                   </div>
                   <div class="text-xs text-trail-mid/60 pl-5">${d.tip}</div>
                 </div>
@@ -267,7 +267,7 @@ function updateUI() {
             <div class="flex items-center gap-2 mb-3">
               <i class="fa-solid fa-arrow-trend-down text-accent-blue text-sm"></i>
               <span class="text-sm font-semibold text-trail-dark">下坡分布</span>
-              <span class="text-xs text-trail-mid/50">(${trackData.downhillDistance.toFixed(1)}km)</span>
+              <span class="text-xs text-trail-mid/50 num-font">(${trackData.downhillDistance.toFixed(1)}km)</span>
             </div>
             <div class="space-y-3">
               ${dist.downhill.map(d => `
@@ -277,10 +277,10 @@ function updateUI() {
                       <div class="w-3 h-3 rounded" style="background: ${d.color}"></div>
                       <span class="text-xs text-trail-mid">${d.name}</span>
                     </div>
-                    <span class="text-xs font-medium text-trail-dark">${d.percentage.toFixed(1)}%</span>
+                    <span class="text-xs font-medium text-trail-dark num-font">${d.percentage.toFixed(1)}%</span>
                   </div>
                   <div class="h-1.5 rounded-full bg-trail-sage/10 overflow-hidden mb-1">
-                    <div class="h-full rounded-full transition-all duration-700" style="width: 0%; background: ${d.color}" data-target="${d.percentage}"></div>
+                    <div class="h-full rounded-full bar-transition" style="width: 0%; background: ${d.color}" data-target="${d.percentage}"></div>
                   </div>
                   <div class="text-xs text-trail-mid/60 pl-5">${d.tip}</div>
                 </div>
@@ -310,9 +310,9 @@ function updateUI() {
         { label: '平路距离', value: trackData.flatDistance.toFixed(1) + ' km', icon: 'fa-minus' },
         { label: '最大上坡', value: trackData.uphillMaxGradient.toFixed(1) + '%', icon: 'fa-angle-up' },
         { label: '最大下坡', value: trackData.downhillMaxGradient.toFixed(1) + '%', icon: 'fa-angle-down' },
-        { label: '航路点数', value: trackData.waypoints.length + ' 个', icon: 'fa-map-pin' },
+        { label: '航路点数', value: trackData.waypoints.length, icon: 'fa-map-pin' },
         { label: '路线类型', value: trackData.totalAscent > trackData.totalDescent ? '以上坡为主' : (trackData
-                .totalDescent > trackData.totalAscent ? '以下坡为主' : '往返型'), icon: 'fa-shuffle' }
+                .totalDescent > trackData.totalAscent ? '以下坡为主' : '往返型'), icon: 'fa-shuffle', noNumFont: true }
     ];
 
     summaryContainer.innerHTML = summaryItems.map(item => `
@@ -323,7 +323,7 @@ function updateUI() {
               </div>
               <span class="text-trail-mid/70">${item.label}</span>
             </div>
-            <span class="font-semibold text-trail-dark">${item.value}</span>
+            <span class="font-semibold text-trail-dark ${item.noNumFont ? '' : 'num-font'}">${item.value}</span>
           </div>
         `).join('');
     }
@@ -374,16 +374,16 @@ function updateSegments() {
     tbody.innerHTML = '';
 
     const typeConfig = {
-        climb: { label: '爬升', color: '#c54b3c', bg: 'rgba(197, 75, 60, 0.1)', icon: 'fa-arrow-trend-up' },
-        descent: { label: '下降', color: '#3a6b8a', bg: 'rgba(58, 107, 138, 0.1)', icon: 'fa-arrow-trend-down' },
-        mixed: { label: '混合', color: '#8b7355', bg: 'rgba(139, 115, 85, 0.1)', icon: 'fa-arrows-up-down' },
-        flat: { label: '平路', color: '#7a9471', bg: 'rgba(122, 148, 113, 0.1)', icon: 'fa-minus' }
+        climb: { label: '爬升', icon: 'fa-arrow-trend-up' },
+        descent: { label: '下降', icon: 'fa-arrow-trend-down' },
+        mixed: { label: '混合', icon: 'fa-arrows-up-down' },
+        flat: { label: '平路', icon: 'fa-minus' }
     };
 
     pageSegments.forEach((seg, pageIdx) => {
         const globalIdx = startIndex + pageIdx;
         const tc = typeConfig[seg.type] || typeConfig.flat;
-        const diffColor = seg.difficulty < 30 ? '#7a9471' : (seg.difficulty < 60 ? '#d4a017' : '#c54b3c');
+        const diffColor = seg.difficulty < 30 ? 'var(--theme-sage)' : (seg.difficulty < 60 ? 'var(--theme-amber)' : 'var(--theme-red)');
 
         const row = document.createElement('tr');
         row.className = 'segment-row border-b border-trail-sage/10';
@@ -396,19 +396,19 @@ function updateSegments() {
               <span class="segment-number inline-flex items-center justify-center w-6 h-6 rounded-lg bg-trail-sage/15 text-xs font-bold text-trail-mid" data-segment-idx="${globalIdx}">${globalIdx + 1}</span>
             </td>
             <td class="py-3 px-2 text-center">
-              <span class="seg-type-${seg.type} inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium" style="background: ${tc.bg}; color: ${tc.color}">
+              <span class="seg-type-${seg.type} inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium">
                 <i class="fa-solid ${tc.icon} text-xs"></i>
                 ${tc.label}
               </span>
             </td>
-            <td class="py-3 px-2 text-center font-medium text-trail-dark">${seg.distance.toFixed(2)} km</td>
-            <td class="py-3 px-2 text-center text-accent-red">${Math.round(seg.ascent)}m</td>
-            <td class="py-3 px-2 text-center text-accent-blue">${Math.round(seg.descent)}m</td>
-            <td class="py-3 px-2 text-center font-medium" style="color: ${getUphillColor(Math.max(0, seg.uphillAvg))};">+${seg.uphillAvg.toFixed(1)}%</td>
-            <td class="py-3 px-2 text-center font-medium" style="color: ${getDownhillColor(Math.min(0, seg.downhillAvg))};">-${seg.downhillAvg.toFixed(1)}%</td>
-            <td class="py-3 px-2 text-center font-medium" style="color: ${getUphillColor(Math.max(0, seg.maxUphillGrad))};">+${seg.maxUphillGrad.toFixed(1)}%</td>
-            <td class="py-3 px-2 text-center font-medium" style="color: ${getDownhillColor(Math.min(0, seg.maxDownhillGrad))};">${seg.maxDownhillGrad.toFixed(1)}%</td>
-            <td class="py-3 px-2 text-center font-medium text-trail-dark">${seg.time.toFixed(1)}h</td>
+            <td class="py-3 px-2 text-center font-medium text-trail-dark num-font">${seg.distance.toFixed(2)} km</td>
+            <td class="py-3 px-2 text-center text-accent-red num-font">${Math.round(seg.ascent)}m</td>
+            <td class="py-3 px-2 text-center text-accent-blue num-font">${Math.round(seg.descent)}m</td>
+            <td class="py-3 px-2 text-center font-medium num-font" style="color: ${getUphillColor(Math.max(0, seg.uphillAvg))};">+${seg.uphillAvg.toFixed(1)}%</td>
+            <td class="py-3 px-2 text-center font-medium num-font" style="color: ${getDownhillColor(Math.min(0, seg.downhillAvg))};">-${seg.downhillAvg.toFixed(1)}%</td>
+            <td class="py-3 px-2 text-center font-medium num-font" style="color: ${getUphillColor(Math.max(0, seg.maxUphillGrad))};">+${seg.maxUphillGrad.toFixed(1)}%</td>
+            <td class="py-3 px-2 text-center font-medium num-font" style="color: ${getDownhillColor(Math.min(0, seg.maxDownhillGrad))};">${seg.maxDownhillGrad.toFixed(1)}%</td>
+            <td class="py-3 px-2 text-center font-medium text-trail-dark num-font">${seg.time.toFixed(1)} h</td>
             <td class="py-3 px-2 text-center">
               <div class="inline-flex items-center gap-2">
                 <div class="w-12 h-1.5 rounded-full bg-trail-sage/15 overflow-hidden">
@@ -825,7 +825,7 @@ function enterMapFullscreen() {
     panel.innerHTML = `
           <div class="flex items-center justify-between gap-2 mb-2">
             <div id="fullscreenProfileLegend" class="flex-1"></div>
-            <div class="flex items-center gap-2 flex-shrink-0">
+            <div class="flex items-center gap-2 flex-shrink-0 fs-fullscreen-btns">
               <button onclick="toggleAnnotations()" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">
                 <i class="fa-solid fa-eye"></i> <span id="fullscreenAnnotationLabel">${showAnnotations ? '隐藏标注' : '显示标注'}</span>
               </button>
@@ -861,7 +861,7 @@ function enterMapFullscreen() {
     }
 
     const legendHtml = `
-          <div class="flex items-center gap-4 flex-wrap" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <div class="flex items-center gap-4 flex-wrap fs-legend-wrapper" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
             <div id="fs-gradientLegend" class="flex items-center gap-4">
               <div class="flex items-center gap-2">
                 <span class="font-medium text-trail-mid/70 text-xs">上坡：</span>
@@ -879,17 +879,17 @@ function enterMapFullscreen() {
               <div class="w-24 h-3 rounded grad-bar-elevation"></div>
               <span class="text-xs text-trail-mid/70">低→高</span>
             </div>
-            <div class="flex items-center gap-3" style="display: flex; align-items: center; gap: 10px; margin-left: 4px;">
+            <div class="flex items-center gap-3 fs-location-legend" style="display: flex; align-items: center; gap: 10px; margin-left: 4px;">
               <div class="flex items-center gap-1.5">
-                <div class="w-2.5 h-2.5 rounded-full" style="background: #c54b3c; flex-shrink: 0;"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-accent-red flex-shrink-0"></div>
                 <span class="text-xs text-trail-mid/70">当前位置</span>
               </div>
               <div class="flex items-center gap-1.5">
-                <div class="w-2.5 h-2.5 rounded-full" style="background: #5c7a52; flex-shrink: 0;"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-trail-moss flex-shrink-0"></div>
                 <span class="text-xs text-trail-mid/70">起点</span>
               </div>
               <div class="flex items-center gap-1.5">
-                <div class="w-2.5 h-2.5 rounded-full" style="background: #c54b3c; flex-shrink: 0;"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-accent-red flex-shrink-0"></div>
                 <span class="text-xs text-trail-mid/70">终点</span>
               </div>
             </div>

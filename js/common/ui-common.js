@@ -38,6 +38,20 @@ function updateThemeButtons() {
         button.classList.toggle('active', isActive);
         button.setAttribute('aria-pressed', String(isActive));
     });
+    updateThemeQuickButton();
+}
+
+/* 顶栏快捷主题按钮：深色时显示太阳（点击切浅色），浅色时显示月亮（点击切深色） */
+function updateThemeQuickButton() {
+    const btn = document.getElementById('themeQuickBtn');
+    if (!btn) return;
+    const icon = btn.querySelector('i');
+    if (!icon) return;
+    icon.className = resolvedTheme === 'dark' ? 'fa-regular fa-sun' : 'fa-regular fa-moon';
+}
+
+function toggleThemeQuick() {
+    setThemeMode(resolvedTheme === 'dark' ? 'light' : 'dark');
 }
 
 function applyThemeMode(mode, persist = true) {

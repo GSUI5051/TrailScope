@@ -125,6 +125,7 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
 - **Font Awesome** – 图标库
 - **本地 GPX / KML 解析** – 使用 DOM 解析 XML 格式的 GPX/KML 文件
 - **本地 KMZ 解压** – 使用本地 JSZip 3.10.1，并在导入 KMZ 时按需加载，支持离线运行
+- **自托管字体** – Anton（英文）与联盟起艺路帅正锐黑体（中文）放在 `webfonts/` 本地文件，页面断网也能完整显示
 
 > 无任何后端依赖，纯静态页面，适配移动端，可直接在本地运行。
 
@@ -144,7 +145,7 @@ TrailScope/
 │   ├── all.min.css             # Font Awesome
 │   └── custom.css              # 三个页面共用的自定义样式
 ├── js/
-│   ├── common/                 # 共享模块与第三方库（两个页面共用）
+│   ├── common/                 # 共享模块与第三方库（三个页面共用）
 │   │   ├── tailwind-3p4p17.js  # 保留的 Tailwind vendor 源；正式页面不加载
 │   │   ├── leaflet-1p9p4.js    # 第三方：Leaflet
 │   │   ├── leaflet-custom-headers.js # 第三方：瓦片请求自定义 HTTP 头
@@ -160,6 +161,7 @@ TrailScope/
 │   │   ├── waypoints.js        # 航路点显示模式逻辑
 │   │   ├── ui-common.js        # 共享 UI 辅助（缩放、提示、分页、深色模式控制器等）
 │   │   ├── theme-init.js       # 首帧前同步应用主题（无内联脚本），供 ui-common.js 复用
+│   │   ├── language-redirect.js # 托管环境下按系统语言自动跳转英文版（实验性）
 │   │   ├── jszip.min.js        # 本地 JSZip 3.10.1，仅导入 KMZ 时加载
 │   │   └── kmz.js              # JSZip 按需加载与 KMZ 解压
 │   ├── cn/                     # 中文版专属模块
@@ -179,12 +181,13 @@ TrailScope/
 │       └── …                   # state / map-sources / …（同 cn/）
 ├── demo.gpx                    # 中文示例轨迹
 ├── demo-en.gpx                 # 英文示例轨迹
-├── webfonts/                   # 字体文件
+├── webfonts/                   # 自托管字体文件（离线可用）
+├── LICENSE.txt                 # MIT License
 ├── README.md                   # 英文说明文档
 └── README-CN.md                # 本文件
 ```
 
-> **加载顺序：** 页面在 `<head>` 中先同步加载 `js/common/theme-init.js`（首帧绘制前应用深色模式偏好，避免闪烁），随后加载 `css/tailwind.generated.css`，再加载 `common/*` 共享运行时模块和语言模块（`cn/` 或 `en/`），最后加载 `bindings.js` 与 `init.js`。`kmz.js` 随共享模块加载，只有导入 KMZ 时才动态注入 `jszip.min.js`。保留的 Tailwind 运行时与配置文件不会被正式页面请求。
+> **加载顺序：** 页面在 `<head>` 中先同步加载 `js/common/theme-init.js`（首帧绘制前应用深色模式偏好，避免闪烁），随后同步加载 `js/common/language-redirect.js`（托管环境下系统语言非中文时跳转英文版，`file://` 打开不跳转，本会话手动选择过语言后不再跳转），再加载 `css/tailwind.generated.css`，接着加载 `common/*` 共享运行时模块和语言模块（`cn/` 或 `en/`），最后加载 `bindings.js` 与 `init.js`。`kmz.js` 随共享模块加载，只有导入 KMZ 时才动态注入 `jszip.min.js`。保留的 Tailwind 运行时与配置文件不会被正式页面请求。
 
 ---
 

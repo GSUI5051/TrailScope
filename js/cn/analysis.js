@@ -21,12 +21,12 @@ function assessDifficulty(data) {
 
     let label, color;
     if (overall < 20) { label = '休闲';
-        color = '#5c7a52'; } else if (overall < 40) { label = '轻松';
-        color = '#7a9471'; } else if (overall < 55) { label = '中等';
-        color = '#d4a017'; } else if (overall < 70) { label = '较难';
-        color = '#cd762a'; } else if (overall < 85) { label = '困难';
-        color = '#c54b3c'; } else { label = '极具挑战';
-        color = '#ff0000'; }
+        color = 'var(--diff-recreation)'; } else if (overall < 40) { label = '轻松';
+        color = 'var(--diff-easy)'; } else if (overall < 55) { label = '中等';
+        color = 'var(--diff-moderate)'; } else if (overall < 70) { label = '较难';
+        color = 'var(--diff-hard)'; } else if (overall < 85) { label = '困难';
+        color = 'var(--diff-expert)'; } else { label = '极具挑战';
+        color = 'var(--diff-extreme)'; }
 
     return { overall, label, color, distScore, ascentScore, gradScore };
 }
@@ -223,23 +223,23 @@ function analyzeWeather() {
             const WBGT = 0.7 * Tnwb + 0.2 * Tg + 0.1 * temp;
 
             let wbgtAdvice = '';
-            let wbgtColor = '#1a1a1a';
+            let wbgtColor = 'var(--theme-text-secondary)';
 
             if (WBGT <= 10) {
                 wbgtAdvice = '低温天气，需注意防寒保暖，预防失温。';
-                wbgtColor = '#0a2463';
+                wbgtColor = 'var(--wbgt-cold)';
             } else if (WBGT > 10 && WBGT <= 18) {
                 wbgtAdvice = '中性天气，注意补给节奏。';
-                wbgtColor = '#4a90d9';
+                wbgtColor = 'var(--wbgt-cool)';
             } else if (WBGT > 18 && WBGT <= 23) {
                 wbgtAdvice = '中等热度，注意运动强度和补给节奏。';
-                wbgtColor = '#2e7d32';
+                wbgtColor = 'var(--wbgt-mild)';
             } else if (WBGT > 23 && WBGT <= 28) {
                 wbgtAdvice = '高热度，注意补充水和电解质，小心中暑。';
-                wbgtColor = '#e65100';
+                wbgtColor = 'var(--wbgt-warm)';
             } else if (WBGT > 28) {
                 wbgtAdvice = '极端高热，不宜进行高强度户外运动。';
-                wbgtColor = '#c62828';
+                wbgtColor = 'var(--wbgt-hot)';
             }
 
             let wbgtIcon;
@@ -287,7 +287,7 @@ function generateEquipmentRecommendation(data, difficulty, risk) {
 
     const essential = [
         { icon: 'fa-shoe-prints', name: '徒步鞋', desc: '防滑耐磨，建议中高帮' },
-        { icon: 'fa-person-hiking', name: '登山背包', desc: `${totalDistance > 15 ? '30-40 L' : '20-30 L'}容量` },
+        { icon: 'fa-person-hiking', name: '登山背包', desc: `${totalDistance > 15 ? '30-40 L' : '20-30 L'} 容量` },
         { icon: 'fa-mobile-screen', name: '手机+充电宝', desc: '保持通讯畅通' },
         { icon: 'fa-id-card', name: '身份证件', desc: '随身携带' },
         { icon: 'fa-kit-medical', name: '急救包', desc: '含创可贴、消毒液、止痛药' }

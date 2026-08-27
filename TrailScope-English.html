@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f5f1e8" />
     <script src="js/common/theme-init.js"></script>
+    <script src="js/common/language-redirect.js"></script>
     <title>TrailScope · Track Analyzer</title>
     <link rel="stylesheet" href="css/tailwind.generated.css" />
     <link rel="stylesheet" href="css/leaflet-1p9p4.css" />
@@ -20,30 +21,61 @@
 
     <!-- Navigation -->
     <nav class="nav-blur sticky top-0 z-50 border-b border-trail-sage/20">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center gap-6 nav-inner">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-trail-mid to-trail-dark flex items-center justify-center">
                     <i class="fa-solid fa-mountain-sun text-trail-cream text-lg"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold text-trail-dark tracking-tight">TrailScope</h1>
-                    <p class="text-xs text-trail-moss -mt-0.5">Track Analyzer</p>
+                    <h1 class="text-lg font-bold text-trail-dark tracking-tight nav-wordmark">TrailScope</h1>
+                    <p class="text-xs text-trail-moss -mt-0.5 nav-subtitle">Track Analyzer</p>
                 </div>
             </div>
-            <div class="hidden md:flex items-center gap-6 text-sm font-medium text-trail-mid">
-                <a href="#upload" class="hover:text-trail-dark transition">Import</a>
-                <a href="#analysis" class="hover:text-trail-dark transition">Route</a>
-                <a href="#assessment" class="hover:text-trail-dark transition">Assessment</a>
-                <a href="#weatherAnalysis" class="hover:text-trail-dark transition">Weather</a>
-                <a href="#equipment" class="hover:text-trail-dark transition">Gear & Supplies</a>
-                <a href="#segments" class="hover:text-trail-dark transition">Sections</a>
-                <a href="#techtips" class="hover:text-trail-dark transition">Tech Tips</a>
-                <a href="#summary" class="hover:text-trail-dark transition">Summary</a>
+            <div class="nav-anchors items-center text-sm font-medium">
+                <a href="#upload">Import</a>
+                <a href="#analysis">Route</a>
+                <a href="#assessment">Assessment</a>
+                <a href="#weatherAnalysis">Weather</a>
+                <a href="#equipment">Gear & Supplies</a>
+                <a href="#segments">Sections</a>
+                <a href="#techtips">Tech Tips</a>
+                <a href="#summary">Summary</a>
             </div>
-            <button id="loadDemoBtn" class="px-4 py-2 rounded-full bg-trail-dark text-trail-cream text-sm font-medium hover:bg-trail-mid transition flex items-center gap-2">
-                <i class="fa-solid fa-flask text-xs"></i>
-                DEMO
-            </button>
+            <div class="nav-actions flex items-center gap-2">
+                <div class="nav-quick-group">
+                    <details class="nav-menu">
+                        <summary aria-label="Switch language">
+                            <i class="fa-solid fa-language"></i>
+                        </summary>
+                        <div class="nav-menu-panel lang-panel">
+                            <a href="index.html"><span>中文</span></a>
+                            <a href="TrailScope-English.html" aria-current="true"><span>English</span><i class="fa-solid fa-check"></i></a>
+                        </div>
+                    </details>
+                    <button id="themeQuickBtn" class="nav-icon-btn" aria-label="Toggle dark mode">
+                        <i class="fa-regular fa-moon"></i>
+                    </button>
+                </div>
+                <button id="loadDemoBtn" class="nav-ghost-btn" aria-label="Load demo track">
+                    <i class="fa-solid fa-flask text-xs"></i>
+                    <span class="demo-label">DEMO</span>
+                </button>
+                <details class="nav-menu nav-hamburger">
+                    <summary aria-label="Menu">
+                        <i class="fa-solid fa-bars"></i>
+                    </summary>
+                    <div class="nav-menu-panel">
+                        <a href="#upload">Import</a>
+                        <a href="#analysis">Route</a>
+                        <a href="#assessment">Assessment</a>
+                        <a href="#weatherAnalysis">Weather</a>
+                        <a href="#equipment">Gear & Supplies</a>
+                        <a href="#segments">Sections</a>
+                        <a href="#techtips">Tech Tips</a>
+                        <a href="#summary">Summary</a>
+                    </div>
+                </details>
+            </div>
         </div>
     </nav>
 
@@ -55,25 +87,28 @@
                     <span class="w-2 h-2 rounded-full bg-trail-moss pulse-dot"></span>
                     For Hiking and Trail Running
                 </div>
-                <h2 class="text-4xl md:text-5xl font-extrabold text-trail-dark tracking-tight leading-tight mb-4">
+                <h2 class="text-4xl md:text-5xl hero-title text-trail-dark leading-tight mb-4">
                     Explore Every Section of<br/>
-                    <span class="bg-gradient-to-r from-trail-moss via-trail-earth to-accent-clay bg-clip-text text-transparent">Mountain Trail Track</span>
+                    <span class="hero-accent">Mountain Trail Track</span>
                 </h2>
-                <p class="text-base text-trail-mid/80 leading-relaxed max-w-2xl mx-auto">
-                    Import a GPX / KML / KMZ track, get elevation profile, difficulty rating and section statistics, visualize grades
+                <p class="text-base text-trail-mid/80 leading-relaxed mb-2">
+                    Import a GPX / KML / KMZ track
                 </p>
-                <p class="text-base text-trail-mid/80 leading-relaxed max-w-2xl mx-auto">
-                    Assess fitness requirements, gear and supply needs, hiking time, and potential risks
+                <p class="text-base text-trail-mid/80 leading-relaxed mb-2">
+                    Get elevation profiles, grade ratings, difficulty assessment and section statistics, plus fitness, gear and risk evaluation.
                 </p>
-                <p class="text-base text-trail-mid/80 leading-relaxed max-w-2xl mx-auto">
+                <p class="text-base text-trail-mid/80 leading-relaxed mb-2">
+                    All processing happens locally in your browser.
+                </p>
+                <p class="text-sm text-trail-mid/70 leading-relaxed mt-5">
                     If fullscreen map display does not work properly on mobile, try another browser
                 </p>
-                <p class="text-base text-trail-mid/80 leading-relaxed max-w-2xl mx-auto">
+                <p class="text-sm text-trail-mid/70 leading-relaxed">
                     <a href='https://www.google.com/chrome/fallback/' class="theme-link"><span>Chrome Browser (Click to download)</span></a> is recommended.
                 </p>
 
                 <!-- 单位切换：Metric / Imperial -->
-                <div class="flex items-center justify-center gap-3 mt-5 flex-wrap">
+                <div class="flex items-center justify-center gap-3 mt-6 flex-wrap">
                     <span class="text-sm font-medium text-trail-mid/70">Units </span>
                     <div class="unit-toggle-group">
                         <button class="unit-toggle-btn active" id="metricUnitBtn">Metric (km, m)</button>
@@ -167,7 +202,7 @@
                     </div>
                     <span class="text-xs font-medium text-trail-mid/50 uppercase tracking-wider">Total Distance</span>
                 </div>
-                <p class="text-2xl font-bold text-trail-dark" id="statDistance">—</p>
+                <p class="text-2xl font-semibold text-trail-dark num-font" id="statDistance">—</p>
                 <p class="text-xs text-trail-mid/60 mt-1" id="statDistanceUnit">km</p>
             </div>
 
@@ -178,7 +213,7 @@
                     </div>
                     <span class="text-xs font-medium text-trail-mid/50 uppercase tracking-wider">Elevation Gain</span>
                 </div>
-                <p class="text-2xl font-bold text-trail-dark" id="statAscent">—</p>
+                <p class="text-2xl font-semibold text-trail-dark num-font" id="statAscent">—</p>
                 <p class="text-xs text-trail-mid/60 mt-1" id="statAscentUnit">m</p>
             </div>
 
@@ -189,7 +224,7 @@
                     </div>
                     <span class="text-xs font-medium text-trail-mid/50 uppercase tracking-wider">Elevation Loss</span>
                 </div>
-                <p class="text-2xl font-bold text-trail-dark" id="statDescent">—</p>
+                <p class="text-2xl font-semibold text-trail-dark num-font" id="statDescent">—</p>
                 <p class="text-xs text-trail-mid/60 mt-1" id="statDescentUnit">m</p>
             </div>
 
@@ -200,7 +235,7 @@
                     </div>
                     <span class="text-xs font-medium text-trail-mid/50 uppercase tracking-wider">Max Elevation</span>
                 </div>
-                <p class="text-2xl font-bold text-trail-dark" id="statMaxElev">—</p>
+                <p class="text-2xl font-semibold text-trail-dark num-font" id="statMaxElev">—</p>
                 <p class="text-xs text-trail-mid/60 mt-1" id="statMaxElevUnit">m</p>
             </div>
         </div>
@@ -218,16 +253,16 @@
                             </h3>
                         </div>
                         <div id="mapSegmentInfo" class="title-right hidden">
-                            <button id="prevSegmentBtn" class="nav-segment-btn" title="Previous Section">
+                            <button id="prevSegmentBtn" class="nav-segment-btn" title="Previous Section" aria-label="Previous Section">
                                 <i class="fa-solid fa-chevron-left"></i>
                             </button>
                             <span class="seg-label-uniform" id="mapSegmentLabel">—</span>
-                            <button id="nextSegmentBtn" class="nav-segment-btn" title="Next Section">
+                            <button id="nextSegmentBtn" class="nav-segment-btn" title="Next Section" aria-label="Next Section">
                                 <i class="fa-solid fa-chevron-right"></i>
                             </button>
                         </div>
                     </div>
-                    <p class="text-xs mt-1" style="color:#ff0000"><b>This map is used for track visualization only. Do not use it for surveying purposes!</b></p>
+                    <p class="text-xs mt-1 map-disclaimer"><b>This map is used for track visualization only. Do not use it for surveying purposes!</b></p>
                 </div>
 
                 <!-- Map Gradient Legend -->
@@ -255,25 +290,25 @@
                 <div id="mapContainer" style="height: 380px;">
                     <div id="leafletMap"></div>
 
-                    <div class="absolute top-3 right-3 flex flex-col gap-2 z-[1000]">
-                        <button class="map-control-btn" id="mapZoomInBtn" title="Zoom In">
+                    <div class="absolute top-3 right-3 flex flex-col gap-2 z-10">
+                        <button class="map-control-btn" id="mapZoomInBtn" title="Zoom In" aria-label="Zoom In">
                             <i class="fa-solid fa-magnifying-glass-plus"></i>
                         </button>
-                        <button class="map-control-btn" id="mapZoomOutBtn" title="Zoom Out">
+                        <button class="map-control-btn" id="mapZoomOutBtn" title="Zoom Out" aria-label="Zoom Out">
                             <i class="fa-solid fa-magnifying-glass-minus"></i>
                         </button>
-                        <button class="map-control-btn" id="mapFitBtn" title="Show Entire Track">
+                        <button class="map-control-btn" id="mapFitBtn" title="Show Entire Track" aria-label="Show Entire Track">
                             <i class="fa-solid fa-expand"></i>
                         </button>
-                        <button id="mapFullscreenBtn" class="map-control-btn" title="Fullscreen">
+                        <button id="mapFullscreenBtn" class="map-control-btn" title="Fullscreen" aria-label="Fullscreen">
                             <i class="fa-solid fa-maximize"></i>
                         </button>
-                        <button id="mapLinkageBtn" class="map-control-btn active-linkage" title="Disable Follow Cursor">
+                        <button id="mapLinkageBtn" class="map-control-btn active-linkage" title="Disable Follow Cursor" aria-label="Disable Follow Cursor">
                             <i class="fa-solid fa-location-crosshairs"></i>
                         </button>
                     </div>
 
-                    <div id="mapSourceControl" class="absolute bottom-3 right-3 z-[1000]">
+                    <div id="mapSourceControl" class="absolute bottom-3 right-3 z-10">
                         <select id="mapSourceSelect" class="map-source-select" title="Map Source">
                             <option value="osm" selected>OpenStreetMap</option>
                             <option value="openhikingmap">OpenHikingMap</option>
@@ -294,7 +329,7 @@
                         </select>
                     </div>
 
-                    <div id="mapInfoOverlay" class="absolute top-3 left-3 px-3 py-2 rounded-xl glass-dark text-xs z-[1000] hidden">
+                    <div id="mapInfoOverlay" class="absolute top-3 left-3 px-3 py-2 rounded-xl glass-dark text-xs z-10 hidden">
                         <div class="space-y-0.5">
                             <div><span class="font-medium text-trail-cream">Distance: </span><span id="mapInfoDist" class="font-medium text-trail-cream">—</span></div>
                             <div id="mapInfoElevationRow"><span class="font-medium text-trail-cream">Elevation: </span><span id="mapInfoEle" class="font-medium text-trail-cream">—</span></div>
@@ -302,7 +337,7 @@
                         </div>
                     </div>
 
-                    <div id="mapLocationLegend" class="absolute bottom-3 left-3 px-3 py-2 rounded-xl glass-dark text-xs z-[1000]">
+                    <div id="mapLocationLegend" class="absolute bottom-3 left-3 px-3 py-2 rounded-xl glass-dark text-xs z-10">
                         <div class="flex items-center gap-2 mb-1">
                             <div class="w-2.5 h-2.5 rounded-full bg-accent-red"></div>
                             <span class="font-medium text-trail-cream">Current Location</span>
@@ -386,13 +421,13 @@
 
                     <!-- Zoom Controls -->
                     <div class="absolute top-2 right-2 flex flex-col gap-1.5 z-10 zoom-controls">
-                        <button class="zoom-btn" id="chartZoomInBtn" title="Zoom In">
+                        <button class="zoom-btn" id="chartZoomInBtn" title="Zoom In" aria-label="Zoom In">
                             <i class="fa-solid fa-magnifying-glass-plus"></i>
                         </button>
-                        <button class="zoom-btn" id="chartZoomOutBtn" title="Zoom Out">
+                        <button class="zoom-btn" id="chartZoomOutBtn" title="Zoom Out" aria-label="Zoom Out">
                             <i class="fa-solid fa-magnifying-glass-minus"></i>
                         </button>
-                        <button class="zoom-btn" id="chartResetBtn" title="Reset">
+                        <button class="zoom-btn" id="chartResetBtn" title="Reset" aria-label="Reset">
                             <i class="fa-solid fa-expand"></i>
                         </button>
                     </div>
@@ -401,7 +436,7 @@
                 <!-- Zoom Info -->
                 <div class="flex items-center justify-between mt-3">
                     <div id="zoomInfo" class="px-2.5 py-1 rounded-lg glass-dark text-xs text-trail-cream hidden">
-                        <span id="zoomLevel">100%</span>
+                        <span id="zoomLevel" class="num-font">100%</span>
                     </div>
                     <div class="text-xs text-trail-mid/50 ml-auto">
                         <i class="fa-solid fa-circle-info"></i> Scroll to zoom · Drag to pan · Hover/touch for details
@@ -418,7 +453,7 @@
                             <p id="wpName" class="text-sm font-semibold text-trail-dark"></p>
                             <p id="wpDetails" class="text-xs text-trail-mid/60"></p>
                         </div>
-                        <button id="closeWaypointInfoBtn" class="text-trail-mid/60 hover:text-accent-red transition">
+                        <button id="closeWaypointInfoBtn" class="text-trail-mid/60 hover:text-accent-red transition" title="Close" aria-label="Close waypoint info">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
@@ -428,10 +463,10 @@
         </div>
 
         <!-- Difficulty & Assessment -->
-        <div id="assessment" class="grid lg:grid-cols-3 gap-6 mb-6">
+        <div id="assessment" class="assessment-grid mb-6">
 
             <!-- Difficulty Rating -->
-            <div class="glass-card rounded-3xl p-6">
+            <div class="glass-card rounded-3xl p-6 assessment-col-2">
                 <h3 class="text-xl font-bold text-trail-dark mb-1 flex items-center gap-2">
                     <i class="fa-solid fa-gauge-high text-accent-amber"></i>
                     Difficulty Rating
@@ -446,7 +481,7 @@
                             <circle cx="56" cy="56" r="48" stroke="rgba(122,148,113,0.15)" stroke-width="8" fill="none"/>
                             <circle id="difficultyRing" cx="56" cy="56" r="48" stroke="url(#diffGradient)" stroke-width="8" fill="none"
                             stroke-dasharray="301.6" stroke-dashoffset="301.6" stroke-linecap="round"
-                            style="transition: stroke-dashoffset 1s ease;"/>
+                            style="transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);"/>
                             <defs>
                                 <linearGradient id="diffGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                                     <stop offset="0%" stop-color="#5c7a52"/>
@@ -456,8 +491,8 @@
                             </defs>
                         </svg>
                         <div class="text-center">
-                            <p id="difficultyScore" class="text-3xl font-extrabold text-trail-dark">—</p>
-                            <p class="text-xs text-trail-mid/60">/ 100</p>
+                            <p id="difficultyScore" class="text-3xl font-semibold text-trail-dark num-font">—</p>
+                            <p class="text-xs text-trail-mid/60 num-font">/ 100</p>
                         </div>
                     </div>
                     <div id="difficultyLabel" class="mt-3 inline-block px-4 py-1.5 rounded-full text-sm font-bold badge-glow">—</div>
@@ -467,28 +502,28 @@
                     <div>
                         <div class="flex justify-between text-xs mb-1">
                             <span class="text-trail-mid/70">Distance</span>
-                            <span id="distScore" class="font-medium text-trail-dark">—</span>
+                            <span id="distScore" class="font-medium text-trail-dark num-font">—</span>
                         </div>
                         <div class="h-1.5 rounded-full bg-trail-sage/15 overflow-hidden">
-                            <div id="distBar" class="h-full rounded-full bg-trail-moss transition-all duration-700" style="width: 0%"></div>
+                            <div id="distBar" class="h-full rounded-full bg-trail-moss bar-transition" style="width: 0%"></div>
                         </div>
                     </div>
                     <div>
                         <div class="flex justify-between text-xs mb-1">
                             <span class="text-trail-mid/70">Elevation Gain</span>
-                            <span id="ascentScore" class="font-medium text-trail-dark">—</span>
+                            <span id="ascentScore" class="font-medium text-trail-dark num-font">—</span>
                         </div>
                         <div class="h-1.5 rounded-full bg-trail-sage/15 overflow-hidden">
-                            <div id="ascentBar" class="h-full rounded-full bg-accent-amber transition-all duration-700" style="width: 0%"></div>
+                            <div id="ascentBar" class="h-full rounded-full bg-accent-amber bar-transition" style="width: 0%"></div>
                         </div>
                     </div>
                     <div>
                         <div class="flex justify-between text-xs mb-1">
                             <span class="text-trail-mid/70">Grade</span>
-                            <span id="gradScore" class="font-medium text-trail-dark">—</span>
+                            <span id="gradScore" class="font-medium text-trail-dark num-font">—</span>
                         </div>
                         <div class="h-1.5 rounded-full bg-trail-sage/15 overflow-hidden">
-                            <div id="gradBar" class="h-full rounded-full bg-accent-red transition-all duration-700" style="width: 0%"></div>
+                            <div id="gradBar" class="h-full rounded-full bg-accent-red bar-transition" style="width: 0%"></div>
                         </div>
                     </div>
                 </div>
@@ -496,7 +531,7 @@
             </div>
 
             <!-- Time & Energy Estimate -->
-            <div class="glass-card rounded-3xl p-6">
+            <div class="glass-card rounded-3xl p-6 assessment-col-3">
                 <h3 class="text-xl font-bold text-trail-dark mb-1 flex items-center gap-2">
                     <i class="fa-solid fa-stopwatch text-trail-earth"></i>
                     Time & Fitness Requirements
@@ -510,22 +545,22 @@
                             <span class="text-xs font-medium text-trail-mid/70 uppercase tracking-wider">Estimated Time </span>
                             <i class="fa-solid fa-clock text-trail-earth text-sm"></i>
                         </div>
-                        <p id="estTime" class="text-3xl font-bold text-trail-dark">— <span class="text-base font-normal text-trail-mid/60"> hours</span></p>
+                        <p id="estTime" class="text-3xl font-semibold text-trail-dark num-font">— <span class="text-base font-normal text-trail-mid/60"> hours</span></p>
                         <div class="flex gap-4 mt-2 text-xs text-trail-mid/60">
-                            <span>Moving: <span id="walkTime" class="font-medium text-trail-dark">—</span></span>
-                            <span>Rest: <span id="restTime" class="font-medium text-trail-dark">—</span></span>
+                            <span>Moving: <span id="walkTime" class="font-medium text-trail-dark num-font">—</span></span>
+                            <span>Rest: <span id="restTime" class="font-medium text-trail-dark num-font">—</span></span>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div class="rounded-xl bg-trail-cream/50 p-3">
                             <p class="text-xs text-trail-mid/60 mb-1">Average Pace </p>
-                            <p id="avgPace" class="text-lg font-bold text-trail-dark">—</p>
+                            <p id="avgPace" class="text-lg font-semibold text-trail-dark num-font">—</p>
                             <p class="text-xs text-trail-mid/50" id="avgPaceUnit"> min/km</p>
                         </div>
                         <div class="rounded-xl bg-trail-cream/50 p-3">
                             <p class="text-xs text-trail-mid/60 mb-1">Calorie Burn </p>
-                            <p id="calories" class="text-lg font-bold text-trail-dark">—</p>
+                            <p id="calories" class="text-lg font-semibold text-trail-dark num-font">—</p>
                             <p class="text-xs text-trail-mid/50"> kcal</p>
                         </div>
                     </div>
@@ -548,7 +583,7 @@
             </div>
 
             <!-- Risk Assessment -->
-            <div class="glass-card rounded-3xl p-6">
+            <div class="glass-card rounded-3xl p-6 assessment-wide">
                 <h3 class="text-xl font-bold text-trail-dark mb-1 flex items-center gap-2">
                     <i class="fa-solid fa-triangle-exclamation text-accent-red"></i>
                     Safety Considerations
@@ -560,15 +595,19 @@
                 </div>
 
                 <div class="mt-5 pt-5 border-t border-trail-sage/15">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs font-medium text-trail-mid/70">Safety Concern Level</span>
-                        <span id="riskLevel" class="text-sm font-bold">—</span>
-                    </div>
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-sm font-semibold text-trail-mid/70">Safety Concern Level</span>
+                    <span id="riskLevel" class="text-sm font-bold">—</span>
+                </div>
                     <div class="h-2 rounded-full difficulty-bar overflow-hidden relative">
-                        <div id="riskIndicator" class="absolute top-0 bottom-0 w-1 bg-trail-dark rounded-full transition-all duration-700" style="left: 0%"></div>
+                        <div id="riskIndicator" class="absolute top-0 bottom-0 w-1 bg-trail-dark rounded-full bar-transition" style="left: 0%"></div>
                     </div>
                 </div>
-                <p class="text-xs text-trail-mid/60 mb-5"><br>Safety note: This analysis is intended for trip planning only and does not replace personal judgment.<br>Trail conditions, weather, fitness levels, and local regulations may change.<br>Know your limits and make safe decisions.</p>
+                <div class="text-xs text-trail-mid/60 mb-5 safety-note">
+                    <p>Safety note: This analysis is intended for trip planning only and does not replace personal judgment.</p>
+                    <p>Trail conditions, weather, fitness levels, and local regulations may change.</p>
+                    <p>Know your limits and make safe decisions.</p>
+                </div>
             </div>
         </div>
 
@@ -584,23 +623,23 @@
             <!-- 基础输入区域 -->
             <div class="grid md:grid-cols-5 gap-3 items-end">
                 <label class="text-xs text-trail-mid">
-                    <span id="weatherTempLabel" style="display:inline-block; padding-left:0.5rem;">Temperature / °C</span>
+                    <span id="weatherTempLabel" class="weather-unit-label">Temperature / °C</span>
                     <div class="weather-input-wrap">
                         <input id="weatherTemp" type="number" step="any" class="w-full mt-1 rounded-lg border p-2" placeholder="Unit: ℃">
                     </div>
                 </label>
                 <label class="text-xs text-trail-mid">
-                    <span style="display:inline-block; padding-left:0.5rem;">Humidity / %</span>
+                    <span class="weather-unit-label">Humidity / %</span>
                     <input id="weatherHumidity" type="number" step="any" class="w-full mt-1 rounded-lg border p-2" placeholder="Relative Humidity %">
                 </label>
                 <label class="text-xs text-trail-mid">
-                    <span id="weatherWindLabel" style="display:inline-block; padding-left:0.5rem;">Wind Speed / (m·s⁻¹)</span>
+                    <span id="weatherWindLabel" class="weather-unit-label">Wind Speed / (m·s⁻¹)</span>
                     <div class="weather-input-wrap">
                         <input id="weatherWind" type="number" step="any" class="w-full mt-1 rounded-lg border p-2" placeholder="Unit: m/s" title="When gusts are strong, a higher value may be selected.">
                     </div>
                 </label>
                 <label class="text-xs text-trail-mid">
-                    <span style="display:inline-block; padding-left:0.5rem;">Weather</span>
+                    <span class="weather-unit-label">Weather</span>
                     <select id="weatherType" class="w-full mt-1 rounded-lg border p-2">
                         <option>Clear</option><option>Partly Cloudy</option><option>Cloudy</option><option>Showers</option>
                         <option>Light Rain</option><option>Moderate Rain or Worse</option><option>Light Snow</option><option>Snow or Worse</option>
@@ -623,33 +662,33 @@
             <div id="advancedPanel" class="advanced-panel">
                 <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
                     <label class="text-xs text-trail-mid">
-                        <span id="wetBulbLabel" style="display:inline-block; padding-left:0.5rem;">Wet Bulb Temperature / °C</span>
+                        <span id="wetBulbLabel" class="weather-unit-label">Wet Bulb Temperature / °C</span>
                         <div class="weather-input-wrap">
                             <input id="wetBulbTemp" type="number" step="any" class="weather-adv-input w-full mt-1 rounded-lg border p-2" placeholder="Unit: ℃">
                         </div>
                     </label>
                     <label class="text-xs text-trail-mid">
-                        <span id="dewPointLabel" style="display:inline-block; padding-left:0.5rem;">Dew Point / ℃</span>
+                        <span id="dewPointLabel" class="weather-unit-label">Dew Point / ℃</span>
                         <div class="weather-input-wrap">
                             <input id="dewPoint" type="number" step="any" class="weather-adv-input w-full mt-1 rounded-lg border p-2" placeholder="Unit: ℃">
                         </div>
                     </label>
                     <label class="text-xs text-trail-mid">
-                        <span style="display:inline-block; padding-left:0.5rem;">Solar Radiation / (W·m⁻²)</span>
+                        <span class="weather-unit-label">Solar Radiation / (W·m⁻²)</span>
                         <input id="solarRadiation" type="number" step="any" class="weather-adv-input w-full mt-1 rounded-lg border p-2" placeholder="Unit: W/m²">
                     </label>
                     <label class="text-xs text-trail-mid">
-                        <span id="pressureLabel" style="display:inline-block; padding-left:0.5rem;">Air Pressure / hPa</span>
+                        <span id="pressureLabel" class="weather-unit-label">Air Pressure / hPa</span>
                         <div class="weather-input-wrap">
                             <input id="pressure" type="number" step="any" class="weather-adv-input w-full mt-1 rounded-lg border p-2" placeholder="Unit: hPa">
                         </div>
                     </label>
                     <label class="text-xs text-trail-mid">
-                        <span style="display:inline-block; padding-left:0.5rem;">Direct Radiation Ratio</span>
+                        <span class="weather-unit-label">Direct Radiation Ratio</span>
                         <input id="directRadiationRatio" type="number" step="any" min="0" max="1" class="weather-adv-input w-full mt-1 rounded-lg border p-2" placeholder="Range: 0~1, Default: 0.6" title="Generally use 0.5~0.8; estimate using the UV index&#10;Use 0.7 for strong UV; use 0.4 with more cloud cover&#10;Leave blank to use the default value 0.6">
                     </label>
                     <label class="text-xs text-trail-mid">
-                        <span style="display:inline-block; padding-left:0.5rem;">Solar Altitude Angle / °</span>
+                        <span class="weather-unit-label">Solar Altitude Angle / °</span>
                         <input id="solarAltitudeAngle" type="number" step="any" min="0" max="90" class="weather-adv-input w-full mt-1 rounded-lg border p-2" placeholder="Range: 0~90, Default: 45" title="30°~60°; leave blank to use the default value 45°">
                     </label>
                 </div>
@@ -671,7 +710,7 @@
             <p class="text-sm text-trail-mid/60 mb-6">Based on the route assessment and weather. Carry less if your pace is quick or you can resupply along the way.</p>
             <p id="equipmentElevationNotice" class="no-elevation-notice hidden" role="status">The track does not contain valid elevation data, so elevation-specific recommendations cannot be generated.</p>
 
-            <div class="grid md:grid-cols-3 gap-6">
+            <div class="equipment-grid">
                 <!-- Essential Equipment -->
                 <div>
                     <div class="equipment-section-header">
@@ -756,17 +795,17 @@
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <button id="firstPageBtn" class="pagination-btn" title="First Page">
+                    <button id="firstPageBtn" class="pagination-btn" title="First Page" aria-label="First Page">
                         <i class="fa-solid fa-angles-left"></i>
                     </button>
-                    <button id="prevPageBtn" class="pagination-btn" title="Previous Page">
+                    <button id="prevPageBtn" class="pagination-btn" title="Previous Page" aria-label="Previous Page">
                         <i class="fa-solid fa-angle-left"></i>
                     </button>
                     <span id="pageInfo" class="text-xs text-trail-mid/70 px-2">Page 1/1</span>
-                    <button id="nextPageBtn" class="pagination-btn" title="Next Page">
+                    <button id="nextPageBtn" class="pagination-btn" title="Next Page" aria-label="Next Page">
                         <i class="fa-solid fa-angle-right"></i>
                     </button>
-                    <button id="lastPageBtn" class="pagination-btn" title="Last Page">
+                    <button id="lastPageBtn" class="pagination-btn" title="Last Page" aria-label="Last Page">
                         <i class="fa-solid fa-angles-right"></i>
                     </button>
                 </div>
@@ -832,8 +871,10 @@
 
     <!-- Footer -->
     <footer class="max-w-7xl mx-auto px-6 py-8 text-center">
-        <p class="text-xs text-trail-mid/50">
-            TrailScope · GPX track Analyzer · All processing stays on your device · <a href='https://github.com/GSUI5051/TrailScope' class="theme-link"><span>FOSS (GitHub)</span></a><br><br><br>
+        <p class="text-xs text-trail-mid/50 footer-copy">
+            TrailScope · GPX track Analyzer · All processing stays on your device · <a href='https://github.com/GSUI5051/TrailScope' class="theme-link"><span>FOSS (GitHub)</span></a>
+        </p>
+        <p class="text-xs text-trail-mid/50 footer-copy footer-copy-spaced">
             2026 · Girls' Space and Universe Institute
         </p>
     </footer>

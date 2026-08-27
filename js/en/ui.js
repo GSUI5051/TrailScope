@@ -147,7 +147,7 @@ function updateUI() {
     const diff = assessDifficulty(trackData);
     document.getElementById('difficultyScore').textContent = diff.overall;
     document.getElementById('difficultyLabel').textContent = diff.label;
-    document.getElementById('difficultyLabel').style.background = diff.color + '22';
+    document.getElementById('difficultyLabel').style.background = `color-mix(in srgb, ${diff.color} 13%, transparent)`;
     document.getElementById('difficultyLabel').style.color = diff.color;
 
     const circumference = 2 * Math.PI * 48;
@@ -210,9 +210,9 @@ function updateUI() {
     } else {
         risk.risks.forEach(r => {
             const colors = {
-                high: { bg: 'rgba(197, 75, 60, 0.1)', text: '#c54b3c', border: 'rgba(197, 75, 60, 0.2)' },
-                medium: { bg: 'rgba(212, 160, 23, 0.1)', text: '#d4a017', border: 'rgba(212, 160, 23, 0.2)' },
-                low: { bg: 'rgba(122, 148, 113, 0.1)', text: '#7a9471', border: 'rgba(122, 148, 113, 0.2)' }
+                high: { bg: 'var(--risk-high-bg)', text: 'var(--theme-red)', border: 'var(--risk-high-border)' },
+                medium: { bg: 'var(--risk-medium-bg)', text: 'var(--theme-amber)', border: 'var(--risk-medium-border)' },
+                low: { bg: 'var(--risk-low-bg)', text: 'var(--theme-sage)', border: 'var(--risk-low-border)' }
             };
             const c = colors[r.level];
 
@@ -232,8 +232,8 @@ function updateUI() {
     }
 
     document.getElementById('riskLevel').textContent = risk.riskLevel;
-    document.getElementById('riskLevel').style.color = risk.riskPercent > 60 ? '#c54b3c' : (risk.riskPercent > 30 ?
-        '#d4a017' : '#7a9471');
+    document.getElementById('riskLevel').style.color = risk.riskPercent > 60 ? 'var(--theme-red)' : (risk.riskPercent > 30 ?
+        'var(--theme-amber)' : 'var(--theme-sage)');
     setTimeout(() => {
         document.getElementById('riskIndicator').style.left = `calc(${risk.riskPercent}% - 2px)`;
     }, 300);
@@ -289,7 +289,7 @@ function updateUI() {
                 <div class="flex items-center gap-2 mb-3">
                     <i class="fa-solid fa-arrow-trend-up text-accent-red text-sm"></i>
                     <span class="text-sm font-semibold text-trail-dark">Uphill</span>
-                    <span class="text-xs text-trail-mid/50">(${UnitHelper.distanceLabel(trackData.uphillDistance, 1)})</span>
+                    <span class="text-xs text-trail-mid/50 num-font">(${UnitHelper.distanceLabel(trackData.uphillDistance, 1)})</span>
                 </div>
                 <div class="space-y-3">
                     ${dist.uphill.map(d => `
@@ -299,10 +299,10 @@ function updateUI() {
                                     <div class="w-3 h-3 rounded" style="background: ${d.color}"></div>
                                     <span class="text-xs text-trail-mid">${d.name}</span>
                                 </div>
-                                <span class="text-xs font-medium text-trail-dark">${d.percentage.toFixed(1)}%</span>
+                                <span class="text-xs font-medium text-trail-dark num-font">${d.percentage.toFixed(1)}%</span>
                             </div>
                             <div class="h-1.5 rounded-full bg-trail-sage/10 overflow-hidden mb-1">
-                                <div class="h-full rounded-full transition-all duration-700" style="width: 0%; background: ${d.color}" data-target="${d.percentage}"></div>
+                                <div class="h-full rounded-full bar-transition" style="width: 0%; background: ${d.color}" data-target="${d.percentage}"></div>
                             </div>
                             <div class="text-xs text-trail-mid/60 pl-5">${d.tip}</div>
                         </div>
@@ -313,7 +313,7 @@ function updateUI() {
                 <div class="flex items-center gap-2 mb-3">
                     <i class="fa-solid fa-arrow-trend-down text-accent-blue text-sm"></i>
                     <span class="text-sm font-semibold text-trail-dark">Downhill</span>
-                    <span class="text-xs text-trail-mid/50">(${UnitHelper.distanceLabel(trackData.downhillDistance, 1)})</span>
+                    <span class="text-xs text-trail-mid/50 num-font">(${UnitHelper.distanceLabel(trackData.downhillDistance, 1)})</span>
                 </div>
                 <div class="space-y-3">
                     ${dist.downhill.map(d => `
@@ -323,10 +323,10 @@ function updateUI() {
                                     <div class="w-3 h-3 rounded" style="background: ${d.color}"></div>
                                     <span class="text-xs text-trail-mid">${d.name}</span>
                                 </div>
-                                <span class="text-xs font-medium text-trail-dark">${d.percentage.toFixed(1)}%</span>
+                                <span class="text-xs font-medium text-trail-dark num-font">${d.percentage.toFixed(1)}%</span>
                             </div>
                             <div class="h-1.5 rounded-full bg-trail-sage/10 overflow-hidden mb-1">
-                                <div class="h-full rounded-full transition-all duration-700" style="width: 0%; background: ${d.color}" data-target="${d.percentage}"></div>
+                                <div class="h-full rounded-full bar-transition" style="width: 0%; background: ${d.color}" data-target="${d.percentage}"></div>
                             </div>
                             <div class="text-xs text-trail-mid/60 pl-5">${d.tip}</div>
                         </div>
@@ -372,7 +372,7 @@ function updateUI() {
                     </div>
                     <span class="text-trail-mid/70">${item.label}</span>
                 </div>
-                <span class="font-semibold text-trail-dark">${item.value}</span>
+                <span class="font-semibold text-trail-dark num-font">${item.value}</span>
             </div>
             `).join('');
 }
@@ -404,16 +404,16 @@ function updateSegments() {
     const pageSegments = allSegments.slice(startIndex, endIndex);
 
     const typeConfig = {
-        climb: { label: 'Climb', color: '#c54b3c', bg: 'rgba(197, 75, 60, 0.1)', icon: 'fa-arrow-trend-up' },
-        descent: { label: 'Descend', color: '#3a6b8a', bg: 'rgba(58, 107, 138, 0.1)', icon: 'fa-arrow-trend-down' },
-        mixed: { label: 'Mixed', color: '#8b7355', bg: 'rgba(139, 115, 85, 0.1)', icon: 'fa-arrows-up-down' },
-        flat: { label: 'Flat', color: '#7a9471', bg: 'rgba(122, 148, 113, 0.1)', icon: 'fa-minus' }
+        climb: { label: 'Climb', icon: 'fa-arrow-trend-up' },
+        descent: { label: 'Descend', icon: 'fa-arrow-trend-down' },
+        mixed: { label: 'Mixed', icon: 'fa-arrows-up-down' },
+        flat: { label: 'Flat', icon: 'fa-minus' }
     };
 
     pageSegments.forEach((seg, pageIdx) => {
         const globalIdx = startIndex + pageIdx;
         const tc = typeConfig[seg.type] || typeConfig.flat;
-        const diffColor = seg.difficulty < 30 ? '#7a9471' : (seg.difficulty < 60 ? '#d4a017' : '#c54b3c');
+        const diffColor = seg.difficulty < 30 ? 'var(--theme-sage)' : (seg.difficulty < 60 ? 'var(--theme-amber)' : 'var(--theme-red)');
 
         const row = document.createElement('tr');
         row.className = 'segment-row border-b border-trail-sage/10';
@@ -423,7 +423,7 @@ function updateSegments() {
 
         const distDisplay = UnitHelper.distanceLabel(seg.distance, 2);
         const typeDisplay = missingElevation ? 'N/A' : `
-                    <span class="seg-type-${seg.type} inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium" style="background: ${tc.bg}; color: ${tc.color}">
+                    <span class="seg-type-${seg.type} inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium">
                         <i class="fa-solid ${tc.icon} text-xs"></i>
                         ${tc.label}
                     </span>`;
@@ -433,7 +433,7 @@ function updateSegments() {
         const downhillAvgDisplay = missingElevation ? 'N/A' : `-${seg.downhillAvg.toFixed(1)}%`;
         const maxUphillDisplay = missingElevation ? 'N/A' : `+${seg.maxUphillGrad.toFixed(1)}%`;
         const maxDownhillDisplay = missingElevation ? 'N/A' : `${seg.maxDownhillGrad.toFixed(1)}%`;
-        const durationDisplay = missingElevation ? 'N/A' : `${seg.time.toFixed(1)}h`;
+        const durationDisplay = missingElevation ? 'N/A' : `${seg.time.toFixed(1)} h`;
         const ratingDisplay = missingElevation ? 'N/A' : `
                     <div class="inline-flex items-center gap-2">
                         <div class="w-12 h-1.5 rounded-full bg-trail-sage/15 overflow-hidden">
@@ -446,14 +446,14 @@ function updateSegments() {
                     <span class="segment-number inline-flex items-center justify-center w-6 h-6 rounded-lg bg-trail-sage/15 text-xs font-bold text-trail-mid" data-segment-idx="${globalIdx}">${globalIdx + 1}</span>
                 </td>
                 <td class="py-3 px-2 text-center">${typeDisplay}</td>
-                <td class="py-3 px-2 text-center font-medium text-trail-dark">${distDisplay}</td>
-                <td class="py-3 px-2 text-center text-accent-red">${ascentDisplay}</td>
-                <td class="py-3 px-2 text-center text-accent-blue">${descentDisplay}</td>
-                <td class="py-3 px-2 text-center font-medium"${missingElevation ? '' : ` style="color: ${getUphillColor(Math.max(0, seg.uphillAvg))};"`}>${uphillAvgDisplay}</td>
-                <td class="py-3 px-2 text-center font-medium"${missingElevation ? '' : ` style="color: ${getDownhillColor(Math.min(0, seg.downhillAvg))};"`}>${downhillAvgDisplay}</td>
-                <td class="py-3 px-2 text-center font-medium"${missingElevation ? '' : ` style="color: ${getUphillColor(Math.max(0, seg.maxUphillGrad))};"`}>${maxUphillDisplay}</td>
-                <td class="py-3 px-2 text-center font-medium"${missingElevation ? '' : ` style="color: ${getDownhillColor(Math.min(0, seg.maxDownhillGrad))};"`}>${maxDownhillDisplay}</td>
-                <td class="py-3 px-2 text-center font-medium text-trail-dark">${durationDisplay}</td>
+                <td class="py-3 px-2 text-center font-medium text-trail-dark num-font">${distDisplay}</td>
+                <td class="py-3 px-2 text-center text-accent-red num-font">${ascentDisplay}</td>
+                <td class="py-3 px-2 text-center text-accent-blue num-font">${descentDisplay}</td>
+                <td class="py-3 px-2 text-center font-medium num-font"${missingElevation ? '' : ` style="color: ${getUphillColor(Math.max(0, seg.uphillAvg))};"`}>${uphillAvgDisplay}</td>
+                <td class="py-3 px-2 text-center font-medium num-font"${missingElevation ? '' : ` style="color: ${getDownhillColor(Math.min(0, seg.downhillAvg))};"`}>${downhillAvgDisplay}</td>
+                <td class="py-3 px-2 text-center font-medium num-font"${missingElevation ? '' : ` style="color: ${getUphillColor(Math.max(0, seg.maxUphillGrad))};"`}>${maxUphillDisplay}</td>
+                <td class="py-3 px-2 text-center font-medium num-font"${missingElevation ? '' : ` style="color: ${getDownhillColor(Math.min(0, seg.maxDownhillGrad))};"`}>${maxDownhillDisplay}</td>
+                <td class="py-3 px-2 text-center font-medium text-trail-dark num-font">${durationDisplay}</td>
                 <td class="py-3 px-2 text-center">${ratingDisplay}</td>
                 `;
 
@@ -831,7 +831,7 @@ function enterMapFullscreen() {
     panel.innerHTML = `
             <div class="flex items-center justify-between gap-2 mb-2">
                 <div id="fullscreenProfileLegend" class="flex-1"></div>
-                <div class="flex items-center gap-2 flex-shrink-0">
+                <div class="flex items-center gap-2 flex-shrink-0 fs-fullscreen-btns">
                     <button onclick="toggleAnnotations()" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">
                         <i class="fa-solid fa-eye"></i> <span id="fullscreenAnnotationLabel">${showAnnotations ? 'Hide Annotations' : 'Show Annotations'}</span>
                     </button>
@@ -867,7 +867,7 @@ function enterMapFullscreen() {
     }
 
     const legendHtml = `
-            <div class="flex items-center gap-4 flex-wrap" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <div class="flex items-center gap-4 flex-wrap fs-legend-wrapper" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                 <div id="fs-gradientLegend" class="flex items-center gap-4">
                     <div class="flex items-center gap-2">
                         <span class="font-medium text-trail-mid/70 text-xs">Uphill </span>
@@ -885,17 +885,17 @@ function enterMapFullscreen() {
                     <div class="w-24 h-3 rounded grad-bar-elevation"></div>
                     <span class="text-xs text-trail-mid/70">Low → High</span>
                 </div>
-                <div class="flex items-center gap-3" style="display: flex; align-items: center; gap: 10px; margin-left: 4px;">
+                <div class="flex items-center gap-3 fs-location-legend" style="display: flex; align-items: center; gap: 10px; margin-left: 4px;">
                     <div class="flex items-center gap-1.5">
-                        <div class="w-2.5 h-2.5 rounded-full" style="background: #c54b3c; flex-shrink: 0;"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-accent-red flex-shrink-0"></div>
                         <span class="text-xs text-trail-mid/70">Current Location</span>
                     </div>
                     <div class="flex items-center gap-1.5">
-                        <div class="w-2.5 h-2.5 rounded-full" style="background: #5c7a52; flex-shrink: 0;"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-trail-moss flex-shrink-0"></div>
                         <span class="text-xs text-trail-mid/70">Start</span>
                     </div>
                     <div class="flex items-center gap-1.5">
-                        <div class="w-2.5 h-2.5 rounded-full" style="background: #c54b3c; flex-shrink: 0;"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-accent-red flex-shrink-0"></div>
                         <span class="text-xs text-trail-mid/70">Finish</span>
                     </div>
                 </div>
