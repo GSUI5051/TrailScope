@@ -243,7 +243,7 @@ function updateUI() {
             <div class="flex items-center gap-2 mb-3">
               <i class="fa-solid fa-arrow-trend-up text-accent-red text-sm"></i>
               <span class="text-sm font-semibold text-trail-dark">上坡分布</span>
-              <span class="text-xs text-trail-mid/50 num-font">(${trackData.uphillDistance.toFixed(1)}km)</span>
+              <span class="text-xs text-trail-mid/50 num-font">${trackData.uphillDistance.toFixed(1)} km</span>
             </div>
             <div class="space-y-3">
               ${dist.uphill.map(d => `
@@ -267,7 +267,7 @@ function updateUI() {
             <div class="flex items-center gap-2 mb-3">
               <i class="fa-solid fa-arrow-trend-down text-accent-blue text-sm"></i>
               <span class="text-sm font-semibold text-trail-dark">下坡分布</span>
-              <span class="text-xs text-trail-mid/50 num-font">(${trackData.downhillDistance.toFixed(1)}km)</span>
+              <span class="text-xs text-trail-mid/50 num-font">${trackData.downhillDistance.toFixed(1)} km</span>
             </div>
             <div class="space-y-3">
               ${dist.downhill.map(d => `
@@ -402,8 +402,8 @@ function updateSegments() {
               </span>
             </td>
             <td class="py-3 px-2 text-center font-medium text-trail-dark num-font">${seg.distance.toFixed(2)} km</td>
-            <td class="py-3 px-2 text-center text-accent-red num-font">${Math.round(seg.ascent)}m</td>
-            <td class="py-3 px-2 text-center text-accent-blue num-font">${Math.round(seg.descent)}m</td>
+            <td class="py-3 px-2 text-center text-accent-red num-font">${Math.round(seg.ascent)} m</td>
+            <td class="py-3 px-2 text-center text-accent-blue num-font">${Math.round(seg.descent)} m</td>
             <td class="py-3 px-2 text-center font-medium num-font" style="color: ${getUphillColor(Math.max(0, seg.uphillAvg))};">+${seg.uphillAvg.toFixed(1)}%</td>
             <td class="py-3 px-2 text-center font-medium num-font" style="color: ${getDownhillColor(Math.min(0, seg.downhillAvg))};">-${seg.downhillAvg.toFixed(1)}%</td>
             <td class="py-3 px-2 text-center font-medium num-font" style="color: ${getUphillColor(Math.max(0, seg.maxUphillGrad))};">+${seg.maxUphillGrad.toFixed(1)}%</td>
