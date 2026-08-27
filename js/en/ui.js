@@ -47,24 +47,89 @@ function updatePaginationControls() {
 
     pageSize = parseInt(pageSizeSelect.value);
 }
+function setTrailElementVisible(id, visible) {
+    const element = document.getElementById(id);
+    if (element) element.classList.toggle('hidden', !visible);
+}
+
+function syncSegmentElevationAvailability() {
+    const missingElevation = !!trackData && !trackData.hasValidElevation;
+    const gradeUnavailable = missingElevation && segmentMode === 'auto';
+    const notice = document.getElementById('segmentElevationNotice');
+
+    setTrailElementVisible('segmentSummary', !gradeUnavailable);
+    setTrailElementVisible('segmentTableContainer', !gradeUnavailable);
+    setTrailElementVisible('segmentElevationNotice', missingElevation);
+
+    if (notice && missingElevation) {
+        if (segmentMode === 'auto') {
+            notice.textContent = 'The track does not contain valid elevation data, so grade-based sections are unavailable.';
+        } else if (segmentMode === 'waypoint') {
+            notice.textContent = 'The track does not contain valid elevation data, so distances between waypoints may be inaccurate.';
+        } else {
+            notice.textContent = 'The track does not contain valid elevation data, so fixed-distance section measurements may be inaccurate.';
+        }
+    }
+}
+
+function syncElevationAvailabilityUI() {
+    const hasTrack = !!trackData;
+    const missingElevation = hasTrack && !trackData.hasValidElevation;
+    const showRouteWarning = hasTrack && !!isRteptTrack;
+
+    setTrailElementVisible('warningText', showRouteWarning);
+    setTrailElementVisible('noElevationImportWarning', missingElevation);
+    setTrailElementVisible('trackWarnings', showRouteWarning || missingElevation);
+
+    setTrailElementVisible('mapInfoElevationRow', !missingElevation);
+    setTrailElementVisible('mapInfoGradeRow', !missingElevation);
+    setTrailElementVisible('elevationProfileControls', !missingElevation);
+    setTrailElementVisible('noElevationProfileNotice', missingElevation);
+    setTrailElementVisible('elevationProfileContent', !missingElevation);
+
+    setTrailElementVisible('difficultyElevationNotice', missingElevation);
+    setTrailElementVisible('difficultyContent', !missingElevation);
+    setTrailElementVisible('timeElevationNotice', missingElevation);
+    setTrailElementVisible('riskElevationNotice', missingElevation);
+    setTrailElementVisible('weatherElevationNotice', missingElevation);
+    setTrailElementVisible('equipmentElevationNotice', missingElevation);
+
+    setTrailElementVisible('gradientDistributionSubtitle', !missingElevation);
+    setTrailElementVisible('gradientDistribution', !missingElevation);
+    setTrailElementVisible('gradientDistributionNotice', missingElevation);
+    setTrailElementVisible('routeSummarySubtitle', !missingElevation);
+    setTrailElementVisible('routeSummary', !missingElevation);
+    setTrailElementVisible('routeSummaryNotice', missingElevation);
+
+    syncSegmentElevationAvailability();
+}
+
+function alertIfElevationUnavailable() {
+    if (trackData && !trackData.hasValidElevation) {
+        alert('The track does not contain valid elevation data, so elevation-based analysis is unavailable.');
+    }
+}
+
 function updateUI() {
     if (!trackData) return;
 
     document.getElementById('analysis').classList.remove('hidden');
     document.getElementById('emptyState').classList.add('hidden');
     document.getElementById('analysis').classList.add('fade-in');
+    syncElevationAvailabilityUI();
 
     document.getElementById('statDistance').textContent = UnitHelper.distance(trackData.totalDistance, 2);
     document.getElementById('statDistanceUnit').textContent = UnitHelper.distanceUnit();
 
-    document.getElementById('statAscent').textContent = UnitHelper.elevation(trackData.totalAscent, 0);
-    document.getElementById('statAscentUnit').textContent = UnitHelper.elevationUnit();
+    const elevationStatValue = trackData.hasValidElevation ? null : 'N/A';
+    document.getElementById('statAscent').textContent = elevationStatValue || UnitHelper.elevation(trackData.totalAscent, 0);
+    document.getElementById('statAscentUnit').textContent = elevationStatValue || UnitHelper.elevationUnit();
 
-    document.getElementById('statDescent').textContent = UnitHelper.elevation(trackData.totalDescent, 0);
-    document.getElementById('statDescentUnit').textContent = UnitHelper.elevationUnit();
+    document.getElementById('statDescent').textContent = elevationStatValue || UnitHelper.elevation(trackData.totalDescent, 0);
+    document.getElementById('statDescentUnit').textContent = elevationStatValue || UnitHelper.elevationUnit();
 
-    document.getElementById('statMaxElev').textContent = UnitHelper.elevation(trackData.maxElevation, 0);
-    document.getElementById('statMaxElevUnit').textContent = UnitHelper.elevationUnit();
+    document.getElementById('statMaxElev').textContent = elevationStatValue || UnitHelper.elevation(trackData.maxElevation, 0);
+    document.getElementById('statMaxElevUnit').textContent = elevationStatValue || UnitHelper.elevationUnit();
 
     if (!leafletMap) {
         initMap();
@@ -210,8 +275,15 @@ function updateUI() {
 
     updateSegments();
 
-    const dist = calculateGradientDistribution(trackData);
     const distContainer = document.getElementById('gradientDistribution');
+    const summaryContainer = document.getElementById('routeSummary');
+    if (!trackData.hasValidElevation) {
+        distContainer.innerHTML = '';
+        summaryContainer.innerHTML = '';
+        return;
+    }
+
+    const dist = calculateGradientDistribution(trackData);
     distContainer.innerHTML = `
             <div>
                 <div class="flex items-center gap-2 mb-3">
@@ -269,7 +341,6 @@ function updateUI() {
         });
     }, 300);
 
-    const summaryContainer = document.getElementById('routeSummary');
     const summaryItems = [
         { label: 'Start Elevation', value: UnitHelper.elevationLabel(trackData.points[0].ele, 0), icon: 'fa-flag' },
         { label: 'Finish Elevation', value: UnitHelper.elevationLabel(trackData.points[trackData.points.length - 1]
@@ -306,6 +377,20 @@ function updateUI() {
             `).join('');
 }
 function updateSegments() {
+    const missingElevation = !trackData.hasValidElevation;
+    const gradeUnavailable = missingElevation && segmentMode === 'auto';
+    const tbody = document.getElementById('segmentTable');
+    tbody.innerHTML = '';
+    syncSegmentElevationAvailability();
+
+    if (gradeUnavailable) {
+        resetSegmentAnalysisCache();
+        totalSegments = 0;
+        document.getElementById('segmentTotalCount').textContent = '';
+        document.getElementById('paginationContainer').classList.add('hidden');
+        return;
+    }
+
     allSegments = analyzeSegments(trackData, segmentMode);
     totalSegments = allSegments.length;
 
@@ -317,9 +402,6 @@ function updateSegments() {
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = Math.min(startIndex + pageSize, totalSegments);
     const pageSegments = allSegments.slice(startIndex, endIndex);
-
-    const tbody = document.getElementById('segmentTable');
-    tbody.innerHTML = '';
 
     const typeConfig = {
         climb: { label: 'Climb', color: '#c54b3c', bg: 'rgba(197, 75, 60, 0.1)', icon: 'fa-arrow-trend-up' },
@@ -340,34 +422,39 @@ function updateSegments() {
         }
 
         const distDisplay = UnitHelper.distanceLabel(seg.distance, 2);
-        const ascentDisplay = UnitHelper.elevationLabel(seg.ascent, 0);
-        const descentDisplay = UnitHelper.elevationLabel(seg.descent, 0);
+        const typeDisplay = missingElevation ? 'N/A' : `
+                    <span class="seg-type-${seg.type} inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium" style="background: ${tc.bg}; color: ${tc.color}">
+                        <i class="fa-solid ${tc.icon} text-xs"></i>
+                        ${tc.label}
+                    </span>`;
+        const ascentDisplay = missingElevation ? 'N/A' : UnitHelper.elevationLabel(seg.ascent, 0);
+        const descentDisplay = missingElevation ? 'N/A' : UnitHelper.elevationLabel(seg.descent, 0);
+        const uphillAvgDisplay = missingElevation ? 'N/A' : `+${seg.uphillAvg.toFixed(1)}%`;
+        const downhillAvgDisplay = missingElevation ? 'N/A' : `-${seg.downhillAvg.toFixed(1)}%`;
+        const maxUphillDisplay = missingElevation ? 'N/A' : `+${seg.maxUphillGrad.toFixed(1)}%`;
+        const maxDownhillDisplay = missingElevation ? 'N/A' : `${seg.maxDownhillGrad.toFixed(1)}%`;
+        const durationDisplay = missingElevation ? 'N/A' : `${seg.time.toFixed(1)}h`;
+        const ratingDisplay = missingElevation ? 'N/A' : `
+                    <div class="inline-flex items-center gap-2">
+                        <div class="w-12 h-1.5 rounded-full bg-trail-sage/15 overflow-hidden">
+                            <div class="h-full rounded-full" style="width: ${seg.difficulty}%; background: ${diffColor}"></div>
+                        </div>
+                    </div>`;
 
         row.innerHTML = `
                 <td class="py-3 px-2 text-center">
                     <span class="segment-number inline-flex items-center justify-center w-6 h-6 rounded-lg bg-trail-sage/15 text-xs font-bold text-trail-mid" data-segment-idx="${globalIdx}">${globalIdx + 1}</span>
                 </td>
-                <td class="py-3 px-2 text-center">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium" style="background: ${tc.bg}; color: ${tc.color}">
-                        <i class="fa-solid ${tc.icon} text-xs"></i>
-                        ${tc.label}
-                    </span>
-                </td>
+                <td class="py-3 px-2 text-center">${typeDisplay}</td>
                 <td class="py-3 px-2 text-center font-medium text-trail-dark">${distDisplay}</td>
                 <td class="py-3 px-2 text-center text-accent-red">${ascentDisplay}</td>
                 <td class="py-3 px-2 text-center text-accent-blue">${descentDisplay}</td>
-                <td class="py-3 px-2 text-center font-medium" style="color: ${getUphillColor(Math.max(0, seg.uphillAvg))};">+${seg.uphillAvg.toFixed(1)}%</td>
-                <td class="py-3 px-2 text-center font-medium" style="color: ${getDownhillColor(Math.min(0, seg.downhillAvg))};">-${seg.downhillAvg.toFixed(1)}%</td>
-                <td class="py-3 px-2 text-center font-medium" style="color: ${getUphillColor(Math.max(0, seg.maxUphillGrad))};">+${seg.maxUphillGrad.toFixed(1)}%</td>
-                <td class="py-3 px-2 text-center font-medium" style="color: ${getDownhillColor(Math.min(0, seg.maxDownhillGrad))};">${seg.maxDownhillGrad.toFixed(1)}%</td>
-                <td class="py-3 px-2 text-center font-medium text-trail-dark">${seg.time.toFixed(1)}h</td>
-                <td class="py-3 px-2 text-center">
-                    <div class="inline-flex items-center gap-2">
-                        <div class="w-12 h-1.5 rounded-full bg-trail-sage/15 overflow-hidden">
-                            <div class="h-full rounded-full" style="width: ${seg.difficulty}%; background: ${diffColor}"></div>
-                        </div>
-                    </div>
-                </td>
+                <td class="py-3 px-2 text-center font-medium"${missingElevation ? '' : ` style="color: ${getUphillColor(Math.max(0, seg.uphillAvg))};"`}>${uphillAvgDisplay}</td>
+                <td class="py-3 px-2 text-center font-medium"${missingElevation ? '' : ` style="color: ${getDownhillColor(Math.min(0, seg.downhillAvg))};"`}>${downhillAvgDisplay}</td>
+                <td class="py-3 px-2 text-center font-medium"${missingElevation ? '' : ` style="color: ${getUphillColor(Math.max(0, seg.maxUphillGrad))};"`}>${maxUphillDisplay}</td>
+                <td class="py-3 px-2 text-center font-medium"${missingElevation ? '' : ` style="color: ${getDownhillColor(Math.min(0, seg.maxDownhillGrad))};"`}>${maxDownhillDisplay}</td>
+                <td class="py-3 px-2 text-center font-medium text-trail-dark">${durationDisplay}</td>
+                <td class="py-3 px-2 text-center">${ratingDisplay}</td>
                 `;
 
         row.addEventListener('click', () => {
@@ -462,6 +549,7 @@ async function handleFile(file) {
         clearRenderedTrackLayers();
         resetSegmentAnalysisCache();
         trackData = nextTrackData;
+        isRteptTrack = !!isRtept;
         document.getElementById('clearFileBtn').classList.remove('hidden');
         zoomLevel = 1;
         zoomCenter = 0.5;
@@ -472,12 +560,6 @@ async function handleFile(file) {
 
         hideWaypointInfoOverlay();
 
-        if (isRtept) {
-            document.getElementById('warningText').classList.remove('hidden');
-        } else {
-            document.getElementById('warningText').classList.add('hidden');
-        }
-
         if (IS_MOBILE) {
             clearMobileVLine();
         }
@@ -486,6 +568,7 @@ async function handleFile(file) {
         updateWaypointButton();
 
         updateUI();
+        alertIfElevationUnavailable();
         showToast('Track analysis complete', 'success');
     } catch (err) {
         if (loadGeneration !== fileLoadGeneration) return;
@@ -503,8 +586,10 @@ function clearFile() {
     document.getElementById('fileInput').value = '';
     document.getElementById('fileName').textContent = 'No GPX, KML, or KMZ file loaded';
     document.getElementById('clearFileBtn').classList.add('hidden');
-    document.getElementById('warningText').classList.add('hidden');
     trackData = null;
+    isRteptTrack = false;
+    syncElevationAvailabilityUI();
+    document.getElementById('mapContainer')?.classList.remove('no-elevation-profile');
     document.getElementById('analysis').classList.add('hidden');
     document.getElementById('emptyState').classList.remove('hidden');
     document.getElementById('waypointInfo').classList.add('hidden');
@@ -577,6 +662,7 @@ function loadDemoData() {
                 if (loadGeneration !== fileLoadGeneration) return;
                 resetSegmentAnalysisCache();
                 trackData = nextTrackData;
+                isRteptTrack = !!isRtept;
 
                 document.getElementById('clearFileBtn').classList.remove('hidden');
 
@@ -593,12 +679,6 @@ function loadDemoData() {
                     clearMobileVLine();
                 }
 
-                if (isRtept) {
-                    document.getElementById('warningText').classList.remove('hidden');
-                } else {
-                    document.getElementById('warningText').classList.add('hidden');
-                }
-
                 document.getElementById('fileName').textContent = 'demo.gpx';
                 document.getElementById('fileInfo').classList.remove('hidden');
 
@@ -606,6 +686,7 @@ function loadDemoData() {
                 updateWaypointButton();
 
                 updateUI();
+                alertIfElevationUnavailable();
 
                 showToast('Demo track loaded', 'success');
 
@@ -621,6 +702,7 @@ function loadDemoData() {
 }
 function updateFullscreenButton(fullscreen) {
     const btn = document.getElementById('mapFullscreenBtn');
+    if (!fullscreen) document.getElementById('mapContainer')?.classList.remove('no-elevation-profile');
     if (!btn) return;
     btn.title = fullscreen ? 'Exit Fullscreen' : 'Fullscreen';
     btn.innerHTML = fullscreen ?
@@ -683,12 +765,16 @@ function enterMapFullscreen() {
         fullscreenSavedZoom = leafletMap.getZoom();
     }
 
-    normalChartCanvas = document.getElementById('elevationChart');
+    const hasElevation = !!trackData?.hasValidElevation;
+    normalChartCanvas = hasElevation ? document.getElementById('elevationChart') : null;
 
     map.classList.add('map-fullscreen-chart');
+    map.classList.toggle('no-elevation-profile', !hasElevation);
 
-    if (IS_MOBILE && isPortraitViewport()) {
+    if (hasElevation && IS_MOBILE && isPortraitViewport()) {
         map.classList.add('portrait-mode');
+    } else {
+        map.classList.remove('portrait-mode');
     }
 
     document.getElementById('mapLocationLegend')?.classList.add('hidden');
@@ -703,10 +789,11 @@ function enterMapFullscreen() {
     toolbar.innerHTML = `
             <div class="flex items-center gap-2 justify-between w-full">
                 <div class="flex items-center gap-2 ml-auto">
+                    ${hasElevation ? `
                     <select id="fullscreenColorModeSelect" class="color-mode-select" title="Coloring Mode" onchange="document.getElementById('colorModeSelect').value=this.value; changeColorMode();">
                         <option value="gradient">Grade</option>
                         <option value="elevation">Elevation</option>
-                    </select>
+                    </select>` : ''}
                     <select id="fullscreenMapSourceSelect" class="map-source-select" title="Map Source" onchange="document.getElementById('mapSourceSelect').value=this.value; changeMapSource();"></select>
                 </div>
             </div>
@@ -716,6 +803,27 @@ function enterMapFullscreen() {
     // ★★★ Fullscreen map-source options are cloned from the main HTML dropdown,
     // so the main list is the single source of truth ★★★
     syncFullscreenMapSourceSelect();
+
+    if (!hasElevation) {
+        document.getElementById('fullscreenMapSourceSelect').value = currentMapSource;
+        leafletMap?.invalidateSize();
+        reAnchorMapView(true);
+        updateFullscreenButton(true);
+        map.requestFullscreen?.();
+
+        const entryGeneration = ++fullscreenEntryGeneration;
+        if (fullscreenEntryTimer) clearTimeout(fullscreenEntryTimer);
+        fullscreenEntryTimer = setTimeout(() => {
+            fullscreenEntryTimer = null;
+            if (entryGeneration !== fullscreenEntryGeneration ||
+                !map.classList.contains('map-fullscreen-chart') ||
+                !map.classList.contains('no-elevation-profile')) return;
+            leafletMap?.invalidateSize();
+            reAnchorMapView(true);
+            updateFullscreenButton(true);
+        }, 300);
+        return;
+    }
 
     const panel = document.createElement('div');
     panel.className = 'fullscreen-profile';

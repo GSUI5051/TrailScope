@@ -36,37 +36,37 @@
 
         html[data-theme="dark"] {
             color-scheme: dark;
-            --theme-page-start: #09110c;
-            --theme-page-mid: #101c14;
-            --theme-page-mid-2: #1d1c15;
-            --theme-page-end: #382215;
-            --theme-surface-card: rgba(18, 32, 23, 0.9);
-            --theme-surface-raised: rgba(34, 53, 39, 0.72);
-            --theme-surface-control: #17271d;
-            --theme-surface-control-hover: #213629;
-            --theme-surface-soft: rgba(144, 174, 132, 0.12);
-            --theme-text-primary: #edf3e9;
-            --theme-text-secondary: #c7d6c3;
-            --theme-text-muted: rgba(199, 214, 195, 0.7);
-            --theme-border: rgba(151, 177, 140, 0.22);
-            --theme-border-card: rgba(151, 177, 140, 0.2);
-            --theme-shadow: 0 10px 34px rgba(0, 0, 0, 0.3);
-            --theme-shadow-hover: 0 14px 44px rgba(0, 0, 0, 0.4);
-            --theme-nav: rgba(10, 19, 13, 0.9);
+            --theme-page-start: #1a1c20;
+            --theme-page-mid: #1a1c20;
+            --theme-page-mid-2: #1a1c20;
+            --theme-page-end: #1a1c20;
+            --theme-surface-card: rgba(35, 38, 44, 0.9);
+            --theme-surface-raised: rgba(48, 52, 60, 0.72);
+            --theme-surface-control: #22252b;
+            --theme-surface-control-hover: #2a2e36;
+            --theme-surface-soft: rgba(148, 156, 170, 0.1);
+            --theme-text-primary: #e9eef6;
+            --theme-text-secondary: #bac7db;
+            --theme-text-muted: rgba(186, 199, 219, 0.7);
+            --theme-border: rgba(140, 147, 158, 0.2);
+            --theme-border-card: rgba(140, 147, 158, 0.18);
+            --theme-shadow: 0 10px 34px rgba(0, 0, 0, 0.34);
+            --theme-shadow-hover: 0 14px 44px rgba(0, 0, 0, 0.44);
+            --theme-nav: rgba(22, 24, 28, 0.92);
             --theme-link: #8fbcff;
-            --theme-active-bg: #355442;
-            --theme-active-hover: #42664f;
-            --theme-active-text: #f2f6ef;
-            --theme-active-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-            --theme-moss: #91b184;
-            --theme-sage: #a1b799;
+            --theme-active-bg: #363c48;
+            --theme-active-hover: #434a58;
+            --theme-active-text: #eef3fa;
+            --theme-active-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --theme-moss: #7ea6d4;
+            --theme-sage: #9cb8d8;
             --theme-earth: #c09a72;
             --theme-red: #e27665;
             --theme-amber: #e5b84f;
-            --theme-blue: #74aecb;
-            --theme-map-overlay: rgba(6, 17, 10, 0.8);
-            --theme-fullscreen-surface: rgba(18, 32, 23, 0.96);
-            --theme-fullscreen-portrait-surface: rgba(18, 32, 23, 0.97);
+            --theme-blue: #74b0dc;
+            --theme-map-overlay: rgba(10, 11, 13, 0.8);
+            --theme-fullscreen-surface: rgba(33, 36, 42, 0.96);
+            --theme-fullscreen-portrait-surface: rgba(33, 36, 42, 0.97);
         }
 
         body {
@@ -582,6 +582,25 @@
             font-weight: 500;
         }
 
+        .no-elevation-notice {
+            display: block;
+            margin-bottom: 1rem;
+            color: var(--theme-red);
+            background: rgba(197, 75, 60, 0.08);
+            border: 1px solid rgba(197, 75, 60, 0.24);
+            border-radius: 10px;
+            padding: 0.65rem 0.8rem;
+            font-size: 0.8125rem;
+            line-height: 1.5;
+            white-space: normal;
+            overflow-wrap: break-word;
+            word-break: normal;
+        }
+
+        .no-elevation-notice.hidden {
+            display: none;
+        }
+
         .nav-segment-btn {
             background: var(--theme-surface-control);
             border: none;
@@ -700,6 +719,21 @@
         }
         .map-fullscreen-chart .fullscreen-profile .tooltip {
             z-index: 10002;
+        }
+
+        .map-fullscreen-chart.no-elevation-profile .fullscreen-profile {
+            display: none !important;
+        }
+        .map-fullscreen-chart.no-elevation-profile .fullscreen-chart-toolbar {
+            bottom: 2%;
+        }
+        .map-fullscreen-chart.no-elevation-profile.portrait-mode #leafletMap {
+            top: 0;
+            bottom: 0;
+            height: 100% !important;
+        }
+        .map-fullscreen-chart.no-elevation-profile.portrait-mode .fullscreen-chart-toolbar {
+            bottom: 8px !important;
         }
 
         .map-fullscreen-chart.portrait-mode {
@@ -1161,33 +1195,60 @@
             background: var(--theme-map-overlay);
         }
 
-        /* 深色下已通过 CSS 滤镜压暗的图源（卫星图/路网图）不再叠加静态遮罩，避免双重压暗 */
-        html[data-theme="dark"] #leafletMap.dark-tile-filtered::after {
-            background: transparent;
+        /* 深色下图源已按各自滤镜压暗（dark-tile-filtered），遮罩只做一层轻量均匀再压暗，
+           避免 UI 基底加深后瓦片反而成为画面最亮块；轨迹在 overlay pane(400) 之上不受影响 */
+        /html[data-theme="dark"] #leafletMap.dark-tile-filtered::after {
+            background: rgba(14, 15, 18, 0.38);
         }
 
+        /* 深色背景为纯色 #1a1c20（四段 page 变量同值，.gradient-bg 退化为纯色），关闭氛围径向光斑 */
         html[data-theme="dark"] .mountain-bg {
-            background-image:
-                radial-gradient(ellipse at 20% 80%, rgba(120, 155, 108, 0.15) 0%, transparent 52%),
-                radial-gradient(ellipse at 80% 20%, rgba(169, 108, 62, 0.13) 0%, transparent 52%),
-                radial-gradient(ellipse at 50% 50%, rgba(67, 111, 128, 0.11) 0%, transparent 72%);
+            background-image: none;
         }
 
         html[data-theme="dark"] .to-accent-clay {
-            background-image: linear-gradient(to right, #91b184, #c09a72, #d98045) !important;
+            background-image: linear-gradient(to right, #7ea6d4, #c09a72, #d98045) !important;
+        }
+
+        /* 深色下重写 Tailwind 渐变端点变量：logo 瓦片与上传区图标瓦片，防止残留浅色森林绿 */
+        html[data-theme="dark"] .from-trail-mid {
+            --tw-gradient-from: #2a2e37 var(--tw-gradient-from-position);
+            --tw-gradient-to: rgba(42, 46, 55, 0) var(--tw-gradient-to-position);
+        }
+
+        html[data-theme="dark"] .to-trail-dark {
+            --tw-gradient-to: #191c22 var(--tw-gradient-to-position);
+        }
+
+        html[data-theme="dark"] .from-trail-sage\/20 {
+            --tw-gradient-from: rgba(150, 158, 172, 0.2) var(--tw-gradient-from-position);
+            --tw-gradient-to: rgba(150, 158, 172, 0) var(--tw-gradient-to-position);
+        }
+
+        html[data-theme="dark"] .from-trail-sage\/30 {
+            --tw-gradient-from: rgba(150, 158, 172, 0.3) var(--tw-gradient-from-position);
+            --tw-gradient-to: rgba(150, 158, 172, 0) var(--tw-gradient-to-position);
+        }
+
+        html[data-theme="dark"] .to-trail-moss\/10 {
+            --tw-gradient-to: rgba(96, 103, 114, 0.1) var(--tw-gradient-to-position);
+        }
+
+        html[data-theme="dark"] .to-trail-moss\/20 {
+            --tw-gradient-to: rgba(96, 103, 114, 0.2) var(--tw-gradient-to-position);
         }
 
         html[data-theme="dark"] #leafletMap,
         html[data-theme="dark"] .leaflet-container {
-            background: #0c1710;
+            background: #16181d;
         }
 
         html[data-theme="dark"] .glass-dark,
         html[data-theme="dark"] .tooltip,
         html[data-theme="dark"] .segment-tooltip,
         html[data-theme="dark"] .waypoint-popup-content {
-            background: rgba(8, 16, 11, 0.94);
-            border-color: rgba(151, 177, 140, 0.24);
+            background: rgba(24, 26, 31, 0.95);
+            border-color: rgba(140, 147, 158, 0.24);
         }
 
         html[data-theme="dark"] .text-trail-dark {
@@ -1200,15 +1261,15 @@
 
         html[data-theme="dark"] .text-trail-mid\/80,
         html[data-theme="dark"] .text-trail-mid\/70 {
-            color: rgba(199, 214, 195, 0.8) !important;
+            color: rgba(186, 199, 219, 0.8) !important;
         }
 
         html[data-theme="dark"] .text-trail-mid\/60 {
-            color: rgba(199, 214, 195, 0.7) !important;
+            color: rgba(186, 199, 219, 0.7) !important;
         }
 
         html[data-theme="dark"] .text-trail-mid\/50 {
-            color: rgba(199, 214, 195, 0.58) !important;
+            color: rgba(186, 199, 219, 0.58) !important;
         }
 
         html[data-theme="dark"] .text-trail-moss,
@@ -1245,7 +1306,7 @@
         }
 
         html[data-theme="dark"] .bg-trail-cream\/50 {
-            background-color: rgba(49, 70, 53, 0.58) !important;
+            background-color: rgba(44, 48, 56, 0.58) !important;
         }
 
         html[data-theme="dark"] .bg-trail-sage\/10,
@@ -1263,7 +1324,7 @@
         }
 
         /* Fitness level indicator dots: lit via classes so theme switching recolors them automatically.
-           Dark values follow the dark theme palette (--theme-moss/sage/amber/red, clay from to-accent-clay). */
+           Dark values keep the semantic lv1-lv2 green ramp; amber/clay/red follow --theme-amber, to-accent-clay and --theme-red. */
         .fitness-dot {
             transition: background-color 0.3s;
         }
@@ -1290,18 +1351,22 @@
         html[data-theme="dark"] .upload-zone.dragover,
         html[data-theme="dark"] .segment-row:hover,
         html[data-theme="dark"] .advanced-toggle-btn:hover {
-            background: rgba(145, 177, 132, 0.1);
+            background: rgba(126, 166, 212, 0.1);
+        }
+
+        html[data-theme="dark"] .upload-zone {
+            border-color: rgba(140, 147, 158, 0.4);
         }
 
         html[data-theme="dark"] .segment-row.active {
-            background: rgba(145, 177, 132, 0.17);
+            background: rgba(126, 166, 212, 0.17);
             border-left-color: var(--theme-moss);
         }
 
         html[data-theme="dark"] .seg-label-uniform,
         html[data-theme="dark"] .pagination-btn,
         html[data-theme="dark"] .seg-btn {
-            background: rgba(145, 177, 132, 0.14);
+            background: rgba(126, 166, 212, 0.14);
             color: var(--theme-text-secondary);
         }
 
@@ -1313,7 +1378,7 @@
         }
 
         html[data-theme="dark"] .equipment-item {
-            border-bottom-color: rgba(151, 177, 140, 0.14);
+            border-bottom-color: rgba(140, 147, 158, 0.14);
         }
 
         html[data-theme="dark"] input,
@@ -1327,38 +1392,38 @@
 
         html[data-theme="dark"] input::placeholder,
         html[data-theme="dark"] textarea::placeholder {
-            color: rgba(199, 214, 195, 0.48);
+            color: rgba(186, 199, 219, 0.48);
         }
 
         html[data-theme="dark"] input:focus,
         html[data-theme="dark"] select:focus,
         html[data-theme="dark"] textarea:focus {
             border-color: var(--theme-moss);
-            box-shadow: 0 0 0 3px rgba(145, 177, 132, 0.18);
+            box-shadow: 0 0 0 3px rgba(126, 166, 212, 0.18);
             outline: none;
         }
 
         html[data-theme="dark"] .leaflet-tooltip {
-            background: rgba(8, 16, 11, 0.94);
-            border-color: rgba(151, 177, 140, 0.3);
+            background: rgba(24, 26, 31, 0.95);
+            border-color: rgba(140, 147, 158, 0.3);
             color: var(--theme-text-primary);
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
         }
 
         html[data-theme="dark"] .leaflet-tooltip-top::before {
-            border-top-color: rgba(151, 177, 140, 0.3);
+            border-top-color: rgba(140, 147, 158, 0.3);
         }
 
         html[data-theme="dark"] .leaflet-tooltip-bottom::before {
-            border-bottom-color: rgba(151, 177, 140, 0.3);
+            border-bottom-color: rgba(140, 147, 158, 0.3);
         }
 
         html[data-theme="dark"] .leaflet-tooltip-left::before {
-            border-left-color: rgba(151, 177, 140, 0.3);
+            border-left-color: rgba(140, 147, 158, 0.3);
         }
 
         html[data-theme="dark"] .leaflet-tooltip-right::before {
-            border-right-color: rgba(151, 177, 140, 0.3);
+            border-right-color: rgba(140, 147, 158, 0.3);
         }
 
         html[data-theme="dark"] #weatherResult [style*="color:#0a2463"] {
@@ -1390,12 +1455,23 @@
             color: var(--theme-earth) !important;
         }
 
+        /* Segment type badges: inline colors stay for light mode; brighten text and frame on dark cards. */
+        html[data-theme="dark"] .seg-type-climb {
+            color: var(--theme-red) !important;
+            background: rgba(226, 118, 101, 0.16) !important;
+        }
+
+        html[data-theme="dark"] .seg-type-descent {
+            color: #6da0c4 !important;
+            background: rgba(109, 160, 196, 0.16) !important;
+        }
+
         html[data-theme="dark"] .map-fullscreen-chart {
             background: var(--theme-page-start);
         }
 
         html[data-theme="dark"] .scroll-thin {
-            scrollbar-color: rgba(151, 177, 140, 0.42) rgba(151, 177, 140, 0.1);
+            scrollbar-color: rgba(140, 147, 158, 0.42) rgba(140, 147, 158, 0.1);
         }
 
         @media (prefers-reduced-motion: reduce) {

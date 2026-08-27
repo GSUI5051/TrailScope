@@ -295,7 +295,12 @@ function drawMap(skipFit = false) {
 
             // 只有显示名称时才绑定弹出窗（显示名称信息）
             if (showNames) {
-                const popupContent = `
+                const popupContent = trackData.hasValidElevation === false ? `
+                    <div class="waypoint-popup-content">
+                      <strong>${wp.name}</strong><br/>
+                      <span class="waypoint-info-line">距离：${wp.distance.toFixed(2)} km</span><br/>
+                    </div>
+                  ` : `
                     <div class="waypoint-popup-content">
                       <strong>${wp.name}</strong><br/>
                       <span class="waypoint-info-line">距离：${wp.distance.toFixed(2)} km</span><br/>
@@ -369,13 +374,16 @@ function updateMapCurrentPoint(pointIdx) {
     const overlay = document.getElementById('mapInfoOverlay');
     overlay.classList.remove('hidden');
     document.getElementById('mapInfoDist').textContent = pt.distance.toFixed(2) + ' km';
-    const eleSpan = document.getElementById('mapInfoEle');
-    eleSpan.textContent = Math.round(pt.ele) + ' m';
-    eleSpan.style.color = getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation);
-    const gradSpan = document.getElementById('mapInfoGrad');
-    const gradLabel = getGradientLabel(pt.smoothedGradient);
-    gradSpan.textContent = (pt.smoothedGradient > 0 ? '+' : '') + pt.smoothedGradient.toFixed(1) + '% （' + gradLabel + '）';
-    gradSpan.style.color = getGradientColor(pt.smoothedGradient);
+    const hasElevation = trackData.hasValidElevation !== false;
+    if (hasElevation) {
+        const eleSpan = document.getElementById('mapInfoEle');
+        eleSpan.textContent = Math.round(pt.ele) + ' m';
+        eleSpan.style.color = getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation);
+        const gradSpan = document.getElementById('mapInfoGrad');
+        const gradLabel = getGradientLabel(pt.smoothedGradient);
+        gradSpan.textContent = (pt.smoothedGradient > 0 ? '+' : '') + pt.smoothedGradient.toFixed(1) + '% （' + gradLabel + '）';
+        gradSpan.style.color = getGradientColor(pt.smoothedGradient);
+    }
 
     if (pointChanged) {
         keepMapPointVisible(displayPos);

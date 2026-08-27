@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#f5f1e8" />
     <script src="js/common/theme-init.js"></script>
     <title>TrailScope · 徒步轨迹分析器</title>
     <link rel="stylesheet" href="css/tailwind.generated.css" />
@@ -103,10 +104,13 @@
                     <p class="text-sm text-trail-mid/70 leading-relaxed mb-3">
                         支持 .gpx、.kml、.kmz 格式文件。网页将解析轨迹中的经纬度与海拔数据，自动计算距离、坡度、累计爬升与下降，并生成分析报告。KMZ 内的图片、视频和语音附件会被忽略，但文字标注点会保留。所有计算均在本地浏览器完成。
                     </p>
-                    <p id="warningText" class="text-sm warning-text leading-relaxed mb-6 hidden">
-                        <i class="fa-solid fa-triangle-exclamation mr-1"></i>
-                        <b>导入的轨迹可能为手绘规划，非驴友实走，使用该轨迹徒步时需注意户外路况和人身安全。</b>
-                    </p>
+                    <div id="trackWarnings" class="hidden">
+                        <p id="warningText" class="text-sm warning-text leading-relaxed mb-6 hidden" role="status">
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                            <b>导入的轨迹可能为手绘规划，非驴友实走，使用该轨迹徒步时需注意户外路况和人身安全。</b>
+                        </p>
+                        <p id="noElevationImportWarning" class="no-elevation-notice hidden" role="status">轨迹未包含有效海拔数据，无法进行基于海拔的分析。</p>
+                    </div>
                     <div class="flex flex-wrap gap-3 text-xs text-trail-mid/60">
                         <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield text-trail-moss"></i> 本地解析</span>
                         <span class="flex items-center gap-1.5"><i class="fa-solid fa-bolt text-trail-earth"></i> 即时分析</span>
@@ -289,8 +293,8 @@
                     <div id="mapInfoOverlay" class="absolute top-3 left-3 px-3 py-2 rounded-xl glass-dark text-xs z-[1000] hidden">
                         <div class="space-y-0.5">
                             <div><span class="font-medium text-trail-cream">距离：</span><span id="mapInfoDist" class="font-medium text-trail-cream">—</span></div>
-                            <div><span class="font-medium text-trail-cream">海拔：</span><span id="mapInfoEle" class="font-medium text-trail-cream">—</span></div>
-                            <div><span class="font-medium text-trail-cream">坡度：</span><span id="mapInfoGrad" class="font-medium text-trail-cream">—</span></div>
+                            <div id="mapInfoElevationRow"><span class="font-medium text-trail-cream">海拔：</span><span id="mapInfoEle" class="font-medium text-trail-cream">—</span></div>
+                            <div id="mapInfoGradeRow"><span class="font-medium text-trail-cream">坡度：</span><span id="mapInfoGrad" class="font-medium text-trail-cream">—</span></div>
                         </div>
                     </div>
 
@@ -320,7 +324,7 @@
                             海拔剖面图
                         </h3>
                     </div>
-                    <div class="flex items-center gap-1.5 flex-wrap">
+                    <div id="elevationProfileControls" class="flex items-center gap-1.5 flex-wrap">
                         <button id="annotationBtn" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">
                             <i class="fa-solid fa-eye"></i>
                             <span id="annotationLabel">隐藏标注</span>
@@ -341,6 +345,9 @@
                     </div>
                 </div>
 
+                <p id="noElevationProfileNotice" class="no-elevation-notice hidden" role="status">轨迹未包含有效海拔数据，无法显示海拔剖面图</p>
+
+                <div id="elevationProfileContent">
                 <!-- Gradient Legend -->
                 <div class="flex flex-wrap items-center gap-4 mb-4 text-xs">
                     <select id="colorModeSelect" class="color-mode-select" title="切换颜色模式">
@@ -412,6 +419,7 @@
                         </button>
                     </div>
                 </div>
+                </div>
             </div>
         </div>
 
@@ -425,7 +433,9 @@
                     难度评级
                 </h3>
                 <p class="text-xs text-trail-mid/60 mb-5">基于距离、爬升、坡度进行综合评估</p>
+                <p id="difficultyElevationNotice" class="no-elevation-notice hidden" role="status">轨迹未包含有效海拔数据，无法进行难度评级</p>
 
+                <div id="difficultyContent">
                 <div class="text-center mb-5">
                     <div class="inline-flex items-center justify-center w-28 h-28 rounded-full relative">
                         <svg class="progress-ring absolute inset-0" width="112" height="112">
@@ -478,6 +488,7 @@
                         </div>
                     </div>
                 </div>
+                </div>
             </div>
 
             <!-- Time & Energy Estimate -->
@@ -487,6 +498,7 @@
                     耗时与体能需求
                 </h3>
                 <p class="text-xs text-trail-mid/60 mb-5">基于 Naismith 公式修正计算</p>
+                <p id="timeElevationNotice" class="no-elevation-notice hidden" role="status">轨迹未包含有效海拔数据，无法进行坡度修正</p>
 
                 <div class="space-y-4">
                     <div class="rounded-2xl bg-trail-sage/10 p-4">
@@ -538,6 +550,7 @@
                     风险提示
                 </h3>
                 <p class="text-xs text-trail-mid/60 mb-5">基于路线特征，识别潜在风险</p>
+                <p id="riskElevationNotice" class="no-elevation-notice hidden" role="status">轨迹未包含有效海拔数据，无法识别海拔、爬升和坡度相关的风险</p>
 
                 <div id="riskList" class="space-y-3">
                 </div>
@@ -561,6 +574,7 @@
                 气象分析
             </h3>
             <p class="text-sm text-trail-mid/60 mb-5">输入气象数据，结合路线海拔范围修正装备建议和风险提示</p>
+            <p id="weatherElevationNotice" class="no-elevation-notice hidden" role="status">轨迹未包含有效海拔数据，无法识别海拔相关的风险</p>
 
             <!-- 基础输入区域 -->
             <div class="grid md:grid-cols-5 gap-3 items-end">
@@ -640,6 +654,7 @@
                 装备和补给建议
             </h3>
             <p class="text-sm text-trail-mid/60 mb-6">基于路线难度、距离、海拔和路线评估结果自动生成。可根据个人配速和路线补给状况，削减随身补给。</p>
+            <p id="equipmentElevationNotice" class="no-elevation-notice hidden" role="status">轨迹未包含有效海拔数据，无法基于海拔生成针对性的建议</p>
 
             <div class="grid md:grid-cols-3 gap-6">
                 <!-- Essential Equipment -->
@@ -682,9 +697,10 @@
                         <i class="fa-solid fa-list-ol text-trail-moss"></i>
                         分段统计
                     </h3>
-                    <p class="text-sm text-trail-mid/60 mt-1">
+                    <p id="segmentSummary" class="text-sm text-trail-mid/60 mt-1">
                         <span id="segmentTotalCount">轨迹共 0 段，</span>点击任意分段在地图和剖面图中查看详情
                     </p>
+                    <p id="segmentElevationNotice" class="no-elevation-notice hidden" role="status">轨迹未包含有效海拔数据，坡度分段不可用。</p>
                 </div>
                 <div class="flex gap-2">
                     <button id="segAuto" class="seg-btn active">坡度分段</button>
@@ -693,7 +709,7 @@
                 </div>
             </div>
 
-            <div class="overflow-x-auto scroll-thin">
+            <div id="segmentTableContainer" class="overflow-x-auto scroll-thin">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-trail-sage/20 text-xs text-trail-mid/60 uppercase tracking-wider">
@@ -749,7 +765,8 @@
                     <i class="fa-solid fa-chart-pie text-trail-earth"></i>
                     坡度分布与技术要点
                 </h3>
-                <p class="text-xs text-trail-mid/60 mb-5">各坡度等级的上坡与下坡占比及技术建议</p>
+                <p id="gradientDistributionSubtitle" class="text-xs text-trail-mid/60 mb-5">各坡度等级的上坡与下坡占比及技术建议</p>
+                <p id="gradientDistributionNotice" class="no-elevation-notice hidden" role="status">轨迹未包含有效海拔数据，无法计算坡度分布</p>
                 <div id="gradientDistribution" class="space-y-5">
                 </div>
             </div>
@@ -759,7 +776,8 @@
                     <i class="fa-solid fa-circle-info text-accent-blue"></i>
                     路线概况
                 </h3>
-                <p class="text-xs text-trail-mid/60 mb-5">关键数据与路线特征</p>
+                <p id="routeSummarySubtitle" class="text-xs text-trail-mid/60 mb-5">关键数据与路线特征</p>
+                <p id="routeSummaryNotice" class="no-elevation-notice hidden" role="status">轨迹未包含有效海拔数据，无法计算关键数据与路线特征</p>
                 <div id="routeSummary" class="space-y-3 text-sm">
                 </div>
             </div>

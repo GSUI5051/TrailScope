@@ -161,10 +161,10 @@ function parseKML(kmlText) {
 function processTrack(points, waypoints) {
     if (points.length < 2) return null;
 
-    let hasElevation = points.some(p => p.ele !== null);
-    if (!hasElevation) {
-        points.forEach((p, i) => {
-            p.ele = 800 + Math.sin(i * 0.05) * 200 + Math.sin(i * 0.15) * 100 + Math.random() * 20;
+    const hasValidElevation = points.some(p => Number.isFinite(p.ele));
+    if (!hasValidElevation) {
+        points.forEach(p => {
+            p.ele = 0;
         });
     } else {
         for (let i = 0; i < points.length;) {
@@ -293,6 +293,7 @@ function processTrack(points, waypoints) {
     return {
         points,
         waypoints: matchedWaypoints,
+        hasValidElevation,
         totalDistance,
         totalHorizontalDistance,
         totalAscent: totalElev.ascent,

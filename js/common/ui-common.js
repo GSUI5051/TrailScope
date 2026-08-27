@@ -12,13 +12,13 @@ const chartThemePalettes = {
         hoverInner: '#f5f1e8'
     },
     dark: {
-        grid: 'rgba(168, 189, 157, 0.16)',
-        axisMuted: 'rgba(199, 214, 195, 0.68)',
-        axis: 'rgba(229, 238, 224, 0.82)',
-        annotationLine: 'rgba(229, 238, 224, 0.32)',
-        hoverLine: 'rgba(237, 243, 233, 0.62)',
-        hoverOuter: '#edf3e9',
-        hoverInner: '#17271d'
+        grid: 'rgba(148, 156, 170, 0.16)',
+        axisMuted: 'rgba(186, 199, 219, 0.68)',
+        axis: 'rgba(222, 230, 244, 0.82)',
+        annotationLine: 'rgba(222, 230, 244, 0.32)',
+        hoverLine: 'rgba(233, 238, 246, 0.62)',
+        hoverOuter: '#e9eef6',
+        hoverInner: '#22252b'
     }
 };
 let resolvedTheme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
@@ -52,6 +52,7 @@ function applyThemeMode(mode, persist = true) {
     root.dataset.themeMode = themeMode;
     root.dataset.theme = resolvedTheme;
     root.style.colorScheme = resolvedTheme;
+    if (typeof applyThemeColorMeta === 'function') applyThemeColorMeta(resolvedTheme);
 
     if (persist) {
         try {
@@ -559,33 +560,39 @@ function exitMapFullscreen() {
 let fullscreenResizeTimer = null;
 let fullscreenResizeTimer2 = null;
 window.addEventListener('resize', () => {
-    if (document.getElementById('fullscreenProfile')) {
-        // ★★★ 全屏中旋转屏幕：按方向切换 portrait-mode 类，并刷新图表与地图尺寸
-        // （中心锚定保持不变，与参考实现一致） ★★★
-        if (IS_MOBILE) {
-            document.getElementById('mapContainer')?.classList.toggle('portrait-mode', isPortraitViewport());
-        }
-        invalidateFullscreenFollowGeometry();
-        resizeActiveChartCanvas();
-        leafletMap?.invalidateSize();
+    const map = document.getElementById('mapContainer');
+    const profileVisible = !!document.getElementById('fullscreenProfile');
+    const mapOnlyFullscreen = map?.classList.contains('map-fullscreen-chart') &&
+        map.classList.contains('no-elevation-profile');
+    if (!profileVisible && !mapOnlyFullscreen) return;
 
-        // ★★★ Edge/Firefox 旋转后布局稳定较慢且不再触发 resize：防抖延迟再刷新，
-        // 避免图表按过渡中的尺寸绘制成一条横线（两次延迟，覆盖慢稳定场景） ★★★
-        clearTimeout(fullscreenResizeTimer);
-        fullscreenResizeTimer = setTimeout(() => {
-            fullscreenResizeTimer = null;
-            if (!document.getElementById('fullscreenProfile')) return;
-            resizeActiveChartCanvas();
-            leafletMap?.invalidateSize();
-        }, 350);
-        clearTimeout(fullscreenResizeTimer2);
-        fullscreenResizeTimer2 = setTimeout(() => {
-            fullscreenResizeTimer2 = null;
-            if (!document.getElementById('fullscreenProfile')) return;
-            resizeActiveChartCanvas();
-            leafletMap?.invalidateSize();
-        }, 900);
+    if (profileVisible && IS_MOBILE) {
+        map.classList.toggle('portrait-mode', isPortraitViewport());
     }
+    invalidateFullscreenFollowGeometry();
+    if (profileVisible) resizeActiveChartCanvas();
+    leafletMap?.invalidateSize();
+
+    clearTimeout(fullscreenResizeTimer);
+    fullscreenResizeTimer = setTimeout(() => {
+        fullscreenResizeTimer = null;
+        const profileStillVisible = !!document.getElementById('fullscreenProfile');
+        const mapOnlyStillFullscreen = map?.classList.contains('map-fullscreen-chart') &&
+            map.classList.contains('no-elevation-profile');
+        if (!profileStillVisible && !mapOnlyStillFullscreen) return;
+        if (profileStillVisible) resizeActiveChartCanvas();
+        leafletMap?.invalidateSize();
+    }, 350);
+    clearTimeout(fullscreenResizeTimer2);
+    fullscreenResizeTimer2 = setTimeout(() => {
+        fullscreenResizeTimer2 = null;
+        const profileStillVisible = !!document.getElementById('fullscreenProfile');
+        const mapOnlyStillFullscreen = map?.classList.contains('map-fullscreen-chart') &&
+            map.classList.contains('no-elevation-profile');
+        if (!profileStillVisible && !mapOnlyStillFullscreen) return;
+        if (profileStillVisible) resizeActiveChartCanvas();
+        leafletMap?.invalidateSize();
+    }, 900);
 });
 document.addEventListener('fullscreenchange', () => {
     if (document.fullscreenElement) {

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#f5f1e8" />
     <script src="js/common/theme-init.js"></script>
     <title>TrailScope · Track Analyzer</title>
     <link rel="stylesheet" href="css/tailwind.generated.css" />
@@ -109,10 +110,13 @@
                     <p class="text-sm text-trail-mid/70 leading-relaxed mb-3">
                         GPX, KML, and KMZ files are supported. The page parses coordinates and elevation data, calculates distance, grades, total ascent/descent, and generates a visual report. Images, videos, and audio attachments inside KMZ are ignored, while text waypoints are preserved. All processing is done locally in your browser.
                     </p>
-                    <p id="warningText" class="text-sm warning-text leading-relaxed mb-6 hidden">
-                        <i class="fa-solid fa-triangle-exclamation mr-1"></i>
-                        <b>Imported tracks may be hand-planned rather than recorded walks. Evaluate route conditions and personal safety carefully before hiking.</b>
-                    </p>
+                    <div id="trackWarnings" class="hidden">
+                        <p id="warningText" class="text-sm warning-text leading-relaxed mb-6 hidden" role="status">
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                            <b>Imported tracks may be hand-planned rather than recorded walks. Evaluate route conditions and personal safety carefully before hiking.</b>
+                        </p>
+                        <p id="noElevationImportWarning" class="no-elevation-notice hidden" role="status">The track does not contain valid elevation data, so elevation-based analysis is unavailable.</p>
+                    </div>
                     <div class="flex flex-wrap gap-3 text-xs text-trail-mid/60">
                         <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield text-trail-moss"></i> Local Processing</span>
                         <span class="flex items-center gap-1.5"><i class="fa-solid fa-bolt text-trail-earth"></i> Instant Analysis</span>
@@ -293,8 +297,8 @@
                     <div id="mapInfoOverlay" class="absolute top-3 left-3 px-3 py-2 rounded-xl glass-dark text-xs z-[1000] hidden">
                         <div class="space-y-0.5">
                             <div><span class="font-medium text-trail-cream">Distance: </span><span id="mapInfoDist" class="font-medium text-trail-cream">—</span></div>
-                            <div><span class="font-medium text-trail-cream">Elevation: </span><span id="mapInfoEle" class="font-medium text-trail-cream">—</span></div>
-                            <div><span class="font-medium text-trail-cream">Grade: </span><span id="mapInfoGrad" class="font-medium text-trail-cream">—</span></div>
+                            <div id="mapInfoElevationRow"><span class="font-medium text-trail-cream">Elevation: </span><span id="mapInfoEle" class="font-medium text-trail-cream">—</span></div>
+                            <div id="mapInfoGradeRow"><span class="font-medium text-trail-cream">Grade: </span><span id="mapInfoGrad" class="font-medium text-trail-cream">—</span></div>
                         </div>
                     </div>
 
@@ -324,7 +328,7 @@
                             Elevation Profile
                         </h3>
                     </div>
-                    <div class="flex items-center gap-1.5 flex-wrap">
+                    <div id="elevationProfileControls" class="flex items-center gap-1.5 flex-wrap">
                         <button id="annotationBtn" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">
                             <i class="fa-solid fa-eye"></i>
                             <span id="annotationLabel">Hide Annotations</span>
@@ -345,6 +349,9 @@
                     </div>
                 </div>
 
+                <p id="noElevationProfileNotice" class="no-elevation-notice hidden" role="status">The track does not contain valid elevation data, so the elevation profile cannot be displayed.</p>
+
+                <div id="elevationProfileContent">
                 <!-- Gradient Legend -->
                 <div class="flex flex-wrap items-center gap-4 mb-4 text-xs">
                     <select id="colorModeSelect" class="color-mode-select" title="Coloring Mode">
@@ -416,6 +423,7 @@
                         </button>
                     </div>
                 </div>
+                </div>
             </div>
         </div>
 
@@ -429,7 +437,9 @@
                     Difficulty Rating
                 </h3>
                 <p class="text-xs text-trail-mid/60 mb-5">Based on distance, elevation gain, and grade</p>
+                <p id="difficultyElevationNotice" class="no-elevation-notice hidden" role="status">The track does not contain valid elevation data, so a difficulty rating cannot be calculated.</p>
 
+                <div id="difficultyContent">
                 <div class="text-center mb-5">
                     <div class="inline-flex items-center justify-center w-28 h-28 rounded-full relative">
                         <svg class="progress-ring absolute inset-0" width="112" height="112">
@@ -482,6 +492,7 @@
                         </div>
                     </div>
                 </div>
+                </div>
             </div>
 
             <!-- Time & Energy Estimate -->
@@ -491,6 +502,7 @@
                     Time & Fitness Requirements
                 </h3>
                 <p class="text-xs text-trail-mid/60 mb-5">Estimated with a modified Naismith's Rule</p>
+                <p id="timeElevationNotice" class="no-elevation-notice hidden" role="status">The track does not contain valid elevation data, so grade correction is unavailable.</p>
 
                 <div class="space-y-4">
                     <div class="rounded-2xl bg-trail-sage/10 p-4">
@@ -542,6 +554,7 @@
                     Safety Considerations
                 </h3>
                 <p class="text-xs text-trail-mid/60 mb-5">Based on track characteristics and weather data</p>
+                <p id="riskElevationNotice" class="no-elevation-notice hidden" role="status">The track does not contain valid elevation data, so elevation-, ascent-, and grade-related risks cannot be identified.</p>
 
                 <div id="riskList" class="space-y-3">
                 </div>
@@ -566,6 +579,7 @@
                 Weather Analysis
             </h3>
             <p class="text-sm text-trail-mid/60 mb-5">Enter the weather to get tailored gear and safety advice.</p>
+            <p id="weatherElevationNotice" class="no-elevation-notice hidden" role="status">The track does not contain valid elevation data, so elevation-related risks cannot be identified.</p>
 
             <!-- 基础输入区域 -->
             <div class="grid md:grid-cols-5 gap-3 items-end">
@@ -655,6 +669,7 @@
                 Gear & Supply Recommendations
             </h3>
             <p class="text-sm text-trail-mid/60 mb-6">Based on the route assessment and weather. Carry less if your pace is quick or you can resupply along the way.</p>
+            <p id="equipmentElevationNotice" class="no-elevation-notice hidden" role="status">The track does not contain valid elevation data, so elevation-specific recommendations cannot be generated.</p>
 
             <div class="grid md:grid-cols-3 gap-6">
                 <!-- Essential Equipment -->
@@ -697,9 +712,10 @@
                         <i class="fa-solid fa-list-ol text-trail-moss"></i>
                         Section Statistics
                     </h3>
-                    <p class="text-sm text-trail-mid/60 mt-1">
+                    <p id="segmentSummary" class="text-sm text-trail-mid/60 mt-1">
                         <span id="segmentTotalCount">0 section(s), </span>click any section to view details on trail map and elevation profile
                     </p>
+                    <p id="segmentElevationNotice" class="no-elevation-notice hidden" role="status">The track does not contain valid elevation data, so grade-based sections are unavailable.</p>
                 </div>
                 <div class="flex gap-2">
                     <button id="segAuto" class="seg-btn active">Grade</button>
@@ -708,7 +724,7 @@
                 </div>
             </div>
 
-            <div class="overflow-x-auto scroll-thin">
+            <div id="segmentTableContainer" class="overflow-x-auto scroll-thin">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-trail-sage/20 text-xs text-trail-mid/60 uppercase tracking-wider">
@@ -764,7 +780,8 @@
                     <i class="fa-solid fa-chart-pie text-trail-earth"></i>
                     Grade Distribution with Technical Tips
                 </h3>
-                <p class="text-xs text-trail-mid/60 mb-5">Grade distribution by level, with tips for each range</p>
+                <p id="gradientDistributionSubtitle" class="text-xs text-trail-mid/60 mb-5">Grade distribution by level, with tips for each range</p>
+                <p id="gradientDistributionNotice" class="no-elevation-notice hidden" role="status">The track does not contain valid elevation data, so grade distribution cannot be calculated.</p>
                 <div id="gradientDistribution" class="space-y-5">
                 </div>
             </div>
@@ -774,7 +791,8 @@
                     <i class="fa-solid fa-circle-info text-accent-blue"></i>
                     Route Summary
                 </h3>
-                <p class="text-xs text-trail-mid/60 mb-5">Overall profile and route characteristics</p>
+                <p id="routeSummarySubtitle" class="text-xs text-trail-mid/60 mb-5">Overall profile and route characteristics</p>
+                <p id="routeSummaryNotice" class="no-elevation-notice hidden" role="status">The track does not contain valid elevation data, so key route data and characteristics cannot be calculated.</p>
                 <div id="routeSummary" class="space-y-3 text-sm">
                 </div>
             </div>

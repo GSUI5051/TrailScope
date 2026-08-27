@@ -8,6 +8,24 @@ function drawChart(options = {}) {
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
 
+    if (!trackData.hasValidElevation) {
+        const pixelWidth = Math.max(1, Math.round(rect.width * dpr));
+        const pixelHeight = Math.max(1, Math.round(rect.height * dpr));
+        if (canvas.width !== pixelWidth || canvas.height !== pixelHeight || canvas._dpr !== dpr) {
+            canvas.width = pixelWidth;
+            canvas.height = pixelHeight;
+            canvas._dpr = dpr;
+        }
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, rect.width, rect.height);
+        clearChartHoverOverlay(canvas);
+        canvas._scale = null;
+        canvas._themeVersion = chartThemeVersion;
+        const tooltip = canvas._tooltip || document.getElementById('chartTooltip');
+        if (tooltip) tooltip.classList.remove('visible');
+        return;
+    }
+
     const pixelWidth = Math.max(1, Math.round(rect.width * dpr));
     const pixelHeight = Math.max(1, Math.round(rect.height * dpr));
     if (canvas.width !== pixelWidth || canvas.height !== pixelHeight || canvas._dpr !== dpr) {

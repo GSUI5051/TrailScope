@@ -13,14 +13,13 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
 ![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=flat&logo=Leaflet&logoColor=white)
 
-**TrailScope** is a pure front-end GPX track analysis tool for hikers and trail runners. Upload a GPX file, add the weather, and get a full route report: elevation profile, grade coloring, difficulty rating, segment stats, gear suggestions, and safety notes.
+**TrailScope** is a pure front-end track analysis tool for hikers and trail runners. Import a GPX, KML, or KMZ file, add the weather, and get a route report with an elevation profile, grade coloring, difficulty rating, segment stats, gear suggestions, and safety notes.
 
 ---
 
 ## 🎬 Intro Video
 
-Want a quick walkthrough of TrailScope's core features and workflow?  
-Watch intro: [TrailScope Feature Overview](https://youtu.be/GeVyon0YSvM)
+Intro video: [TrailScope Feature Overview](https://youtu.be/GeVyon0YSvM)
 
 It walks through loading a GPX track, reading the map and elevation profile, and running a weather assessment.
 
@@ -31,9 +30,11 @@ It walks through loading a GPX track, reading the map and elevation profile, and
 - **📂 GPX / KML / KMZ Parsing & Visualization**  
   Supports `.gpx`, `.kml`, and `.kmz` tracks, including KML paths and text waypoints. Images, videos, and audio attachments inside KMZ are ignored while text annotations are preserved. Input files are limited to 32 MiB; parsed tracks are limited to 200,000 points and 20,000 waypoints.
 
+  **Tracks without valid elevation:** Empty, `NaN`, and other non-finite elevation values are treated as missing. If no track point has valid elevation, every point is assigned an elevation of `0`. The map and total distance remain available, while time is estimated from horizontal distance alone. Elevation gain/loss are ignored. Risks and recommendations that do not depend on elevation are also retained. The elevation profile, difficulty rating, grade-based sections, grade distribution, and route summary are not generated. Fixed-distance and waypoint sections still show distances, but the page warns that they may be inaccurate. If at least one track point has valid elevation, the remaining gaps are filled with the existing rules and analysis continues as usual.
+
 - **🗺️ Interactive Map**  
   Renders with Leaflet, offers 17 map sources in Chinese and 16 in English (OpenStreetMap, Amap, Tianditu, ESRI, Mapy, Thunderforest, and more), color‑coded by grade or elevation. Map coordinates are shared per coordinate system, contiguous edges in the same render-color bucket are merged into multi-point subpaths, and only the most recent derived render variants are retained. No original route vertices are removed from the displayed track.
-  In full-screen mode, the pre-fullscreen center is re-anchored to the center of the visible map area above the profile. While hovering or swiping the profile, the “current position” marker stays pinned at that visible-area center and the map moves beneath it.
+  In full-screen mode, the pre-fullscreen center is re-anchored to the center of the visible map area above the profile. While hovering or swiping the profile, the "current position" marker stays pinned at that visible-area center and the map moves beneath it. If the track has no valid elevation, full-screen mode shows the map without creating a profile panel.
 
 - **🌙 Dark Mode**  
   A Light / System / Dark toggle (default: System) shared by all three pages; the choice is applied before the first paint, so there is no theme flash. In dark mode every map source switches to a dark tile filter: satellite layers are color-inverted, road and terrain layers get tuned brightness and contrast. Switching themes never re-runs track analysis; only display colors change.
@@ -53,26 +54,25 @@ It walks through loading a GPX track, reading the map and elevation profile, and
   Combines distance, elevation gain, and grade into a 0–100 score and a difficulty label (Casual → Bomber).
 
 - **⏱️ Time & Fitness Estimation**  
-  Based on Naismith’s Rule with steep‑terrain correction, estimates total time, moving/rest time, average pace, and energy expenditure (kcal).  
-  Provides a 1–5 fitness level description.
+  Based on Naismith's rule of one hour per 5 km, with adjustments for elevation gain, descent, and steep terrain. Rest time is added at 15% of walking time. The page also shows average pace, energy expenditure (kcal), and a 1–5 fitness level. Without valid elevation, walking and rest time are estimated from distance only.
 
 - **⚠️ Safety Consideration**  
   Flags potential risks from the route (high altitude, steep sections, long distance, large elevation gain/loss) and the weather, then gives an overall safety level.
 
 - **☀️ Weather Analysis**  
-  Enter temperature, humidity, wind speed, and weather type; get gear advice and what to do for those conditions.  
+  Enter temperature, humidity, wind speed, and weather type to get weather notices and suggested actions.  
   Advanced parameters (wet‑bulb temperature, dew point, solar radiation, air pressure, etc.) allow estimation of the WBGT (Wet‑Bulb Globe Temperature) for heat‑stress assessment.
 
 - **🎒 Gear & Supply Recommendations**  
-  Generates essential gear, recommended gear, and supplies (water, meals, snacks) based on route difficulty, altitude, and weather conditions.  
-  Supplies automatically convert between metric and US Customary (or imperial) units; water is displayed in liters (L) for metric units and fluid ounces (oz) for imperial units.
+  Generates essential gear, recommended gear, and supplies (water, meals, snacks) from route distance, ascent, grade, maximum elevation, and estimated time. Weather input updates weather notices and the risk list, but does not currently rewrite the gear list.  
+  The English page converts route values, weather inputs, and supply quantities when the unit system changes. Water is shown in liters (L) for metric units and US fluid ounces (oz) for US Customary units.
 
 - **📋 Segment Statistics**  
   Split the route by "major grade variation", "fixed distance (1 km or 1 mi)", or "waypoints". Each segment shows distance, elevation gain/loss, average grade, max grade, time, and difficulty rating.  
   Click any segment to highlight it on both the map and the elevation profile.
 
 - **🌐 Unit Switching**  
-  Toggle between metric (km, m) and imperial (mi, ft) units instantly; all displayed values update accordingly.
+  Toggle between metric (km, m) and US Customary (mi, ft) units. Main route values, pace, weather inputs, and supply quantities are converted. The smoothing threshold remains fixed at 4 meters, and backpack capacity stays in liters.
 
 - **📱 Mobile Optimized**  
   Touch‑friendly interactions; supports swipe gestures to explore the profile; full‑screen map mode adapts to portrait/landscape orientations. Cursor and touch indicators use a lightweight overlay canvas, avoiding full profile redraws during pointer movement. Single-finger movement is animation-frame coalesced, and the full-screen current-position marker remains pinned to the center of the upper visible map area.
@@ -80,8 +80,10 @@ It walks through loading a GPX track, reading the map and elevation profile, and
 - **⚙️ Rendering & Loading Efficiency**  
   Batches same-color profile paths with `Path2D`, caches segment analysis and derived annotation/map data, shares map coordinates between render modes, precompiles the Tailwind stylesheet, and loads JSZip only when a KMZ file is imported. GPX parsing initializes final point shapes in one pass, reuses each edge's horizontal-distance result for 3D distance, ignores obsolete asynchronous read results, and cancels obsolete delayed renders when another track is selected.
 
-- **🔒 Privacy First**  
-  All processing is done locally in your browser; no data is ever sent to a server. Your data, only yours.
+- **🔒 Local Track Analysis**  
+  Track files are parsed and analyzed in your browser and are not uploaded to any server. Your data, only yours.
+  
+  Map tiles come from the selected map provider, which requires an internet connection.
 
 ---
 
@@ -110,7 +112,7 @@ It walks through loading a GPX track, reading the map and elevation profile, and
    - **Map**: Zoom, pan, switch map sources; click waypoints for details.  
    - **Elevation Profile**: Scroll to zoom (desktop), pinch to zoom (mobile), drag to pan; hover/touch to inspect points; export as PNG.  
    - **Segments**: Click any row to highlight the corresponding section on map and elevation profile.  
-   - **Unit Toggle**: Click the Metric (km, m)/US Customary (mi, ft) button at the top to convert all values.
+   - **Unit Toggle**: Click the Metric (km, m)/US Customary (mi, ft) button at the top to convert the main route values, pace, weather inputs, and supply quantities.
 
 ---
 
@@ -125,7 +127,7 @@ It walks through loading a GPX track, reading the map and elevation profile, and
 - **Local GPX / KML Parsing** – DOM‑based XML parsing
 - **Local KMZ Extraction** – Vendored JSZip 3.10.1, loaded on demand for offline ZIP extraction
 
-> No backend dependencies; mobile friendly; runs completely offline.
+> No backend is required for parsing or analysis. The static page can run locally, but map display still needs access to the selected tile provider.
 
 ---
 
@@ -193,22 +195,20 @@ TrailScope/
 |------|-------------|
 | **Elevation Gain (D+)** | Total vertical rise along the track (raw or smoothed with a 4m threshold) |
 | **Elevation Loss (D-)** | Total vertical drop along the track |
-| **Grade** | Percent slope (positive for uphill, negative for downhill) |
+| **Grade** | Vertical rise over horizontal distance, as a percentage; positive for uphill, negative for downhill |
 | **Pace** | Minutes per kilometer (or per mile) |
-| **Naismith’s Rule** | Classic hiking time formula (1 hour per 5 km + 0.5 hour per 300 m elevation gain), with steep‑terrain correction added |
+| **Naismith’s Rule** | A classic hiking-time formula; TrailScope uses one hour per 5 km and half an hour per 300 m of ascent as the base, then adds adjustments for ascent, descent, steep terrain, and rest |
 | **WBGT** | Wet‑Bulb Globe Temperature – a composite index for heat‑stress assessment |
 | **Waypoint** | A named point in a GPX file (e.g., "supply", "viewpoint") |
 | **Segment** | A sub‑section of the route, defined by grade changes, fixed distance, or waypoints |
 
 ---
 
-# ⚠️ Disclaimer
+## ⚠️ Disclaimer
 
-TrailScope is for trip planning only.
+The analysis TrailScope provides is for route-planning reference only.
 
-Outdoor activities carry risks.
-
-Before you go, check your fitness level, the weather, your gear, and the route conditions.
+Outdoor activities carry risks. Before you go, check your fitness level, the weather, your gear, and the route conditions.
 
 ---
 
@@ -239,10 +239,10 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 
 ## 🌟 Acknowledgements
 
-- Inspired by outdoor apps and GPX tools like Strava, Zepp, Mapy, Organic Maps, and GPX Studio.
+- Inspired by outdoor apps and GPX tools like 2bulu, Strava, Zepp, Mapy, Organic Maps, and GPX Studio.
 - Thanks to all open‑source libraries (Leaflet, Tailwind CSS, Font Awesome).
 - Thanks to OpenStreetMap, Amap and all map providers.
-- Special thanks to outdoor enthusiasts and trail runners for their track data.
+- Special thanks to the hikers and trail runners who shared their track data.
 
 ---
 

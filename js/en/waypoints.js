@@ -24,10 +24,11 @@ function showWaypointInfo(wp) {
     const info = document.getElementById('waypointInfo');
     info.classList.remove('hidden');
     document.getElementById('wpName').textContent = wp.name;
-    document.getElementById('wpDetails').textContent =
-        'Distance ' + UnitHelper.distanceLabel(wp.distance, 2) +
-        ' · Elevation ' + UnitHelper.elevationLabel(wp.elevation, 0) +
-        (wp.desc ? ' · ' + wp.desc : '');
+    document.getElementById('wpDetails').textContent = trackData && !trackData.hasValidElevation
+        ? 'Distance ' + UnitHelper.distanceLabel(wp.distance, 2) + (wp.desc ? ' · ' + wp.desc : '')
+        : 'Distance ' + UnitHelper.distanceLabel(wp.distance, 2) +
+            ' · Elevation ' + UnitHelper.elevationLabel(wp.elevation, 0) +
+            (wp.desc ? ' · ' + wp.desc : '');
 }
 
 

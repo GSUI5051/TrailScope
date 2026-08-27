@@ -249,11 +249,14 @@ function drawMap(skipFit = false) {
                 .addTo(leafletMap);
 
             if (showNames) {
+                const elevationLine = trackData.hasValidElevation
+                    ? `<span class="waypoint-info-line">Elevation: ${UnitHelper.elevationLabel(wp.elevation, 0)}</span><br/>`
+                    : '';
                 const popupContent = `
                     <div class="waypoint-popup-content">
                       <strong>${wp.name}</strong><br/>
                       <span class="waypoint-info-line">Distance: ${UnitHelper.distanceLabel(wp.distance, 2)}</span><br/>
-                      <span class="waypoint-info-line">Elevation: ${UnitHelper.elevationLabel(wp.elevation, 0)}</span><br/>
+                      ${elevationLine}
                     </div>
                   `;
                 marker.bindPopup(popupContent, {
@@ -330,9 +333,17 @@ function updateMapCurrentPoint(pointIdx) {
     overlay.classList.remove('hidden');
     document.getElementById('mapInfoDist').textContent = UnitHelper.distanceLabel(pt.distance, 2);
     const eleSpan = document.getElementById('mapInfoEle');
+    const gradSpan = document.getElementById('mapInfoGrad');
+    if (!trackData.hasValidElevation) {
+        eleSpan.textContent = '—';
+        eleSpan.style.color = '';
+        gradSpan.textContent = '—';
+        gradSpan.style.color = '';
+        return;
+    }
+
     eleSpan.textContent = UnitHelper.elevationLabel(pt.ele, 0);
     eleSpan.style.color = getElevationColor(pt.ele, trackData.minElevation, trackData.maxElevation);
-    const gradSpan = document.getElementById('mapInfoGrad');
     const gradLabel = getGradientLabel(pt.smoothedGradient);
     gradSpan.textContent = (pt.smoothedGradient > 0 ? '+' : '') + pt.smoothedGradient.toFixed(1) + '% （' + gradLabel + '）';
     gradSpan.style.color = getGradientColor(pt.smoothedGradient);

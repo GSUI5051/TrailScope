@@ -3,8 +3,9 @@ function showWaypointInfo(wp) {
     const info = document.getElementById('waypointInfo');
     info.classList.remove('hidden');
     document.getElementById('wpName').textContent = wp.name;
-    document.getElementById('wpDetails').textContent =
-        `距离 ${wp.distance.toFixed(2)} km · 海拔 ${Math.round(wp.elevation)} m${wp.desc ? ' · ' + wp.desc : ''}`;
+    document.getElementById('wpDetails').textContent = trackData && trackData.hasValidElevation === false
+        ? `距离 ${wp.distance.toFixed(2)} km${wp.desc ? ' · ' + wp.desc : ''}`
+        : `距离 ${wp.distance.toFixed(2)} km · 海拔 ${Math.round(wp.elevation)} m${wp.desc ? ' · ' + wp.desc : ''}`;
 }
 function updateWaypointButton() {
     const btn = document.getElementById('waypointToggleBtn');
