@@ -130,8 +130,8 @@ function updateUI() {
     const time = estimateTime(trackData);
     document.getElementById('estTime').innerHTML = time.totalHours.toFixed(1) +
         ' <span class="text-base font-normal text-trail-mid/60">小时</span>';
-    document.getElementById('walkTime').textContent = time.walkHours.toFixed(1) + 'h';
-    document.getElementById('restTime').textContent = time.restHours.toFixed(1) + 'h';
+    document.getElementById('walkTime').textContent = time.walkHours.toFixed(1) + ' h';
+    document.getElementById('restTime').textContent = time.restHours.toFixed(1) + ' h';
     document.getElementById('avgPace').textContent = time.avgPace.toFixed(0);
     document.getElementById('calories').textContent = time.calories;
 

@@ -111,10 +111,10 @@ function analyzeWeather() {
     };
 
     if (heatIndex >= 35) {
-        tips.push(makeTip('fa-temperature-full', '极端高温天气（体感温度 ≥ 35℃）：不建议进行长距离徒步，请避开高温时段，并加强补水和防暑措施。',
+        tips.push(makeTip('fa-temperature-full', '极端高温天气（体感温度 ≥ 35 ℃）：不建议进行长距离徒步，请避开高温时段，并加强补水和防暑措施。',
             'text-accent-red'));
     } else if (heatIndex >= 30) {
-        tips.push(makeTip('fa-temperature-full', '高温高湿环境（体感温度 ≥ 30℃）：增加饮水和电解质补充，注意中暑风险。', 'text-accent-amber'));
+        tips.push(makeTip('fa-temperature-full', '高温高湿环境（体感温度 ≥ 30 ℃）：增加饮水和电解质补充，注意中暑风险。', 'text-accent-amber'));
     }
     if (type.includes('台风') || wind >= 32) {
         tips.push(makeTip('fa-hurricane', '台风或强风天气：禁止出行，请取消户外徒步计划。', 'text-accent-red'));
@@ -181,16 +181,16 @@ function analyzeWeather() {
                 errors.push('气压数值不符合气象观测历史数据（合理范围 200~1200 hPa）');
             }
             if (wb > temp) {
-                errors.push('湿球温度不应高于干球温度（当前湿球温度 ' + wb.toFixed(1) + '℃ > 干球温度 ' + temp.toFixed(1) +
-                    '℃）');
+                errors.push('湿球温度不应高于干球温度（当前湿球温度 ' + wb.toFixed(1) + ' ℃ > 干球温度 ' + temp.toFixed(1) +
+                    ' ℃）');
             }
             if (dp > temp) {
-                errors.push('露点温度不应高于干球温度（当前露点温度 ' + dp.toFixed(1) + '℃ > 干球温度 ' + temp.toFixed(1) +
-                    '℃）');
+                errors.push('露点温度不应高于干球温度（当前露点温度 ' + dp.toFixed(1) + ' ℃ > 干球温度 ' + temp.toFixed(1) +
+                    ' ℃）');
             }
             if (dp > wb) {
-                errors.push('露点温度不应高于湿球温度（当前露点温度 ' + dp.toFixed(1) + '℃ > 湿球温度 ' + wb.toFixed(1) +
-                    '℃）');
+                errors.push('露点温度不应高于湿球温度（当前露点温度 ' + dp.toFixed(1) + ' ℃ > 湿球温度 ' + wb.toFixed(1) +
+                    ' ℃）');
             }
             if (dr < 0 || dr > 1) {
                 errors.push('直接辐射比例的取值范围在 0 和 1 之间');
@@ -256,7 +256,7 @@ function analyzeWeather() {
             }
 
             rows.push(
-                `<div class="weather-tip-row wbgt-result-row"><span class="weather-tip-icon" style="color:${wbgtColor}"><i class="fa-solid ${wbgtIcon}"></i></span><span class="weather-tip-text" style="font-weight:600; color:${wbgtColor};">WBGT ≈ ${WBGT.toFixed(1)}℃，${wbgtAdvice}</span></div>`
+                `<div class="weather-tip-row wbgt-result-row"><span class="weather-tip-icon" style="color:${wbgtColor}"><i class="fa-solid ${wbgtIcon}"></i></span><span class="weather-tip-text" style="font-weight:600; color:${wbgtColor};">WBGT ≈ ${WBGT.toFixed(1)} ℃，${wbgtAdvice}</span></div>`
                 );
         }
     }

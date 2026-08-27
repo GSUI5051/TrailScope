@@ -89,7 +89,7 @@ function drawChart(options = {}) {
         ctx.stroke();
 
         ctx.textAlign = 'right';
-        ctx.fillText(Math.round(elev) + 'm', padding.left - 8, y + 4);
+        ctx.fillText(Math.round(elev) + ' m', padding.left - 8, y + 4);
     }
 
     let xSteps = Math.min(10, Math.ceil(viewEnd - viewStart));
@@ -105,7 +105,7 @@ function drawChart(options = {}) {
         ctx.stroke();
 
         ctx.textAlign = 'center';
-        ctx.fillText(dist.toFixed(1) + 'km', x, H - padding.bottom + 18);
+        ctx.fillText(dist.toFixed(1) + ' km', x, H - padding.bottom + 18);
     }
 
     // Highlight active segment

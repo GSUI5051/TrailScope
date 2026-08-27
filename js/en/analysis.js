@@ -40,7 +40,7 @@ function formatWeatherResultTemperature(celsius, displayMode = 'dual', decimals 
     const isMetric = unitSystem === 'metric';
     if (displayMode === 'threshold') {
         const value = isMetric ? celsiusValue : celsiusToFahrenheit(celsiusValue);
-        return value.toFixed(decimals) + (isMetric ? '°C' : '°F');
+        return value.toFixed(decimals) + (isMetric ? ' °C' : ' °F');
     }
     const celsiusText = celsiusValue.toFixed(decimals);
     const fahrenheitText = celsiusToFahrenheit(celsiusValue).toFixed(decimals);
@@ -234,19 +234,19 @@ function analyzeWeather() {
                 errors.push(pMsg);
             }
             if (wbC > tempC) {
-                let wbDisplay = isMetric ? Math.round(wbC) + '℃' : Math.round(celsiusToFahrenheit(wbC)) + '℉';
-                let tempDisplay = isMetric ? Math.round(tempC) + '℃' : Math.round(celsiusToFahrenheit(tempC)) + '℉';
+                let wbDisplay = isMetric ? Math.round(wbC) + ' ℃' : Math.round(celsiusToFahrenheit(wbC)) + ' ℉';
+                let tempDisplay = isMetric ? Math.round(tempC) + ' ℃' : Math.round(celsiusToFahrenheit(tempC)) + ' ℉';
                 errors.push('Wet Bulb Temperature (' + wbDisplay + ') higher than Air Temperature (' + tempDisplay +
                 ')');
             }
             if (dpC > tempC) {
-                let dpDisplay = isMetric ? Math.round(dpC) + '℃' : Math.round(celsiusToFahrenheit(dpC)) + '℉';
-                let tempDisplay = isMetric ? Math.round(tempC) + '℃' : Math.round(celsiusToFahrenheit(tempC)) + '℉';
+                let dpDisplay = isMetric ? Math.round(dpC) + ' ℃' : Math.round(celsiusToFahrenheit(dpC)) + ' ℉';
+                let tempDisplay = isMetric ? Math.round(tempC) + ' ℃' : Math.round(celsiusToFahrenheit(tempC)) + ' ℉';
                 errors.push('Dew Point (' + dpDisplay + ') higher than Air Temperature (' + tempDisplay + ')');
             }
             if (dpC > wbC) {
-                let dpDisplay = isMetric ? Math.round(dpC) + '℃' : Math.round(celsiusToFahrenheit(dpC)) + '℉';
-                let wbDisplay = isMetric ? Math.round(wbC) + '℃' : Math.round(celsiusToFahrenheit(wbC)) + '℉';
+                let dpDisplay = isMetric ? Math.round(dpC) + ' ℃' : Math.round(celsiusToFahrenheit(dpC)) + ' ℉';
+                let wbDisplay = isMetric ? Math.round(wbC) + ' ℃' : Math.round(celsiusToFahrenheit(wbC)) + ' ℉';
                 errors.push('Dew Point (' + dpDisplay + ') higher than Wet Bulb Temperature (' + wbDisplay + ')');
             }
             if (drVal < 0 || drVal > 1) {
