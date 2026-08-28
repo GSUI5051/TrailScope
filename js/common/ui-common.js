@@ -41,13 +41,33 @@ function updateThemeButtons() {
     updateThemeQuickButton();
 }
 
+/* lucide 图标工具：createIcons 会把 <i data-lucide> 整体替换为 <svg>，
+   动态换图须先移除旧图标再重建 <i>，否则新图标不会生效 */
+function setLucideIcon(container, name) {
+    if (typeof lucide === 'undefined' || !lucide.createIcons) return;
+    const old = container.querySelector('svg.lucide, [data-lucide]');
+    if (old) old.remove();
+    const el = document.createElement('i');
+    el.setAttribute('data-lucide', name);
+    container.appendChild(el);
+    lucide.createIcons();
+}
+function renderLucideIcons() {
+    if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+}
+/* 装备条目图标：icon 带 lucide: 前缀走 lucide，其余保持 Font Awesome */
+function equipmentIconHtml(item) {
+    if (item.icon && item.icon.indexOf('lucide:') === 0) {
+        return `<i data-lucide="${item.icon.slice(7)}"></i>`;
+    }
+    return `<i class="fa-solid ${item.icon}"></i>`;
+}
+
 /* 顶栏快捷主题按钮：深色时显示太阳（点击切浅色），浅色时显示月亮（点击切深色） */
 function updateThemeQuickButton() {
     const btn = document.getElementById('themeQuickBtn');
     if (!btn) return;
-    const icon = btn.querySelector('i');
-    if (!icon) return;
-    icon.className = resolvedTheme === 'dark' ? 'fa-regular fa-sun' : 'fa-regular fa-moon';
+    setLucideIcon(btn, resolvedTheme === 'dark' ? 'sun' : 'moon');
 }
 
 function toggleThemeQuick() {
@@ -101,6 +121,7 @@ if (systemThemeMedia) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    renderLucideIcons();
     applyThemeMode(themeMode, false);
 });
 
@@ -351,24 +372,87 @@ function showToast(message, type = 'info') {
 }
 let normalChartCanvas = null;
 let fullscreenChartCanvas = null;
+// ★★★ 遮罩层统一挂在 body 上、fixed 定位（视口坐标）：
+// chartWrapper 有 overflow-x: clip（防 canvas 加宽溢出），标注/十字线挂容器内会被裁剪到右缘，
+// 终点等贴边标记会半截；挂 body 后随页面滚动/窗口 resize 通过 syncChartOverlayPositions 同步位置。
+// z-index 在 root stacking context 中参与比较（tooltip 卡片 z-1000）：
+// 十字线层 z-2（卡片之下、主画布之上），标注层 z-1001（卡片之上）★★★★★★
+let chartOverlaySyncBound = false;
+// 遮罩层挂载目标：inline 图表挂 body（fixed，绕开 chartWrapper 的 overflow-x: clip，
+// z-2200 高于图表内容、低于 tooltip 卡片 z-2300 与顶栏 z-9998；tooltip 需压在标注/航路点之上）；
+// 全屏图表挂回面板内（absolute、z-1001，面板 z-10000 内部无裁剪，且与卡片保持同一 stacking context）
+function getChartOverlayRoot(canvas) {
+    if (fullscreenChartCanvas && canvas === fullscreenChartCanvas && canvas.parentElement) {
+        return canvas.parentElement;
+    }
+    return document.body;
+}
+function findChartOverlayInRoot(root, className, canvas) {
+    const query = root === document.body ? ':scope > ' + className : className;
+    return Array.from(root.querySelectorAll(query)).find((el) => el._ownerCanvas === canvas) || null;
+}
+function syncChartOverlayPositions() {
+    const lists = [
+        document.body.querySelectorAll(':scope > .chart-hover-overlay, :scope > .chart-label-overlay'),
+        document.querySelectorAll('#fullscreenProfile .chart-hover-overlay, #fullscreenProfile .chart-label-overlay')
+    ];
+    lists.forEach((list) => {
+        list.forEach((overlay) => {
+            const canvas = overlay._ownerCanvas;
+            if (!canvas || !canvas.isConnected) return;
+            // 只显示当前活动画布（inline↔全屏切换时另一块的遮罩层隐藏）
+            const active = canvas === chartCanvas;
+            overlay.style.display = active ? '' : 'none';
+            if (!active) return;
+            const r = canvas.getBoundingClientRect();
+            const scale = canvas._scale;
+            const w = scale ? scale.W : r.width;
+            const h = scale ? scale.H : r.height;
+            if (overlay.parentElement === document.body) {
+                overlay.style.position = 'fixed';
+                overlay.style.left = r.left + 'px';
+                overlay.style.top = r.top + 'px';
+            } else {
+                const pr = overlay.parentElement.getBoundingClientRect();
+                overlay.style.position = 'absolute';
+                overlay.style.left = (r.left - pr.left) + 'px';
+                overlay.style.top = (r.top - pr.top) + 'px';
+            }
+            overlay.style.width = w + 'px';
+            overlay.style.height = h + 'px';
+        });
+    });
+}
+function bindChartOverlayPositionSync() {
+    if (chartOverlaySyncBound) return;
+    chartOverlaySyncBound = true;
+    let frame = 0;
+    const schedule = () => {
+        if (frame) return;
+        frame = requestAnimationFrame(() => {
+            frame = 0;
+            syncChartOverlayPositions();
+        });
+    };
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+}
 function ensureChartHoverOverlay(canvas) {
     if (!canvas || !canvas.parentElement) return null;
 
+    const root = getChartOverlayRoot(canvas);
     let overlay = canvas._hoverOverlay;
-    if (!overlay || !overlay.isConnected || overlay.parentElement !== canvas.parentElement) {
-        overlay = canvas.parentElement.querySelector('.chart-hover-overlay');
+    if (!overlay || !overlay.isConnected || overlay.parentElement !== root || overlay._ownerCanvas !== canvas) {
+        overlay = findChartOverlayInRoot(root, '.chart-hover-overlay', canvas);
         if (!overlay) {
             overlay = document.createElement('canvas');
             overlay.className = 'chart-hover-overlay';
             overlay.setAttribute('aria-hidden', 'true');
-            overlay.style.position = 'absolute';
-            overlay.style.inset = '0';
-            overlay.style.width = '100%';
-            overlay.style.height = '100%';
             overlay.style.pointerEvents = 'none';
             overlay.style.zIndex = '2';
-            canvas.parentElement.appendChild(overlay);
+            overlay._ownerCanvas = canvas;
         }
+        root.appendChild(overlay);
         canvas._hoverOverlay = overlay;
     }
 
@@ -376,6 +460,9 @@ function ensureChartHoverOverlay(canvas) {
     const rect = scale ? null : canvas.getBoundingClientRect();
     const cssWidth = scale ? scale.W : rect.width;
     const cssHeight = scale ? scale.H : rect.height;
+    // 位置与主画布逐像素对齐（固定时用视口坐标；画布可能因“加宽右留白”超出容器，
+    // 不能用 inset:0/100% 覆盖，否则十字线被缩放错位）
+    syncChartOverlayPositions();
     const dpr = window.devicePixelRatio || 1;
     const width = Math.max(1, Math.round(cssWidth * dpr));
     const height = Math.max(1, Math.round(cssHeight * dpr));
@@ -386,12 +473,69 @@ function ensureChartHoverOverlay(canvas) {
     }
     const ctx = overlay.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    bindChartOverlayPositionSync();
     return { canvas: overlay, ctx, width: cssWidth, height: cssHeight };
 }
 
 function clearChartHoverOverlay(canvas = chartCanvas) {
     if (!canvas || !canvas._hoverOverlay) return;
     const overlay = canvas._hoverOverlay;
+    const ctx = overlay.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, overlay.width / dpr, overlay.height / dpr);
+}
+
+// ★★★ 标注遮罩层：标注/起终点/航路点/名称绘制于此层，z-index（2200）低于 tooltip 卡片（2300），
+// 用户 2026-08-29 要求悬停时 tooltip 压在标注/航路点之上（原"标注高于卡片"的优先序已反转）；
+// 定位/尺寸必须与主画布逐像素对齐（canvas 宽度可能因“加宽右留白”超出容器，
+// 不能用 inset:0/100% 覆盖）；inline 挂 body（fixed、z-2200，低于顶栏 z-9998）使终点等贴边
+// 标记不被 wrapper 的 overflow-x: clip 裁掉、滚动时不浮在导航栏上面，并保持标注相对数据
+// 位置不变 ★★★
+function ensureChartLabelOverlay(canvas) {
+    if (!canvas || !canvas.parentElement) return null;
+
+    const root = getChartOverlayRoot(canvas);
+    let overlay = canvas._labelOverlay;
+    if (!overlay || !overlay.isConnected || overlay.parentElement !== root || overlay._ownerCanvas !== canvas) {
+        overlay = findChartOverlayInRoot(root, '.chart-label-overlay', canvas);
+        if (!overlay) {
+            overlay = document.createElement('canvas');
+            overlay.className = 'chart-label-overlay';
+            overlay.setAttribute('aria-hidden', 'true');
+            overlay.style.pointerEvents = 'none';
+            /* body 挂载 z-2200：高于图表内容、低于 tooltip 卡片（z-2300）与顶栏（z-9998），
+               悬停信息卡压在标注/航路点之上，滚动时本层也不浮在导航栏上面；
+               全屏面板内 z-1001 与卡片（10002）同层比较 */
+            overlay.style.zIndex = root === document.body ? '2200' : '1001';
+            overlay._ownerCanvas = canvas;
+        }
+        root.appendChild(overlay);
+        canvas._labelOverlay = overlay;
+    }
+
+    const scale = canvas._scale;
+    const rect = scale ? null : canvas.getBoundingClientRect();
+    const cssWidth = scale ? scale.W : rect.width;
+    const cssHeight = scale ? scale.H : rect.height;
+    syncChartOverlayPositions();
+    const dpr = window.devicePixelRatio || 1;
+    const width = Math.max(1, Math.round(cssWidth * dpr));
+    const height = Math.max(1, Math.round(cssHeight * dpr));
+    if (overlay.width !== width || overlay.height !== height || overlay._dpr !== dpr) {
+        overlay.width = width;
+        overlay.height = height;
+        overlay._dpr = dpr;
+    }
+    const ctx = overlay.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    bindChartOverlayPositionSync();
+    return { canvas: overlay, ctx, width: cssWidth, height: cssHeight };
+}
+
+function clearChartLabelOverlay(canvas = chartCanvas) {
+    if (!canvas || !canvas._labelOverlay) return;
+    const overlay = canvas._labelOverlay;
     const ctx = overlay.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -484,14 +628,17 @@ function cancelFullscreenRefreshTimers() {
 function releaseFullscreenChartResources() {
     if (!fullscreenChartCanvas) return;
     fullscreenChartCanvas._destroyChartInteraction?.();
-    const overlay = fullscreenChartCanvas._hoverOverlay;
-    if (overlay) {
-        overlay.width = 1;
-        overlay.height = 1;
-    }
+    [fullscreenChartCanvas._hoverOverlay, fullscreenChartCanvas._labelOverlay].forEach((overlay) => {
+        if (overlay) {
+            overlay.width = 1;
+            overlay.height = 1;
+            overlay.remove();
+        }
+    });
     fullscreenChartCanvas.width = 1;
     fullscreenChartCanvas.height = 1;
     fullscreenChartCanvas._hoverOverlay = null;
+    fullscreenChartCanvas._labelOverlay = null;
     fullscreenChartCanvas._tooltip = null;
 }
 

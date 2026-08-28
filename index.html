@@ -20,7 +20,7 @@
 <body class="gradient-bg min-h-screen mountain-bg">
 
     <!-- Navigation -->
-    <nav class="nav-blur sticky top-0 z-50 border-b border-trail-sage/20">
+    <nav class="nav-blur sticky top-0 border-b border-trail-sage/20">
         <div class="max-w-7xl mx-auto px-6 py-4 flex items-center gap-6 nav-inner">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-trail-mid to-trail-dark flex items-center justify-center">
@@ -32,12 +32,13 @@
                 </div>
             </div>
             <div class="nav-anchors items-center text-sm font-medium">
-                <a href="#upload">导入轨迹</a>
-                <a href="#analysis">路线分析</a>
-                <a href="#assessment">路线评估</a>
-                <a href="#weatherAnalysis">气象分析</a>
+                <a href="#upload">导入</a>
+                <a href="#analysis">分析</a>
+                <a href="#assessment">评估</a>
+                <a href="#risk">风险提示</a>
+                <a href="#weatherAnalysis">天气</a>
                 <a href="#equipment">装备补给</a>
-                <a href="#segments">分段统计</a>
+                <a href="#segments">分段</a>
                 <a href="#techtips">技术要点</a>
                 <a href="#summary">路线概况</a>
             </div>
@@ -45,7 +46,7 @@
                 <div class="nav-quick-group">
                     <details class="nav-menu">
                         <summary aria-label="切换语言">
-                            <i class="fa-solid fa-language"></i>
+                            <i data-lucide="languages"></i>
                         </summary>
                         <div class="nav-menu-panel lang-panel">
                             <a href="index.html" aria-current="true"><span>中文</span><i class="fa-solid fa-check"></i></a>
@@ -53,7 +54,7 @@
                         </div>
                     </details>
                     <button id="themeQuickBtn" class="nav-icon-btn" aria-label="切换深浅色模式">
-                        <i class="fa-regular fa-moon"></i>
+                        <i data-lucide="moon"></i>
                     </button>
                 </div>
                 <button id="loadDemoBtn" class="nav-ghost-btn" aria-label="加载示例轨迹">
@@ -68,6 +69,7 @@
                         <a href="#upload">导入轨迹</a>
                         <a href="#analysis">路线分析</a>
                         <a href="#assessment">路线评估</a>
+                        <a href="#risk">风险提示</a>
                         <a href="#weatherAnalysis">气象分析</a>
                         <a href="#equipment">装备补给</a>
                         <a href="#segments">分段统计</a>
@@ -284,10 +286,10 @@
 
                     <div class="absolute top-3 right-3 flex flex-col gap-2 z-10">
                         <button class="map-control-btn" id="mapZoomInBtn" title="放大" aria-label="放大">
-                            <i class="fa-solid fa-magnifying-glass-plus"></i>
+                            <i data-lucide="zoom-in"></i>
                         </button>
                         <button class="map-control-btn" id="mapZoomOutBtn" title="缩小" aria-label="缩小">
-                            <i class="fa-solid fa-magnifying-glass-minus"></i>
+                            <i data-lucide="zoom-out"></i>
                         </button>
                         <button class="map-control-btn" id="mapFitBtn" title="显示全图" aria-label="显示全图">
                             <i class="fa-solid fa-expand"></i>
@@ -338,6 +340,10 @@
                         <div class="flex items-center gap-2">
                             <div class="w-2.5 h-2.5 rounded-full bg-trail-moss"></div>
                             <span class="font-medium text-trail-cream">起点</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-2.5 h-2.5 rounded-full bg-trail-earth"></div>
+                            <span class="font-medium text-trail-cream">航路点</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <div class="w-2.5 h-2.5 rounded-full bg-accent-red"></div>
@@ -409,21 +415,20 @@
 
                 <!-- Chart with Zoom Controls -->
                 <div class="relative chart-wrapper" id="chartWrapper">
-                    <canvas id="elevationChart" class="w-full" style="height: 380px;"></canvas>
-                    <div id="chartTooltip" class="tooltip"></div>
-
-                    <!-- Zoom Controls -->
-                    <div class="absolute top-2 right-2 flex flex-col gap-1.5 z-10 zoom-controls">
-                        <button class="zoom-btn" id="chartZoomInBtn" title="放大" aria-label="放大">
-                            <i class="fa-solid fa-magnifying-glass-plus"></i>
-                        </button>
+                    <!-- Zoom Controls：图表外侧上方、右对齐，间距与全屏模式横向按钮一致（gap-2） -->
+                    <div class="flex justify-end gap-2 mb-2 zoom-controls">
                         <button class="zoom-btn" id="chartZoomOutBtn" title="缩小" aria-label="缩小">
-                            <i class="fa-solid fa-magnifying-glass-minus"></i>
+                            <i data-lucide="zoom-out"></i>
+                        </button>
+                        <button class="zoom-btn" id="chartZoomInBtn" title="放大" aria-label="放大">
+                            <i data-lucide="zoom-in"></i>
                         </button>
                         <button class="zoom-btn" id="chartResetBtn" title="重置" aria-label="重置">
                             <i class="fa-solid fa-expand"></i>
                         </button>
                     </div>
+                    <canvas id="elevationChart" class="w-full" style="height: 380px;"></canvas>
+                    <div id="chartTooltip" class="tooltip"></div>
                 </div>
 
                 <!-- Zoom Info -->
@@ -524,7 +529,7 @@
             </div>
 
             <!-- Time & Energy Estimate -->
-            <div class="glass-card rounded-3xl p-6 assessment-col-3">
+            <div id="timeFitCard" class="glass-card rounded-3xl p-6 assessment-col-3">
                 <h3 class="text-xl font-bold text-trail-dark mb-1 flex items-center gap-2">
                     <i class="fa-solid fa-stopwatch text-trail-earth"></i>
                     耗时与体能需求
@@ -538,10 +543,10 @@
                             <span class="text-xs font-medium text-trail-mid/70 uppercase tracking-wider">预估总耗时</span>
                             <i class="fa-solid fa-clock text-trail-earth text-sm"></i>
                         </div>
-                        <p id="estTime" class="text-3xl font-semibold text-trail-dark num-font">— <span class="text-base font-normal text-trail-mid/60">小时</span></p>
+                        <p id="estTime" class="text-3xl font-semibold text-trail-dark">— <span class="text-base font-normal text-trail-mid/60">小时</span></p>
                         <div class="flex gap-4 mt-2 text-xs text-trail-mid/60">
-                            <span>步行：<span id="walkTime" class="font-medium text-trail-dark num-font">—</span></span>
-                            <span>休息：<span id="restTime" class="font-medium text-trail-dark num-font">—</span></span>
+                            <span>步行：<span id="walkTime" class="font-medium text-trail-dark num-font">—</span>&nbsp; 小时</span>
+                            <span>休息：<span id="restTime" class="font-medium text-trail-dark num-font">—</span>&nbsp; 小时</span>
                         </div>
                     </div>
 
@@ -576,7 +581,7 @@
             </div>
 
             <!-- Risk Assessment -->
-            <div class="glass-card rounded-3xl p-6 assessment-wide">
+            <div id="risk" class="glass-card rounded-3xl p-6 assessment-wide">
                 <h3 class="text-xl font-bold text-trail-dark mb-1 flex items-center gap-2">
                     <i class="fa-solid fa-triangle-exclamation text-accent-red"></i>
                     风险提示
@@ -824,9 +829,10 @@
                 <i class="fa-solid fa-mountain text-3xl text-trail-moss/60"></i>
             </div>
             <h3 class="text-xl font-bold text-trail-dark mb-2">分析徒步轨迹</h3>
-            <p class="text-sm text-trail-mid/60 max-w-md mx-auto mb-6">
-                导入 GPX / KML / KMZ 文件 · 点击“体验示例”进行演示
-            </p>
+            <div class="text-sm text-trail-mid/60 max-w-md mx-auto mb-6 space-y-1">
+                <p>导入 GPX / KML / KMZ 文件</p>
+                <p>点击 <span class="demo-ref-text">“体验示例”</span> <i class="fa-solid fa-flask text-xs demo-ref-icon" style="vertical-align: -0.125em;"></i> 进行演示</p>
+            </div>
             <div class="flex flex-wrap justify-center gap-3">
                 <div class="px-4 py-2 rounded-xl bg-trail-sage/10 text-xs text-trail-mid flex items-center gap-2">
                     <i class="fa-solid fa-check text-trail-moss"></i> 海拔剖面可视化
@@ -868,6 +874,7 @@
     <script src="js/common/coords.js"></script>
     <script src="js/common/map-common.js"></script>
     <script src="js/common/waypoints.js"></script>
+    <script src="js/common/lucide-1.35.0.min.js"></script>
     <script src="js/common/ui-common.js"></script>
     <script src="js/common/kmz.js"></script>
     <script src="js/cn/state.js"></script>

@@ -385,7 +385,7 @@ function updateMapCurrentPoint(pointIdx) {
         gradSpan.style.color = getGradientColor(pt.smoothedGradient);
     }
 
-    if (pointChanged) {
+    if (pointChanged && mapLinkageEnabled) {
         keepMapPointVisible(displayPos);
     }
 }

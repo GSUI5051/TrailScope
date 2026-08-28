@@ -14,6 +14,7 @@
             --theme-text-secondary: #2d4a35;
             --theme-text-muted: rgba(45, 74, 53, 0.6);
             --theme-border: rgba(122, 148, 113, 0.2);
+            --theme-control-border: rgba(122, 148, 113, 0.35);
             --theme-border-card: rgba(255, 255, 255, 0.6);
             --theme-shadow: 0 8px 32px rgba(26, 46, 31, 0.08);
             --theme-shadow-hover: 0 12px 40px rgba(26, 46, 31, 0.12);
@@ -64,13 +65,15 @@
             --theme-fullscreen-portrait-surface: rgba(245, 241, 232, 0.95);
         }
 
+        /* 深色基底为中性黑（参考 gpx.studio 深色模式）：顶栏/卡片/全屏面板均为无蓝调灰阶，
+           页面底色 --theme-page-start(#1a1c20) 不动；文字沿用蓝白系（与中性黑对比度依然达标） */
         html[data-theme="dark"] {
             color-scheme: dark;
             --theme-page-start: #1a1c20;
             --theme-page-mid: #1a1c20;
             --theme-page-mid-2: #1a1c20;
             --theme-page-end: #1a1c20;
-            --theme-surface-card: rgba(35, 38, 44, 0.97);
+            --theme-surface-card: rgba(35, 35, 35, 0.97);
             --theme-surface-raised: rgba(48, 52, 60, 0.72);
             --theme-surface-control: #22252b;
             --theme-surface-control-hover: #2a2e36;
@@ -79,10 +82,11 @@
             --theme-text-secondary: #bac7db;
             --theme-text-muted: rgba(186, 199, 219, 0.7);
             --theme-border: rgba(140, 147, 158, 0.2);
+            --theme-control-border: rgba(140, 147, 158, 0.3);
             --theme-border-card: rgba(140, 147, 158, 0.18);
             --theme-shadow: 0 10px 34px rgba(0, 0, 0, 0.34);
             --theme-shadow-hover: 0 14px 44px rgba(0, 0, 0, 0.44);
-            --theme-nav: rgba(22, 24, 28, 0.92);
+            --theme-nav: rgba(23, 23, 23, 0.92);
             --theme-link: #8fbcff;
             --theme-active-bg: #363c48;
             --theme-active-hover: #434a58;
@@ -111,6 +115,11 @@
             --seg-bg-descent: rgba(109, 160, 196, 0.16);
             --seg-bg-mixed: rgba(192, 154, 114, 0.16);
             --seg-bg-flat: rgba(156, 184, 216, 0.16);
+            /* 分段类型 badge 深色发光（与 --seg-text-* 同色半透明，静态光晕） */
+            --seg-glow-climb: rgba(226, 118, 101, 0.17);
+            --seg-glow-descent: rgba(109, 160, 196, 0.17);
+            --seg-glow-mixed: rgba(192, 154, 114, 0.17);
+            --seg-glow-flat: rgba(156, 184, 216, 0.17);
             /* 气象 WBGT 分级色（沿用原属性选择器覆盖的审定值） */
             --wbgt-cold: #8fbcff;
             --wbgt-cool: #8fbcff;
@@ -118,8 +127,13 @@
             --wbgt-warm: #ff9e55;
             --wbgt-hot: #ff776f;
             --theme-map-overlay: rgba(10, 11, 13, 0.8);
-            --theme-fullscreen-surface: rgba(33, 36, 42, 0.96);
-            --theme-fullscreen-portrait-surface: rgba(33, 36, 42, 0.97);
+            --theme-fullscreen-surface: rgba(33, 33, 33, 0.96);
+            --theme-fullscreen-portrait-surface: rgba(33, 33, 33, 0.97);
+            /* 气象分析输入框/按钮：中性黑灰（同 gpx.studio 深色），卡片上比 --theme-surface-control 更灰；
+               按钮底色比输入框高一级（#2e2e2e），悬停再上一级，保证“可点”可辨 */
+            --theme-surface-input: #262626;
+            --theme-surface-button: #2e2e2e;
+            --theme-surface-button-hover: #383838;
         }
 
         body {
@@ -233,7 +247,9 @@
             font-size: 12px;
             line-height: 1.6;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
+            /* 窗口模式：高于标注遮罩层（2200），悬停时 tooltip 压在航路点/标注/起终点之上；
+               低于顶栏 9998；全屏面板内由专属规则覆盖为 10002 */
+            z-index: 2300;
             opacity: 0;
             transition: opacity 0.15s;
             white-space: nowrap;
@@ -350,6 +366,9 @@
             background: var(--theme-nav);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
+            /* 顶栏恒在页面内容之上：高于工具卡片（z-1000/2000）与标注遮罩层（z-2200），
+               低于地图全屏壳（z-9999），全屏时整壳仍盖住顶栏 */
+            z-index: 9998;
         }
 
         .seg-btn {
@@ -373,24 +392,43 @@
             color: var(--theme-active-text);
         }
 
+        /* Hallmark · component: icon-button · genre: editorial · theme: trail (project tokens)
+         * 剖面图缩放按钮：单独定制浅/深色配色——卡片背景（浅 #fff / 深 #232323）与
+         * 原按钮（浅 #fff / 深 #22252b）明度接近会融为一体，改为：
+         * 浅色 = 淡 sage tint 底 + --theme-control-border 轮廓 + 森林绿图标；
+         * 深色 = 比卡片亮一档的灰底（--theme-surface-control-hover）+ 边框 + 亮图标。
+         * 两模式均保持原深浅色系，靠底色明度差 + 边框 + 阴影 + 图标色形成可辨按钮感
+         * states: default · hover · focus (global button:focus-visible) · disabled: n/a (matches map)
+         * contrast: pass */
         .zoom-btn {
-            width: 32px;
-            height: 32px;
+            background: var(--theme-surface-soft);
+            border: 1px solid var(--theme-control-border);
+            width: 36px;
+            height: 36px;
             border-radius: 8px;
-            background: rgba(26, 46, 31, 0.85);
-            color: #f5f1e8;
-            border: none;
+            box-shadow: 0 2px 8px rgba(26, 46, 31, 0.18);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background-color 0.2s ease, transform 0.2s ease;
-            font-size: 14px;
+            transition: background-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+            color: var(--theme-moss);
+            font-size: 15px;
         }
 
         .zoom-btn:hover {
-            background: rgba(26, 46, 31, 1);
+            background: var(--theme-surface-control-hover);
             transform: scale(1.05);
+        }
+
+        html[data-theme="dark"] .zoom-btn {
+            background: var(--theme-surface-control-hover);
+            border-color: var(--theme-control-border);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            color: var(--theme-text-secondary);
+        }
+        html[data-theme="dark"] .zoom-btn:hover {
+            background: #363c48;
         }
 
         /* 手机端隐藏缩放按钮 */
@@ -504,6 +542,12 @@
             font-size: 10px;
             font-weight: bold;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 图例航路点圆点：与地图航路点 marker 相同固定主色（#8b7355，见上），不随主题变化；
+           tailwind 预生成 CSS 未包含 .bg-trail-earth（项目首个使用处），故在此定义 */
+        .bg-trail-earth {
+            background-color: #8b7355;
         }
 
         .start-marker {
@@ -714,7 +758,7 @@
         }
 
         /* 地图全屏模式：inset:0 已覆盖全屏，无需 100vw/100vh；
-           z 值层级（9999 覆盖层 < 10000 剖面面板 < 10001 工具条 < 10002 提示框）为全屏堆叠所需 */
+           z 值层级（9998 顶栏 < 9999 覆盖层 < 10000 剖面面板 < 10001 工具条 < 10002 提示框）为全屏堆叠所需 */
         .map-fullscreen-chart {
             position: fixed !important;
             inset: 0;
@@ -1184,14 +1228,22 @@
             -webkit-backdrop-filter: blur(4px);
         }
 
-        /* 导航：锚点组 + 幽灵式演示按钮 + 移动端折叠菜单（details，无需 JS） */
+        /* 导航：锚点组 + 幽灵式演示按钮 + 移动端折叠菜单（details，无需 JS）。
+           折叠断点按语言分开：英文标签宽，≥1152px 才展开锚点组；
+           中文全角字窄，≥992px 即可展开（html:lang(zh) 覆盖；锚点组含四字项
+           装备补给/技术要点/路线概况，整行需 904px，976px 处仅余 9px）。 */
         .nav-anchors {
             display: none;
             gap: 1.25rem;
             margin-left: auto;
         }
-        @media (min-width: 1024px) {
+        @media (min-width: 1152px) {
             .nav-anchors {
+                display: flex;
+            }
+        }
+        @media (min-width: 992px) {
+            .nav-anchors:lang(zh) {
                 display: flex;
             }
         }
@@ -1274,8 +1326,13 @@
         .nav-hamburger {
             display: block;
         }
-        @media (min-width: 1024px) {
+        @media (min-width: 1152px) {
             .nav-hamburger {
+                display: none;
+            }
+        }
+        @media (min-width: 992px) {
+            .nav-hamburger:lang(zh) {
                 display: none;
             }
         }
@@ -1326,22 +1383,54 @@
             color: var(--theme-text-primary);
         }
 
-        /* 顶栏右侧快捷组：锚点组显示时（≥1024px）由 .nav-anchors 的 margin-left:auto 统一右推；
-           锚点组隐藏时（<1024px）由本规则单独右推，避免双 auto 均分导致锚点组居中 */
+        /* 顶栏右侧快捷组：锚点组显示时（≥各自断点）由 .nav-anchors 的 margin-left:auto 统一右推；
+           锚点组隐藏时（<各自断点）由本规则单独右推，避免双 auto 均分导致锚点组居中；
+           中文在 992–1151.98px 区间已展开锚点组，取消单独右推 */
         .nav-actions {
             margin-left: 0;
         }
-        @media (max-width: 1023.98px) {
+        @media (max-width: 1151.98px) {
             .nav-actions {
                 margin-left: auto;
             }
         }
+        @media (min-width: 992px) and (max-width: 1151.98px) {
+            .nav-actions:lang(zh) {
+                margin-left: 0;
+            }
+        }
 
-        /* 移动端顶栏压缩：演示按钮只留图标、隐藏副标题与快捷组间距收紧；≤359px 再隐藏字标 */
-        @media (max-width: 767.98px) {
-            .demo-label {
+        /* 演示按钮：窗口窄到导航折叠进汉堡时，"体验示例/DEMO"文字折叠为 fa-flask 图标形态
+           （隐藏文字、保留图标），折叠断点与导航一致（英文 ≥1152 展开、中文 ≥992 展开）；
+           ≤767.98px 的旧行为不变。
+           emptyState 文案中的按钮指代（demo-ref）同步跟随：按钮显示文字时文案显示
+           “体验示例/DEMO”文字，按钮折叠为图标时文案显示同款 fa-flask 图标 */
+        .demo-ref-icon {
+            display: none;
+        }
+        @media (max-width: 1151.98px) {
+            .nav-ghost-btn .demo-label,
+            .demo-ref-text {
                 display: none;
             }
+            .demo-ref-icon {
+                display: inline;
+            }
+        }
+        @media (min-width: 992px) and (max-width: 1151.98px) {
+            .nav-ghost-btn:lang(zh) .demo-label {
+                display: block;
+            }
+            .demo-ref-text:lang(zh) {
+                display: inline;
+            }
+            .demo-ref-icon:lang(zh) {
+                display: none;
+            }
+        }
+
+        /* 移动端顶栏压缩：隐藏副标题与快捷组间距收紧；≤359px 再隐藏字标 */
+        @media (max-width: 767.98px) {
             .nav-subtitle {
                 display: none;
             }
@@ -1410,6 +1499,13 @@
         .seg-type-descent { color: var(--seg-text-descent); background: var(--seg-bg-descent); }
         .seg-type-mixed { color: var(--seg-text-mixed); background: var(--seg-bg-mixed); }
         .seg-type-flat { color: var(--seg-text-flat); background: var(--seg-bg-flat); }
+
+        /* 分段类型 badge 深色模式发光：双层 box-shadow（内圈 8px + 外圈 20px）叠出柔和光晕，
+         * 颜色随各类型 token，静态无动画，仅夜间模式生效 */
+        html[data-theme="dark"] .seg-type-climb { box-shadow: 0 0 8px var(--seg-glow-climb), 0 0 20px var(--seg-glow-climb); }
+        html[data-theme="dark"] .seg-type-descent { box-shadow: 0 0 8px var(--seg-glow-descent), 0 0 20px var(--seg-glow-descent); }
+        html[data-theme="dark"] .seg-type-mixed { box-shadow: 0 0 8px var(--seg-glow-mixed), 0 0 20px var(--seg-glow-mixed); }
+        html[data-theme="dark"] .seg-type-flat { box-shadow: 0 0 8px var(--seg-glow-flat), 0 0 20px var(--seg-glow-flat); }
 
         /* 页脚两行：行距与行间距离由行高/边距定义（不再用 <br><br><br>） */
         .footer-copy {
@@ -1495,6 +1591,8 @@
 
         .chart-wrapper {
             position: relative;
+            /* 表格加宽（右留白对齐按钮组）后裁掉超出部分，避免窄视口横向滚动 */
+            overflow-x: clip;
         }
 
         /* 移动端（lg 以下）：「路线地图 + 海拔剖面图」（lg:grid-cols-5）容器缺基础单列定义，
@@ -1639,12 +1737,18 @@
             background: #16181d;
         }
 
+        /* 提示框家族（深色）：剖面图 tooltip（窗口/全屏）、地图当前点信息卡 #mapInfoOverlay、
+         * 地图图例 #mapLocationLegend、分段滚动提示、航路点弹窗 —— 统一蓝黑 rgba(24,26,31,.95)
+         * 改中性黑灰 rgba(42,42,42,.96)（比卡 #232323 亮一档保证可辨），popup 绿色箭头同调 */
         html[data-theme="dark"] .glass-dark,
         html[data-theme="dark"] .tooltip,
         html[data-theme="dark"] .segment-tooltip,
         html[data-theme="dark"] .waypoint-popup-content {
-            background: rgba(24, 26, 31, 0.95);
+            background: rgba(42, 42, 42, 0.96);
             border-color: rgba(140, 147, 158, 0.24);
+        }
+        html[data-theme="dark"] .leaflet-popup-tip {
+            background: rgba(42, 42, 42, 0.96) !important;
         }
 
         html[data-theme="dark"] .text-trail-dark {
@@ -1691,6 +1795,46 @@
 
         html[data-theme="dark"] .text-accent-blue {
             color: var(--theme-blue) !important;
+        }
+
+        /* 装备卡深色模式：列内标题/列表图标颜色统一
+         * 基础装备：标题弃用深色 --theme-moss（蓝灰），沿用浅色浅绿 #5c7a52；
+         * 推荐装备：标题弃用深色提亮琥珀，统一 #d4a017（与列表一致）；
+         * 补给建议：标题/列表统一 #6da0c4（同 --seg-text-descent 审定蓝，深色下 5.4:1）。
+         * 列表容器规则带 !important：容器带 text-* 类，深色全局规则会覆盖其颜色，
+         * lucide SVG 图标（currentColor 继承）必须靠容器颜色统一。 */
+        html[data-theme="dark"] .equipment-section-header .text-trail-moss {
+            color: #5c7a52 !important;
+        }
+        html[data-theme="dark"] .equipment-section-header .text-accent-amber {
+            color: #d4a017 !important;
+        }
+        html[data-theme="dark"] .equipment-section-header .text-accent-blue {
+            color: #6da0c4 !important;
+        }
+        html[data-theme="dark"] #essentialEquipment .equipment-icon,
+        html[data-theme="dark"] #essentialEquipment .equipment-icon i {
+            color: #5c7a52 !important;
+        }
+        html[data-theme="dark"] #recommendedEquipment .equipment-icon,
+        html[data-theme="dark"] #recommendedEquipment .equipment-icon i {
+            color: #d4a017 !important;
+        }
+        html[data-theme="dark"] #suppliesRecommendation .equipment-icon,
+        html[data-theme="dark"] #suppliesRecommendation .equipment-icon i {
+            color: #6da0c4 !important;
+        }
+
+        /* 分析区卡片标题深色模式：标题图标统一深蓝色系 #6da0c4（同 --seg-text-descent 审定蓝）。
+         * 覆盖：装备和补给建议 / 坡度分布与技术要点 / 难度评级 / 耗时与体能需求 / 路线概况；
+         * 坡度分布与路线概况同色由本条保证。按图标精确限定，不误伤其他 .glass-card h3 标题
+         *（如风险提示 text-accent-red、气象分析 text-trail-moss）。 */
+        html[data-theme="dark"] .glass-card h3 > i.fa-gauge-high,
+        html[data-theme="dark"] .glass-card h3 > i.fa-stopwatch,
+        html[data-theme="dark"] .glass-card h3 > i.fa-bag-shopping,
+        html[data-theme="dark"] .glass-card h3 > i.fa-chart-pie,
+        html[data-theme="dark"] .glass-card h3 > i.fa-circle-info {
+            color: #6da0c4 !important;
         }
 
         html[data-theme="dark"] .bg-trail-dark {
@@ -1773,6 +1917,82 @@
             color: var(--theme-active-text);
         }
 
+        /* 分段统计控件：三段模式按钮/页码按钮/每页下拉 深色下中性黑灰，
+         * 替换蓝灰（非激活 rgba(126,166,212,.14)→合成 #30353c、激活 #363c48、下拉 #22252b），
+         * 保留原明暗层级保证可见性：下拉 #262626 < 非激活 #333333 < hover #3a3a3a < 激活 #3e3e3e；
+         * 文字色（--theme-text-secondary / --theme-active-text）与边框沿用不变 */
+        html[data-theme="dark"] #segments .seg-btn,
+        html[data-theme="dark"] #segments .pagination-btn {
+            background: #333333;
+            color: var(--theme-text-secondary);
+        }
+        html[data-theme="dark"] #segments .seg-btn:hover:not(.active),
+        html[data-theme="dark"] #segments .pagination-btn:hover:not(:disabled) {
+            background: #3a3a3a;
+        }
+        html[data-theme="dark"] #segments .seg-btn.active,
+        html[data-theme="dark"] #segments .pagination-btn.active {
+            background: #3e3e3e;
+            color: var(--theme-active-text);
+        }
+        html[data-theme="dark"] #segments .page-size-select {
+            background: #262626;
+        }
+
+        /* 路线地图 + 海拔剖面图（含全屏，控件复用同类）的按钮/下拉：深色下中性黑灰化。
+         * 映射（保持原明暗层级）：control #22252b→#262626、control-hover #2a2e36→#2e2e2e、
+         * 激活/主按钮 #363c48→#3e3e3e、主按钮 hover #434a58→#464646、导出按钮 sage tint→#2e2e2e；
+         * 可见层级：卡 #232323 < 常态 #262626 < hover #2e2e2e < 激活/标注按钮 #3e3e3e < 按钮 hover #464646。
+         * 豁免：取消高亮 amber 按钮（非蓝系）；联动激活态 hover 深色下原为蓝灰随之中性化 */
+        html[data-theme="dark"] .map-control-btn {
+            background: #262626;
+        }
+        html[data-theme="dark"] .map-control-btn:hover {
+            background: #2e2e2e;
+        }
+        html[data-theme="dark"] .map-control-btn.active-linkage {
+            background: #3e3e3e;
+        }
+        html[data-theme="dark"] .map-source-select,
+        html[data-theme="dark"] .color-mode-select {
+            background: #262626;
+        }
+        html[data-theme="dark"] .map-source-select:hover,
+        html[data-theme="dark"] .color-mode-select:hover {
+            background: #2e2e2e;
+        }
+        html[data-theme="dark"] .zoom-btn {
+            background: #2e2e2e;
+        }
+        html[data-theme="dark"] .zoom-btn:hover {
+            background: #3e3e3e;
+        }
+        html[data-theme="dark"] .btn-sm-uniform.bg-trail-dark {
+            background: #3e3e3e !important;
+        }
+        html[data-theme="dark"] .btn-sm-uniform.hover\:bg-trail-mid:hover {
+            background: #464646 !important;
+        }
+        html[data-theme="dark"] .btn-sm-uniform.bg-trail-sage\/20 {
+            background: #2e2e2e !important;
+        }
+        html[data-theme="dark"] .btn-sm-uniform.hover\:bg-trail-sage\/30:hover {
+            background: #333333 !important;
+        }
+
+        /* 地图卡分段导航（上一段/下一段按钮 + 分段描述胶囊）：深色下中性黑灰化。
+         * 按钮在卡底（#232323）上，用卡内基础档 #333333（与分段胶囊/分段统计非激活按钮同级，
+         * 比卡亮 16 级保证可点可辨）、hover #3a3a3a；不分段时地图内控件仍用 #262626 档 */
+        html[data-theme="dark"] .nav-segment-btn {
+            background: #333333;
+        }
+        html[data-theme="dark"] .nav-segment-btn:hover:not(:disabled) {
+            background: #3a3a3a;
+        }
+        html[data-theme="dark"] .seg-label-uniform {
+            background: #333333;
+        }
+
         html[data-theme="dark"] .equipment-item {
             border-bottom-color: rgba(140, 147, 158, 0.14);
         }
@@ -1789,6 +2009,48 @@
         html[data-theme="dark"] input::placeholder,
         html[data-theme="dark"] textarea::placeholder {
             color: rgba(186, 199, 219, 0.48);
+        }
+
+        /* 气象分析输入框/select/按钮：中性黑灰（同 gpx.studio 深色），
+         * 替代通用 input 的蓝灰底（--theme-surface-control）与蓝色聚焦光晕；
+         * 聚焦态走中性边框+灰光，仍满足焦点可见性 */
+        html[data-theme="dark"] #weatherAnalysis input,
+        html[data-theme="dark"] #weatherAnalysis select {
+            background-color: var(--theme-surface-input);
+        }
+        html[data-theme="dark"] #weatherAnalysis input:focus,
+        html[data-theme="dark"] #weatherAnalysis select:focus {
+            border-color: rgba(140, 147, 158, 0.45);
+            box-shadow: 0 0 0 3px rgba(140, 147, 158, 0.15);
+        }
+        html[data-theme="dark"] #analyzeWeatherBtn {
+            background-color: var(--theme-surface-button) !important;
+        }
+        html[data-theme="dark"] #analyzeWeatherBtn:hover {
+            background-color: var(--theme-surface-button-hover) !important;
+        }
+
+        /* 耗时与体能需求卡：三项指标（Estimated Time/Average Pace/Calorie Burn）深色下中性灰，
+         * 数值 #e9eef6→#d9d9d9、标签/单位透母灰；卡标题（h3）与时钟图标（text-trail-earth）不动。
+         * 两个指标块的蓝灰深色覆盖（sage/10→rgba(148,156,170,.1)、cream/50→rgba(44,48,56,.58)）
+         * 叠在卡底上呈 2e2f30/292b2f 蓝灰，这里按原亮度转为纯中性灰 */
+        html[data-theme="dark"] #timeFitCard .bg-trail-sage\/10 {
+            background-color: #2e2e2e !important;
+        }
+        html[data-theme="dark"] #timeFitCard .bg-trail-cream\/50 {
+            background-color: #2a2a2a !important;
+        }
+        html[data-theme="dark"] #timeFitCard .text-trail-dark:not(h3) {
+            color: #d9d9d9 !important;
+        }
+        html[data-theme="dark"] #timeFitCard .text-trail-mid\/70 {
+            color: rgba(217, 217, 217, 0.8) !important;
+        }
+        html[data-theme="dark"] #timeFitCard .text-trail-mid\/60 {
+            color: rgba(217, 217, 217, 0.7) !important;
+        }
+        html[data-theme="dark"] #timeFitCard .text-trail-mid\/50 {
+            color: rgba(217, 217, 217, 0.58) !important;
         }
 
         html[data-theme="dark"] input:focus,
@@ -1828,6 +2090,29 @@
 
         html[data-theme="dark"] .scroll-thin {
             scrollbar-color: rgba(140, 147, 158, 0.42) rgba(140, 147, 158, 0.1);
+        }
+
+        /* lucide 图标：1em 随字号缩放、currentColor 着色，行为对齐 Font Awesome。
+         * 描边默认 2/24，比 FA 实心字形细一档，全局提到 2.5 拉近视觉重量。 */
+        svg.lucide {
+            width: 1em;
+            height: 1em;
+            vertical-align: -0.125em;
+            flex-shrink: 0;
+            stroke-width: 2.5;
+        }
+
+        /* 地图/剖面缩放按钮：同组 FA 图标基于 15px 字形可见高约 13.4px，
+         * lucide zoom 外接框（18/24 视图盒）在同字号下只有 12.5px，放大到 16px 持平 */
+        .map-control-btn svg.lucide,
+        .zoom-btn svg.lucide {
+            font-size: 16px;
+        }
+
+        /* 装备卡：lucide 为线稿，同字号比 FA 实心字形视觉耗墨少；
+         * 18px 后可见 13.9×16.9px，落在同卡 FA 图标（11-20×14-16px）区间略偏大，抵消线稿的轻 */
+        .equipment-icon svg.lucide {
+            font-size: 18px;
         }
 
         @media (prefers-reduced-motion: reduce) {

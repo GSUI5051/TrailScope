@@ -64,7 +64,7 @@ It walks through loading a GPX track, reading the map and elevation profile, and
   Advanced parameters (wet‑bulb temperature, dew point, solar radiation, air pressure, etc.) allow estimation of the WBGT (Wet‑Bulb Globe Temperature) for heat‑stress assessment.
 
 - **🎒 Gear & Supply Recommendations**  
-  Generates essential gear, recommended gear, and supplies (water, meals, snacks) from route distance, ascent, grade, maximum elevation, and estimated time. Weather input updates weather notices and the risk list, but does not currently rewrite the gear list.  
+  Generates essential gear, recommended gear, and supplies (water, meals, snacks) from route distance, ascent, grade, maximum elevation, and estimated time.  
   The English page converts route values, weather inputs, and supply quantities when the unit system changes. Water is shown in liters (L) for metric units and US fluid ounces (oz) for US Customary units.
 
 - **📋 Segment Statistics**  
@@ -124,6 +124,7 @@ It walks through loading a GPX track, reading the map and elevation profile, and
 - **Leaflet.TileLayer.ColorFilter** – Dark-mode tile filters for every map source
 - **Canvas API / Path2D** – Elevation profile and lightweight interaction overlay drawing
 - **Font Awesome** – Icons
+- **lucide** – Icons (self-hosted `js/common/lucide-1.35.0.min.js`, renders offline)
 - **Local GPX / KML Parsing** – DOM‑based XML parsing
 - **Local KMZ Extraction** – Vendored JSZip 3.10.1, loaded on demand for offline ZIP extraction
 - **Self-hosted Fonts** – Anton (Latin) and LianMengQiYiLuShuaiZhengRuiHeiTi (Chinese) shipped as local files in `webfonts/`, so the page renders fully offline
@@ -151,6 +152,7 @@ TrailScope/
 │   │   ├── leaflet-1p9p4.js    # vendor: Leaflet
 │   │   ├── leaflet-custom-headers.js # vendor: custom HTTP headers for tile requests
 │   │   ├── leaflet-tilelayer-colorfilter.min.js # vendor: dark-mode tile filter plugin
+│   │   ├── lucide-1.35.0.min.js # vendor: lucide icon library (ISC, self-hosted)
 │   │   ├── tailwind-config.js  # retained Tailwind theme source for stylesheet rebuilds
 │   │   ├── device.js           # UA / device detection
 │   │   ├── colors.js           # gradient colors and cached render color buckets
@@ -243,7 +245,7 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 ## 🌟 Acknowledgements
 
 - Inspired by outdoor apps and GPX tools like 2bulu, Strava, Zepp, Mapy, Organic Maps, and GPX Studio.
-- Thanks to all open‑source libraries (Leaflet, Tailwind CSS, Font Awesome).
+- Thanks to all open‑source libraries (Leaflet, Tailwind CSS, Font Awesome, lucide).
 - Thanks to OpenStreetMap, Amap and all map providers.
 - Special thanks to the hikers and trail runners who shared their track data.
 

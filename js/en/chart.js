@@ -6,7 +6,7 @@ function drawChart(options = {}) {
     const canvas = chartCanvas;
     const ctx = chartCtx;
     const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
+    let rect = canvas.getBoundingClientRect();
 
     if (!trackData.hasValidElevation) {
         const pixelWidth = Math.max(1, Math.round(rect.width * dpr));
@@ -19,11 +19,25 @@ function drawChart(options = {}) {
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.clearRect(0, 0, rect.width, rect.height);
         clearChartHoverOverlay(canvas);
+        clearChartLabelOverlay(canvas);
         canvas._scale = null;
         canvas._themeVersion = chartThemeVersion;
         const tooltip = canvas._tooltip || document.getElementById('chartTooltip');
         if (tooltip) tooltip.classList.remove('visible');
         return;
+    }
+
+    let padding = { top: 30, right: 50, bottom: 45, left: 60 };
+    if (IS_MOBILE) {
+        padding.left = 60;
+        padding.right = 30;
+    }
+    // 表格加宽 right 留白量：绘制右边缘（细线）与上方缩放按钮组右端对齐（按钮组位置不变）
+    const wrapW = canvas.parentElement ? canvas.parentElement.clientWidth : rect.width;
+    const targetW = Math.max(1, Math.round(wrapW + padding.right));
+    if (Math.abs(rect.width - targetW) > 0.5) {
+        canvas.style.width = targetW + 'px';
+        rect = canvas.getBoundingClientRect();
     }
 
     const pixelWidth = Math.max(1, Math.round(rect.width * dpr));
@@ -40,11 +54,6 @@ function drawChart(options = {}) {
     if (W < 1 || H < 1) {
         // 布局过渡瞬间画布尺寸可能为 0：跳过本次绘制，避免画出横线并保留旧画面
         return;
-    }
-    let padding = { top: 30, right: 50, bottom: 45, left: 60 };
-    if (IS_MOBILE) {
-        padding.left = 60;
-        padding.right = 30;
     }
     const chartW = W - padding.left - padding.right;
     let chartH = H - padding.top - padding.bottom;
@@ -95,19 +104,15 @@ function drawChart(options = {}) {
         ctx.fillText(UnitHelper.elevationLabel(elev, 0), padding.left - 8, y + 4);
     }
 
-    let xSteps = Math.min(10, Math.ceil(viewEnd - viewStart));
-    if (IS_MOBILE) xSteps = 4;
+    const xSteps = 4;
 
     for (let i = 0; i <= xSteps; i++) {
         const dist = viewStart + ((viewEnd - viewStart) / xSteps) * i;
         const x = xScale(dist);
 
-        ctx.beginPath();
-        ctx.moveTo(x, padding.top);
-        ctx.lineTo(x, padding.top + chartH);
-        ctx.stroke();
-
-        ctx.textAlign = 'center';
+        // 横轴只画距离标签，不画竖直网格线（对比海拔：只画水平网格线）
+        // 首尾刻度标签对齐绘图区左右边缘（首个左对齐、末个右对齐），避免溢入内边距
+        ctx.textAlign = i === 0 ? 'left' : (i === xSteps ? 'right' : 'center');
         ctx.fillText(UnitHelper.distanceLabel(dist, 1), x, H - padding.bottom + 18);
     }
 
@@ -210,18 +215,6 @@ function drawChart(options = {}) {
 
     ctx.restore();
 
-    if (showAnnotations) {
-        drawAnnotations(ctx, points, xScale, yScale, padding, chartW, chartH, viewStart, viewEnd);
-    }
-
-    drawStartEndMarkers(ctx, points, xScale, yScale, viewStart, viewEnd);
-
-    // ★★★ 航路点绘制：根据三状态决定 ★★★
-    if (waypointDisplayMode !== 'hide-all') {
-        const showNames = (waypointDisplayMode === 'show-names');
-        drawWaypoints(ctx, trackData.waypoints, xScale, yScale, viewStart, viewEnd, showNames);
-    }
-
     ctx.fillStyle = chartTheme.axis;
     ctx.font = '600 12px Inter, sans-serif';
     ctx.textAlign = 'center';
@@ -237,6 +230,24 @@ function drawChart(options = {}) {
     canvas._themeVersion = chartThemeVersion;
     ensureChartHoverOverlay(canvas);
     refreshChartHoverOverlay();
+
+    // 标注/起终点/航路点绘制到遮罩层：z-index 低于 tooltip 卡片（z-2300 高于本层 2200）、
+    // 低于顶栏（z-9998）；悬停时信息卡压在标注之上（2026-08-29 用户明确反转优先序），滚动不上浮导航栏；
+    // 绘制随主画布重绘（缩放/平移/切换显示状态）同步进行
+    const labelOverlay = ensureChartLabelOverlay(canvas);
+    if (labelOverlay) {
+        const lctx = labelOverlay.ctx;
+        lctx.clearRect(0, 0, labelOverlay.width, labelOverlay.height);
+        if (showAnnotations) {
+            drawAnnotations(lctx, points, xScale, yScale, padding, chartW, chartH, viewStart, viewEnd);
+        }
+        drawStartEndMarkers(lctx, points, xScale, yScale, viewStart, viewEnd);
+        // ★★★ 航路点绘制：根据三状态决定 ★★★
+        if (waypointDisplayMode !== 'hide-all') {
+            const showNames = (waypointDisplayMode === 'show-names');
+            drawWaypoints(lctx, trackData.waypoints, xScale, yScale, viewStart, viewEnd, showNames);
+        }
+    }
 }
 function drawStartEndMarkers(ctx, points, xScale, yScale, viewStart, viewEnd) {
     if (points[0].distance >= viewStart && points[0].distance <= viewEnd) {

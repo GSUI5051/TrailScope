@@ -18,11 +18,31 @@
         }
     }
     document.addEventListener('click', function (e) {
-        var link = e.target && e.target.closest ? e.target.closest('.lang-panel a') : null;
-        if (!link) return;
-        try {
-            sessionStorage.setItem('trailscope.langChoice',
-                link.getAttribute('href').indexOf('TrailScope-English.html') !== -1 ? 'en' : 'zh');
-        } catch (_) {}
+        var target = e.target;
+        if (!target || !target.closest) return;
+
+        var menu = target.closest('details.nav-menu');
+        var langMenu = menu && menu.querySelector('.lang-panel') ? menu : null;
+
+        // 点击语言选项：照常记录选择（原有机制）。选了当前语言时不重载，只收起菜单
+        var link = target.closest('.lang-panel a');
+        if (link) {
+            try {
+                sessionStorage.setItem('trailscope.langChoice',
+                    link.getAttribute('href').indexOf('TrailScope-English.html') !== -1 ? 'en' : 'zh');
+            } catch (_) {}
+            if (link.getAttribute('aria-current') === 'true') {
+                e.preventDefault();
+            }
+            if (menu) menu.removeAttribute('open');
+            return;
+        }
+
+        // 点击位置不在语言菜单内：收起语言菜单（其他 details 菜单如汉堡不受影响）
+        if (!langMenu) {
+            document.querySelectorAll('details.nav-menu').forEach(function (d) {
+                if (d.querySelector('.lang-panel')) d.removeAttribute('open');
+            });
+        }
     });
 })();

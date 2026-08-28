@@ -325,7 +325,7 @@ function updateMapCurrentPoint(pointIdx) {
     const pointChanged = currentMarkerPointIdx !== pointIdx;
     currentMarkerPointIdx = pointIdx;
 
-    if (pointChanged) {
+    if (pointChanged && mapLinkageEnabled) {
         keepMapPointVisible(displayPos);
     }
 

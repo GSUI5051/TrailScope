@@ -27,10 +27,13 @@ function updatePaginationControls() {
         }
     });
 
-    const allOption = document.createElement('option');
-    allOption.value = totalSegments;
-    allOption.textContent = 'All';
-    pageSizeSelect.appendChild(allOption);
+    /* If the segment total matches a base option, that option already means "all" — skip the duplicate */
+    if (!baseOptions.includes(totalSegments)) {
+        const allOption = document.createElement('option');
+        allOption.value = totalSegments;
+        allOption.textContent = 'All';
+        pageSizeSelect.appendChild(allOption);
+    }
 
     let valueToSet = currentValue;
     let found = false;
@@ -243,7 +246,7 @@ function updateUI() {
     const essentialContainer = document.getElementById('essentialEquipment');
     essentialContainer.innerHTML = equipment.essential.map(item => `
             <div class="equipment-item">
-                <span class="equipment-icon text-trail-moss"><i class="fa-solid ${item.icon}"></i></span>
+                <span class="equipment-icon text-trail-moss">${equipmentIconHtml(item)}</span>
                 <div class="equipment-content">
                     <p class="equipment-name">${item.name}</p>
                     <p class="equipment-desc">${item.desc}</p>
@@ -254,7 +257,7 @@ function updateUI() {
     const recommendedContainer = document.getElementById('recommendedEquipment');
     recommendedContainer.innerHTML = equipment.recommended.map(item => `
             <div class="equipment-item">
-                <span class="equipment-icon text-accent-amber"><i class="fa-solid ${item.icon}"></i></span>
+                <span class="equipment-icon text-accent-amber">${equipmentIconHtml(item)}</span>
                 <div class="equipment-content">
                     <p class="equipment-name">${item.name}</p>
                     <p class="equipment-desc">${item.desc}</p>
@@ -265,13 +268,15 @@ function updateUI() {
     const suppliesContainer = document.getElementById('suppliesRecommendation');
     suppliesContainer.innerHTML = equipment.supplies.map(item => `
             <div class="equipment-item">
-                <span class="equipment-icon text-accent-blue"><i class="fa-solid ${item.icon}"></i></span>
+                <span class="equipment-icon text-accent-blue">${equipmentIconHtml(item)}</span>
                 <div class="equipment-content">
                     <p class="equipment-name">${item.name}</p>
                     <p class="equipment-desc">${item.desc}</p>
                 </div>
             </div>
             `).join('');
+
+    renderLucideIcons();
 
     updateSegments();
 
@@ -734,13 +739,9 @@ function toggleMapLinkage() {
         }
     }
 
-    if (!mapLinkageEnabled) {
-        if (currentMarker) {
-            leafletMap.removeLayer(currentMarker);
-            currentMarker = null;
-            currentMarkerPointIdx = -1;
-        }
-    } else {
+    // 联动=地图跟随移动；关闭时保留“当前位置”标记（仅停止 keepMapPointVisible），
+    // 开启时若有当前点立即恢复跟随
+    if (mapLinkageEnabled) {
         if (typeof hoveredPointIdx !== 'undefined' && hoveredPointIdx >= 0) {
             updateMapCurrentPoint(hoveredPointIdx);
         } else if (typeof touchState !== 'undefined' && touchState.vlineIdx >= 0) {
@@ -893,6 +894,10 @@ function enterMapFullscreen() {
                     <div class="flex items-center gap-1.5">
                         <div class="w-2.5 h-2.5 rounded-full bg-trail-moss flex-shrink-0"></div>
                         <span class="text-xs text-trail-mid/70">Start</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <div class="w-2.5 h-2.5 rounded-full bg-trail-earth flex-shrink-0"></div>
+                        <span class="text-xs text-trail-mid/70">Waypoint</span>
                     </div>
                     <div class="flex items-center gap-1.5">
                         <div class="w-2.5 h-2.5 rounded-full bg-accent-red flex-shrink-0"></div>

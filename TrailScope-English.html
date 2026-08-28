@@ -20,7 +20,7 @@
 <body class="gradient-bg min-h-screen mountain-bg">
 
     <!-- Navigation -->
-    <nav class="nav-blur sticky top-0 z-50 border-b border-trail-sage/20">
+    <nav class="nav-blur sticky top-0 border-b border-trail-sage/20">
         <div class="max-w-7xl mx-auto px-6 py-4 flex items-center gap-6 nav-inner">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-trail-mid to-trail-dark flex items-center justify-center">
@@ -35,6 +35,7 @@
                 <a href="#upload">Import</a>
                 <a href="#analysis">Route</a>
                 <a href="#assessment">Assessment</a>
+                <a href="#risk">Safety</a>
                 <a href="#weatherAnalysis">Weather</a>
                 <a href="#equipment">Gear & Supplies</a>
                 <a href="#segments">Sections</a>
@@ -45,7 +46,7 @@
                 <div class="nav-quick-group">
                     <details class="nav-menu">
                         <summary aria-label="Switch language">
-                            <i class="fa-solid fa-language"></i>
+                            <i data-lucide="languages"></i>
                         </summary>
                         <div class="nav-menu-panel lang-panel">
                             <a href="index.html"><span>中文</span></a>
@@ -53,7 +54,7 @@
                         </div>
                     </details>
                     <button id="themeQuickBtn" class="nav-icon-btn" aria-label="Toggle dark mode">
-                        <i class="fa-regular fa-moon"></i>
+                        <i data-lucide="moon"></i>
                     </button>
                 </div>
                 <button id="loadDemoBtn" class="nav-ghost-btn" aria-label="Load demo track">
@@ -68,6 +69,7 @@
                         <a href="#upload">Import</a>
                         <a href="#analysis">Route</a>
                         <a href="#assessment">Assessment</a>
+                        <a href="#risk">Safety</a>
                         <a href="#weatherAnalysis">Weather</a>
                         <a href="#equipment">Gear & Supplies</a>
                         <a href="#segments">Sections</a>
@@ -143,7 +145,7 @@
                 <div>
                     <h3 class="text-2xl font-bold text-trail-dark mb-3">Import a Trail Track</h3>
                     <p class="text-sm text-trail-mid/70 leading-relaxed mb-3">
-                        GPX, KML, and KMZ files are supported. The page parses coordinates and elevation data, calculates distance, grades, total ascent/descent, and generates a visual report. Images, videos, and audio attachments inside KMZ are ignored, while text waypoints are preserved. All processing is done locally in your browser.
+                        GPX, KML, and KMZ files are supported. The page parses coordinates and elevation data, calculates distance, grades, total elevation gain/loss, and generates a visual report. Images, videos, and audio attachments inside KMZ are ignored, while text waypoints are preserved. All processing is done locally in your browser.
                     </p>
                     <div id="trackWarnings" class="hidden">
                         <p id="warningText" class="text-sm warning-text leading-relaxed mb-6 hidden" role="status">
@@ -292,10 +294,10 @@
 
                     <div class="absolute top-3 right-3 flex flex-col gap-2 z-10">
                         <button class="map-control-btn" id="mapZoomInBtn" title="Zoom In" aria-label="Zoom In">
-                            <i class="fa-solid fa-magnifying-glass-plus"></i>
+                            <i data-lucide="zoom-in"></i>
                         </button>
                         <button class="map-control-btn" id="mapZoomOutBtn" title="Zoom Out" aria-label="Zoom Out">
-                            <i class="fa-solid fa-magnifying-glass-minus"></i>
+                            <i data-lucide="zoom-out"></i>
                         </button>
                         <button class="map-control-btn" id="mapFitBtn" title="Show Entire Track" aria-label="Show Entire Track">
                             <i class="fa-solid fa-expand"></i>
@@ -345,6 +347,10 @@
                         <div class="flex items-center gap-2">
                             <div class="w-2.5 h-2.5 rounded-full bg-trail-moss"></div>
                             <span class="font-medium text-trail-cream">Start</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-2.5 h-2.5 rounded-full bg-trail-earth"></div>
+                            <span class="font-medium text-trail-cream">Waypoint</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <div class="w-2.5 h-2.5 rounded-full bg-accent-red"></div>
@@ -416,21 +422,20 @@
 
                 <!-- Chart with Zoom Controls -->
                 <div class="relative chart-wrapper" id="chartWrapper">
-                    <canvas id="elevationChart" class="w-full" style="height: 380px;"></canvas>
-                    <div id="chartTooltip" class="tooltip"></div>
-
-                    <!-- Zoom Controls -->
-                    <div class="absolute top-2 right-2 flex flex-col gap-1.5 z-10 zoom-controls">
-                        <button class="zoom-btn" id="chartZoomInBtn" title="Zoom In" aria-label="Zoom In">
-                            <i class="fa-solid fa-magnifying-glass-plus"></i>
-                        </button>
+                    <!-- Zoom Controls: above the chart, right-aligned, gap matches fullscreen horizontal buttons (gap-2) -->
+                    <div class="flex justify-end gap-2 mb-2 zoom-controls">
                         <button class="zoom-btn" id="chartZoomOutBtn" title="Zoom Out" aria-label="Zoom Out">
-                            <i class="fa-solid fa-magnifying-glass-minus"></i>
+                            <i data-lucide="zoom-out"></i>
+                        </button>
+                        <button class="zoom-btn" id="chartZoomInBtn" title="Zoom In" aria-label="Zoom In">
+                            <i data-lucide="zoom-in"></i>
                         </button>
                         <button class="zoom-btn" id="chartResetBtn" title="Reset" aria-label="Reset">
                             <i class="fa-solid fa-expand"></i>
                         </button>
                     </div>
+                    <canvas id="elevationChart" class="w-full" style="height: 380px;"></canvas>
+                    <div id="chartTooltip" class="tooltip"></div>
                 </div>
 
                 <!-- Zoom Info -->
@@ -531,7 +536,7 @@
             </div>
 
             <!-- Time & Energy Estimate -->
-            <div class="glass-card rounded-3xl p-6 assessment-col-3">
+            <div id="timeFitCard" class="glass-card rounded-3xl p-6 assessment-col-3">
                 <h3 class="text-xl font-bold text-trail-dark mb-1 flex items-center gap-2">
                     <i class="fa-solid fa-stopwatch text-trail-earth"></i>
                     Time & Fitness Requirements
@@ -583,13 +588,13 @@
             </div>
 
             <!-- Risk Assessment -->
-            <div class="glass-card rounded-3xl p-6 assessment-wide">
+            <div id="risk" class="glass-card rounded-3xl p-6 assessment-wide">
                 <h3 class="text-xl font-bold text-trail-dark mb-1 flex items-center gap-2">
                     <i class="fa-solid fa-triangle-exclamation text-accent-red"></i>
                     Safety Considerations
                 </h3>
                 <p class="text-xs text-trail-mid/60 mb-5">Based on track characteristics and weather data</p>
-                <p id="riskElevationNotice" class="no-elevation-notice hidden" role="status">The track does not contain valid elevation data, so elevation-, ascent-, and grade-related risks cannot be identified.</p>
+                <p id="riskElevationNotice" class="no-elevation-notice hidden" role="status">The track does not contain valid elevation data, so elevation-, and grade-related risks cannot be identified.</p>
 
                 <div id="riskList" class="space-y-3">
                 </div>
@@ -846,9 +851,10 @@
                 <i class="fa-solid fa-mountain text-3xl text-trail-moss/60"></i>
             </div>
             <h3 class="text-xl font-bold text-trail-dark mb-2">Analyze Track</h3>
-            <p class="text-sm text-trail-mid/60 max-w-md mx-auto mb-6">
-                Import GPX / KML / KMZ file · Click DEMO to load demo track
-            </p>
+            <div class="text-sm text-trail-mid/60 max-w-md mx-auto mb-6 space-y-1">
+                <p>Import GPX / KML / KMZ file</p>
+                <p>Click <span class="demo-ref-text">DEMO</span> <i class="fa-solid fa-flask text-xs demo-ref-icon" style="vertical-align: -0.125em;"></i> to load demo track</p>
+            </div>
             <div class="flex flex-wrap justify-center gap-3">
                 <div class="px-4 py-2 rounded-xl bg-trail-sage/10 text-xs text-trail-mid flex items-center gap-2">
                     <i class="fa-solid fa-check text-trail-moss"></i> Profile Visualization
@@ -872,7 +878,7 @@
     <!-- Footer -->
     <footer class="max-w-7xl mx-auto px-6 py-8 text-center">
         <p class="text-xs text-trail-mid/50 footer-copy">
-            TrailScope · GPX track Analyzer · All processing stays on your device · <a href='https://github.com/GSUI5051/TrailScope' class="theme-link"><span>FOSS (GitHub)</span></a>
+            TrailScope · Track Analyzer · All processing stays on your device · <a href='https://github.com/GSUI5051/TrailScope' class="theme-link"><span>FOSS (GitHub)</span></a>
         </p>
         <p class="text-xs text-trail-mid/50 footer-copy footer-copy-spaced">
             2026 · Girls' Space and Universe Institute
@@ -890,6 +896,7 @@
     <script src="js/common/coords.js"></script>
     <script src="js/common/map-common.js"></script>
     <script src="js/common/waypoints.js"></script>
+    <script src="js/common/lucide-1.35.0.min.js"></script>
     <script src="js/common/ui-common.js"></script>
     <script src="js/common/kmz.js"></script>
     <script src="js/en/units.js"></script>

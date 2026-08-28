@@ -64,7 +64,7 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
   可基于进阶参数（湿球温度、露点、太阳辐射、气压等）估算 WBGT（湿球黑球温度）指数，评估热应激风险。
 
 - **🎒 装备与补给建议**  
-  根据路线距离、爬升、坡度、最高海拔和估算耗时，生成基础装备、推荐装备及补给清单（饮水量、餐食、能量零食等）。气象数据会更新天气提示和风险列表，目前不会修正装备清单。  
+  根据路线距离、爬升、坡度、最高海拔和估算耗时，生成基础装备、推荐装备及补给清单（饮水量、餐食、能量零食等）。  
   英文版切换单位制时，路线数据、天气输入和补给量会随之换算；饮水量公制显示升（L），英制显示美制盎司（oz）。
 
 - **📋 分段统计**  
@@ -123,6 +123,7 @@ An experimental online GPX visualizer and analyzer, but a whole different animal
 - **Leaflet.TileLayer.ColorFilter** – 全部地图源的深色模式瓦片滤镜
 - **Canvas API / Path2D** – 海拔剖面图与轻量交互 overlay 绘制
 - **Font Awesome** – 图标库
+- **lucide** – 图标库（自托管 `js/common/lucide-1.35.0.min.js`，离线可渲染）
 - **本地 GPX / KML 解析** – 使用 DOM 解析 XML 格式的 GPX/KML 文件
 - **本地 KMZ 解压** – 使用本地 JSZip 3.10.1，并在导入 KMZ 时按需加载，支持离线运行
 - **自托管字体** – Anton（英文）与联盟起艺路帅正锐黑体（中文）放在 `webfonts/` 本地文件，页面断网也能完整显示
@@ -150,6 +151,7 @@ TrailScope/
 │   │   ├── leaflet-1p9p4.js    # 第三方：Leaflet
 │   │   ├── leaflet-custom-headers.js # 第三方：瓦片请求自定义 HTTP 头
 │   │   ├── leaflet-tilelayer-colorfilter.min.js # 第三方：深色模式瓦片滤镜
+│   │   ├── lucide-1.35.0.min.js # 第三方：lucide 图标库（ISC，自托管）
 │   │   ├── tailwind-config.js  # 保留的 Tailwind 主题源，用于重新构建样式
 │   │   ├── device.js           # 设备 / UA 检测
 │   │   ├── colors.js           # 坡度/海拔配色与渲染色桶缓存
