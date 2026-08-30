@@ -41,22 +41,42 @@ function updateThemeButtons() {
     updateThemeQuickButton();
 }
 
-/* lucide 图标工具：createIcons 会把 <i data-lucide> 整体替换为 <svg>，
-   动态换图须先移除旧图标再重建 <i>，否则新图标不会生效 */
+/* 图标渲染：icons.js + icons-data.js（SVG 数据取自 react-icons fa6/lu 模块），
+   把 <i class="fa-*"> / <i data-lucide> 原地替换为内联 <svg>（保留原 class，CSS 着色不受影响），
+   动态换图须先移除旧 svg 再重建 <i>，否则新图标不会生效 */
 function setLucideIcon(container, name) {
-    if (typeof lucide === 'undefined' || !lucide.createIcons) return;
+    if (typeof renderTrailIcons !== 'function') return;
     const old = container.querySelector('svg.lucide, [data-lucide]');
     if (old) old.remove();
     const el = document.createElement('i');
     el.setAttribute('data-lucide', name);
     container.appendChild(el);
-    lucide.createIcons();
+    renderTrailIcons(container);
 }
 function renderLucideIcons() {
-    if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+    if (typeof renderTrailIcons === 'function') renderTrailIcons();
 }
-/* 装备条目图标：icon 带 lucide: 前缀走 lucide，其余保持 Font Awesome */
+/* 标注开关按钮图标随状态切换：标注可见（文案"隐藏标注"/"Hide Annotations"）时显示 eye-slash，
+   标注已隐藏（"显示标注"/"Show Annotations"）时显示 eye。两个入口同规则：
+   窗口内剖面工具行 #annotationBtn 与全屏图表工具栏按钮（经各自 label span 反查按钮） */
+function updateAnnotationToggleIcon(annotationsVisible) {
+    ['annotationLabel', 'fullscreenAnnotationLabel'].forEach(id => {
+        const label = document.getElementById(id);
+        const btn = label && label.closest('button');
+        if (!btn) return;
+        const old = btn.querySelector('svg[data-ri^="fa6/"], i[class*="fa-"]');
+        if (!old) return;
+        const fresh = document.createElement('i');
+        fresh.className = 'fa-solid ' + (annotationsVisible ? 'fa-eye-slash' : 'fa-eye');
+        old.replaceWith(fresh);
+    });
+    if (typeof renderTrailIcons === 'function') renderTrailIcons();
+}
+/* 装备条目图标：icon 前缀路由——bi: 走 Bootstrap Icons，lucide: 走 lucide，其余保持 Font Awesome */
 function equipmentIconHtml(item) {
+    if (item.icon && item.icon.indexOf('bi:') === 0) {
+        return `<i data-bi="${item.icon.slice(3)}"></i>`;
+    }
     if (item.icon && item.icon.indexOf('lucide:') === 0) {
         return `<i data-lucide="${item.icon.slice(7)}"></i>`;
     }
@@ -136,6 +156,7 @@ function syncFullscreenMapSourceSelect() {
     const mainSelect = document.getElementById('mapSourceSelect');
     if (!fsSelect || !mainSelect) return;
     fsSelect.innerHTML = mainSelect.innerHTML;
+    fsSelect.value = mainSelect.value;
 }
 function clearHighlight() {
     activeSegmentIdx = -1;
@@ -372,70 +393,45 @@ function showToast(message, type = 'info') {
 }
 let normalChartCanvas = null;
 let fullscreenChartCanvas = null;
-// ★★★ 遮罩层统一挂在 body 上、fixed 定位（视口坐标）：
-// chartWrapper 有 overflow-x: clip（防 canvas 加宽溢出），标注/十字线挂容器内会被裁剪到右缘，
-// 终点等贴边标记会半截；挂 body 后随页面滚动/窗口 resize 通过 syncChartOverlayPositions 同步位置。
-// z-index 在 root stacking context 中参与比较（tooltip 卡片 z-1000）：
-// 十字线层 z-2（卡片之下、主画布之上），标注层 z-1001（卡片之上）★★★★★★
-let chartOverlaySyncBound = false;
-// 遮罩层挂载目标：inline 图表挂 body（fixed，绕开 chartWrapper 的 overflow-x: clip，
-// z-2200 高于图表内容、低于 tooltip 卡片 z-2300 与顶栏 z-9998；tooltip 需压在标注/航路点之上）；
-// 全屏图表挂回面板内（absolute、z-1001，面板 z-10000 内部无裁剪，且与卡片保持同一 stacking context）
+// ★★★ 遮罩层统一挂载为画布的同胞节点（画布 relative 父容器的 absolute 子元素）：
+// inline 图表挂 chartWrapper、全屏图表挂 .chart-area。容器/画布/遮罩层处于同一文档流，
+// 滚动/平移/缩放由浏览器原生同动，定位路径中完全没有 JS 坐标参与——从结构上消除
+// 任何"遮罩层与画布不同步/拖尾"（此前 body+fixed 与 body+absolute 文档坐标两版
+// 都依赖 JS 追滚，在真机与部分浏览器设备模拟下存在帧差）。
+// 挂容器内部不被裁剪的前提：chartWrapper 不再设 overflow-x: clip，横向溢出由视口级
+// html { overflow-x: clip } 兜底；遮罩层可见窗口（到视口边缘）与旧 body 挂载方案一致，
+// 终点等贴边标记完整显示的约束保持不变。
+// z-index（root stacking context）：十字线层 z-2（主画布之上），标注层 z-2200
+// （低于 tooltip 卡片 z-2300 与顶栏 z-9998，tooltip 压在标注/航路点之上）；
+// 全屏面板内标注层 z-1001（面板内 tooltip 10002，同层比较）★★★★★★
+// 遮罩层挂载目标：画布的 relative 父容器（inline=chartWrapper，全屏=.chart-area）
 function getChartOverlayRoot(canvas) {
-    if (fullscreenChartCanvas && canvas === fullscreenChartCanvas && canvas.parentElement) {
-        return canvas.parentElement;
-    }
-    return document.body;
+    return canvas.parentElement || document.body;
 }
 function findChartOverlayInRoot(root, className, canvas) {
-    const query = root === document.body ? ':scope > ' + className : className;
-    return Array.from(root.querySelectorAll(query)).find((el) => el._ownerCanvas === canvas) || null;
+    return Array.from(root.querySelectorAll(':scope > ' + className)).find((el) => el._ownerCanvas === canvas) || null;
 }
 function syncChartOverlayPositions() {
-    const lists = [
-        document.body.querySelectorAll(':scope > .chart-hover-overlay, :scope > .chart-label-overlay'),
-        document.querySelectorAll('#fullscreenProfile .chart-hover-overlay, #fullscreenProfile .chart-label-overlay')
-    ];
-    lists.forEach((list) => {
-        list.forEach((overlay) => {
-            const canvas = overlay._ownerCanvas;
-            if (!canvas || !canvas.isConnected) return;
-            // 只显示当前活动画布（inline↔全屏切换时另一块的遮罩层隐藏）
-            const active = canvas === chartCanvas;
-            overlay.style.display = active ? '' : 'none';
-            if (!active) return;
-            const r = canvas.getBoundingClientRect();
-            const scale = canvas._scale;
-            const w = scale ? scale.W : r.width;
-            const h = scale ? scale.H : r.height;
-            if (overlay.parentElement === document.body) {
-                overlay.style.position = 'fixed';
-                overlay.style.left = r.left + 'px';
-                overlay.style.top = r.top + 'px';
-            } else {
-                const pr = overlay.parentElement.getBoundingClientRect();
-                overlay.style.position = 'absolute';
-                overlay.style.left = (r.left - pr.left) + 'px';
-                overlay.style.top = (r.top - pr.top) + 'px';
-            }
-            overlay.style.width = w + 'px';
-            overlay.style.height = h + 'px';
-        });
+    document.querySelectorAll('.chart-hover-overlay, .chart-label-overlay').forEach((overlay) => {
+        const canvas = overlay._ownerCanvas;
+        if (!canvas || !canvas.isConnected) return;
+        // 只显示当前活动画布（inline↔全屏切换时另一块的遮罩层隐藏）
+        const active = canvas === chartCanvas;
+        overlay.style.display = active ? '' : 'none';
+        if (!active) return;
+        const r = canvas.getBoundingClientRect();
+        const pr = overlay.parentElement.getBoundingClientRect();
+        const scale = canvas._scale;
+        const w = scale ? scale.W : r.width;
+        const h = scale ? scale.H : r.height;
+        // absolute 定位到画布在容器内的偏移；容器/画布/遮罩层同滚同缩，
+        // 滚动与布局位移均无需 JS 重算（随容器原生移动），仅在图表重绘时对齐一次
+        overlay.style.position = 'absolute';
+        overlay.style.left = (r.left - pr.left) + 'px';
+        overlay.style.top = (r.top - pr.top) + 'px';
+        overlay.style.width = w + 'px';
+        overlay.style.height = h + 'px';
     });
-}
-function bindChartOverlayPositionSync() {
-    if (chartOverlaySyncBound) return;
-    chartOverlaySyncBound = true;
-    let frame = 0;
-    const schedule = () => {
-        if (frame) return;
-        frame = requestAnimationFrame(() => {
-            frame = 0;
-            syncChartOverlayPositions();
-        });
-    };
-    window.addEventListener('scroll', schedule, { passive: true });
-    window.addEventListener('resize', schedule);
 }
 function ensureChartHoverOverlay(canvas) {
     if (!canvas || !canvas.parentElement) return null;
@@ -460,8 +456,8 @@ function ensureChartHoverOverlay(canvas) {
     const rect = scale ? null : canvas.getBoundingClientRect();
     const cssWidth = scale ? scale.W : rect.width;
     const cssHeight = scale ? scale.H : rect.height;
-    // 位置与主画布逐像素对齐（固定时用视口坐标；画布可能因“加宽右留白”超出容器，
-    // 不能用 inset:0/100% 覆盖，否则十字线被缩放错位）
+    // 位置与主画布逐像素对齐（挂画布容器内部，与画布同滚同缩；画布可能因“加宽右留白”
+    // 超出容器，不能用 inset:0/100% 覆盖，否则十字线被缩放错位）。仅在图表重绘时对齐一次
     syncChartOverlayPositions();
     const dpr = window.devicePixelRatio || 1;
     const width = Math.max(1, Math.round(cssWidth * dpr));
@@ -473,7 +469,6 @@ function ensureChartHoverOverlay(canvas) {
     }
     const ctx = overlay.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    bindChartOverlayPositionSync();
     return { canvas: overlay, ctx, width: cssWidth, height: cssHeight };
 }
 
@@ -489,9 +484,9 @@ function clearChartHoverOverlay(canvas = chartCanvas) {
 // ★★★ 标注遮罩层：标注/起终点/航路点/名称绘制于此层，z-index（2200）低于 tooltip 卡片（2300），
 // 用户 2026-08-29 要求悬停时 tooltip 压在标注/航路点之上（原"标注高于卡片"的优先序已反转）；
 // 定位/尺寸必须与主画布逐像素对齐（canvas 宽度可能因“加宽右留白”超出容器，
-// 不能用 inset:0/100% 覆盖）；inline 挂 body（fixed、z-2200，低于顶栏 z-9998）使终点等贴边
-// 标记不被 wrapper 的 overflow-x: clip 裁掉、滚动时不浮在导航栏上面，并保持标注相对数据
-// 位置不变 ★★★
+// 不能用 inset:0/100% 覆盖）；挂画布容器内部（chartWrapper / 全屏 .chart-area）与画布
+// 同滚同缩：终点等贴边标记完整显示（视口级 html overflow-x: clip 兜底横向溢出）、
+// 滚动不滞后、不浮在导航栏上面，标注相对数据位置不变 ★★★
 function ensureChartLabelOverlay(canvas) {
     if (!canvas || !canvas.parentElement) return null;
 
@@ -504,10 +499,10 @@ function ensureChartLabelOverlay(canvas) {
             overlay.className = 'chart-label-overlay';
             overlay.setAttribute('aria-hidden', 'true');
             overlay.style.pointerEvents = 'none';
-            /* body 挂载 z-2200：高于图表内容、低于 tooltip 卡片（z-2300）与顶栏（z-9998），
+            /* z-2200：高于图表内容、低于 tooltip 卡片（z-2300）与顶栏（z-9998），
                悬停信息卡压在标注/航路点之上，滚动时本层也不浮在导航栏上面；
                全屏面板内 z-1001 与卡片（10002）同层比较 */
-            overlay.style.zIndex = root === document.body ? '2200' : '1001';
+            overlay.style.zIndex = (fullscreenChartCanvas && canvas === fullscreenChartCanvas) ? '1001' : '2200';
             overlay._ownerCanvas = canvas;
         }
         root.appendChild(overlay);
@@ -529,7 +524,6 @@ function ensureChartLabelOverlay(canvas) {
     }
     const ctx = overlay.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    bindChartOverlayPositionSync();
     return { canvas: overlay, ctx, width: cssWidth, height: cssHeight };
 }
 
@@ -702,6 +696,7 @@ function exitMapFullscreen() {
         document.getElementById('mapSourceControl')?.classList.remove('hidden');
         releaseFullscreenChartResources();
         document.getElementById('fullscreenProfile')?.remove();
+        destroyMapSourceCombobox(document.getElementById('fullscreenMapSourceSelect'));
         document.getElementById('fullscreenChartToolbar')?.remove();
 
         if (normalChartCanvas) {
@@ -773,6 +768,7 @@ document.addEventListener('fullscreenchange', () => {
     document.getElementById('mapSourceControl')?.classList.remove('hidden');
     releaseFullscreenChartResources();
     document.getElementById('fullscreenProfile')?.remove();
+    destroyMapSourceCombobox(document.getElementById('fullscreenMapSourceSelect'));
     document.getElementById('fullscreenChartToolbar')?.remove();
 
     if (normalChartCanvas) {
@@ -801,6 +797,513 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
         this.closePath();
         return this;
     };
+}
+
+/* ========================================================================
+ * Map source combobox（图源选择 combobox）
+ * Hallmark · component: combobox (map source picker) · genre: modern-minimal
+ * （桌面 Fluent popover 向上弹 / 移动端 Material bottom sheet）
+ * states: default · hover · focus-visible · active · open · selected · search-empty
+ * 配色全走主题 token；原生 <select> 保留为隐藏状态源：选择时写 value +
+ * dispatch change，复用 bindings.js 的 changeMapSource 链路，无 JS 时原生下拉仍可用。
+ * ======================================================================== */
+const MAP_SOURCE_RECENT_KEY = 'trailscope.recentMapSources';
+const MAP_SOURCE_RECENT_MAX = 3;
+const MSC_INSTANCES = [];
+
+function readRecentMapSources() {
+    try {
+        const arr = JSON.parse(localStorage.getItem(MAP_SOURCE_RECENT_KEY) || '[]');
+        if (!Array.isArray(arr)) return [];
+        return arr.filter(k => typeof k === 'string' && typeof mapSources !== 'undefined' && (k in mapSources))
+            .slice(0, MAP_SOURCE_RECENT_MAX);
+    } catch (_) {
+        return [];
+    }
+}
+
+function recordRecentMapSource(key) {
+    try {
+        const next = [key, ...readRecentMapSources().filter(k => k !== key)].slice(0, MAP_SOURCE_RECENT_MAX);
+        localStorage.setItem(MAP_SOURCE_RECENT_KEY, JSON.stringify(next));
+    } catch (_) {}
+}
+
+function mscSourceName(key) {
+    return (typeof mapSources !== 'undefined' && mapSources[key]) ? mapSources[key].name : key;
+}
+
+function refreshMapSourceComboboxes() {
+    MSC_INSTANCES.forEach(inst => inst.refresh());
+}
+
+function destroyMapSourceCombobox(selectEl) {
+    const idx = MSC_INSTANCES.findIndex(inst => inst.selectEl === selectEl);
+    if (idx < 0) return;
+    const inst = MSC_INSTANCES[idx];
+    inst.destroy?.();
+    inst.panel.remove();
+    inst.scrim.remove();
+    MSC_INSTANCES.splice(idx, 1);
+}
+
+function buildMapSourceCombobox(selectEl) {
+    if (!selectEl || selectEl.dataset.mscReady) return;
+    /* 全屏工具栏每次进出都会重建（exitMapFullscreen 移除旧 toolbar），
+       先清理 selectEl 已脱离文档的旧实例及其挂在 body 上的 panel/scrim */
+    for (let i = MSC_INSTANCES.length - 1; i >= 0; i--) {
+        if (!MSC_INSTANCES[i].selectEl.isConnected) {
+            if (MSC_INSTANCES[i].destroy) MSC_INSTANCES[i].destroy();
+            MSC_INSTANCES[i].panel.remove();
+            MSC_INSTANCES[i].scrim.remove();
+            MSC_INSTANCES.splice(i, 1);
+        }
+    }
+    selectEl.dataset.mscReady = '1';
+
+    const strings = (typeof MAP_SOURCE_COMBOBOX_STRINGS !== 'undefined') ? MAP_SOURCE_COMBOBOX_STRINGS
+        : { searchPlaceholder: 'Search', recentLabel: 'RECENT', emptyLabel: 'No matching map source' };
+    const groups = (typeof MAP_SOURCE_GROUPS !== 'undefined') ? MAP_SOURCE_GROUPS : [];
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'msc-trigger map-source-select';
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.innerHTML = '<span class="msc-trigger-label"></span>' +
+        '<i class="fa-solid fa-chevron-down msc-caret"></i>';
+
+    const scrim = document.createElement('div');
+    scrim.className = 'msc-scrim';
+    const panel = document.createElement('div');
+    panel.className = 'msc-panel';
+    panel.hidden = true;
+    panel.innerHTML = `
+        <div class="msc-handle" aria-hidden="true"></div>
+        <div class="msc-search">
+            <i class="fa-solid fa-magnifying-glass msc-search-icon"></i>
+            <input type="text" class="msc-input" size="1" placeholder="${strings.searchPlaceholder}" aria-label="${strings.searchPlaceholder}">
+        </div>
+        <div class="msc-list" role="listbox" aria-label="${strings.searchPlaceholder}"></div>
+        <div class="msc-empty" hidden>${strings.emptyLabel}</div>`;
+
+    /* 面板宽度基准：每个图源名一行隐形 sizer（高度 0、不可见，仅参与 max-content）。
+       宽度由浏览器对"菜单中渲染出来的最长名称"实时求解——缩放/字体/DPI 变化与
+       内容同帧生效，JS 固化 px 宽度的瞬态脱节从构造上消除；搜索过滤不清除
+       sizer 行，宽度保持稳定。分组重复的 key 只放一行 */
+    const sizer = document.createElement('div');
+    sizer.className = 'msc-sizer';
+    sizer.setAttribute('aria-hidden', 'true');
+    const sizerSeen = new Set();
+    groups.forEach(gr => gr.keys.forEach(key => {
+        if (sizerSeen.has(key)) return;
+        sizerSeen.add(key);
+        const row = document.createElement('div');
+        row.className = 'msc-sizer-row';
+        row.innerHTML = '<i class="fa-solid fa-check msc-check"></i>' +
+            '<span class="msc-option-name">' + mscSourceName(key) + '</span>';
+        sizer.appendChild(row);
+    }));
+    panel.appendChild(sizer);
+
+    document.body.appendChild(scrim);
+    document.body.appendChild(panel);
+    selectEl.parentNode.insertBefore(trigger, selectEl);
+    selectEl.classList.add('hidden');
+
+    const input = panel.querySelector('.msc-input');
+    const list = panel.querySelector('.msc-list');
+    const emptyEl = panel.querySelector('.msc-empty');
+    const labelEl = trigger.querySelector('.msc-trigger-label');
+    let open = false;
+    let openedAsSheet = false;
+    let destroyed = false;
+    let visibleOptions = [];
+    let activeIdx = -1;
+    let closeTimer = null;
+
+    const isSheetLayout = () => window.matchMedia('(max-width: 767px)').matches;
+
+    function refresh() {
+        labelEl.textContent = mscSourceName(selectEl.value);
+        if (open) {
+            list.querySelectorAll('.msc-option').forEach(opt => {
+                opt.setAttribute('aria-selected', opt.dataset.key === selectEl.value ? 'true' : 'false');
+            });
+        }
+    }
+
+    function optionEl(key) {
+        const el = document.createElement('div');
+        el.className = 'msc-option';
+        el.setAttribute('role', 'option');
+        el.setAttribute('tabindex', '-1');
+        el.dataset.key = key;
+        el.innerHTML = '<i class="fa-solid fa-check msc-check"></i>' +
+            '<span class="msc-option-name">' + mscSourceName(key) + '</span>';
+        el.addEventListener('click', () => choose(key));
+        return el;
+    }
+
+    function matchKey(key, q) {
+        if (!q) return true;
+        return mscSourceName(key).toLowerCase().includes(q) || key.toLowerCase().includes(q);
+    }
+
+    function renderList(query) {
+        const q = (query || '').trim().toLowerCase();
+        const recent = readRecentMapSources();
+        const current = selectEl.value;
+        list.innerHTML = '';
+        let count = 0;
+
+        const buildGroup = (labelText, keys) => {
+            const g = document.createElement('div');
+            g.className = 'msc-group';
+            const label = document.createElement('div');
+            label.className = 'msc-group-label';
+            label.textContent = labelText;
+            g.appendChild(label);
+            keys.forEach(key => {
+                if (!matchKey(key, q)) return;
+                const opt = optionEl(key);
+                opt.setAttribute('aria-selected', key === current ? 'true' : 'false');
+                g.appendChild(opt);
+                count++;
+            });
+            if (g.children.length > 1) list.appendChild(g);
+        };
+
+        if (recent.length) buildGroup(strings.recentLabel, recent);
+        groups.forEach(gr => buildGroup(gr.label, gr.keys));
+
+        emptyEl.hidden = count > 0;
+        visibleOptions = Array.from(list.querySelectorAll('.msc-option'));
+        activeIdx = -1;
+    }
+
+    function setActive(idx) {
+        if (activeIdx >= 0 && visibleOptions[activeIdx]) visibleOptions[activeIdx].classList.remove('msc-active');
+        activeIdx = idx;
+        const el = visibleOptions[activeIdx];
+        if (el) {
+            el.classList.add('msc-active');
+            if (!el.id) el.id = 'msc-opt-' + Math.random().toString(36).slice(2, 8);
+            input.setAttribute('aria-activedescendant', el.id);
+            el.scrollIntoView({ block: 'nearest' });
+        } else {
+            input.removeAttribute('aria-activedescendant');
+        }
+    }
+
+    /* 桌面 popover 定位：向空间更大的一侧弹出，高度取 65vh 与可用空间的较小值，永不溢出视口。
+       宽度以当前语言最长图源名称为基准，并使用 CSS 像素测量，浏览器缩放后会随布局视口重新计算。 */
+    let widthVw = 0;
+    let widthDpr = 0;
+
+    function measureTriggerWidth() {
+        if (destroyed) return;
+        if (isSheetLayout()) {
+            trigger.style.width = '';
+            trigger.style.minWidth = '';
+            return;
+        }
+        const probe = document.createElement('span');
+        probe.className = 'msc-trigger-label';
+        const triggerStyles = getComputedStyle(trigger);
+        probe.style.cssText = 'position:absolute;visibility:hidden;width:max-content;white-space:nowrap;' +
+            'font-family:' + triggerStyles.fontFamily + ';font-size:' + triggerStyles.fontSize +
+            ';font-weight:' + triggerStyles.fontWeight + ';letter-spacing:' + triggerStyles.letterSpacing + ';';
+        const probeMount = document.fullscreenElement || document.body;
+        probeMount.appendChild(probe);
+        let longest = 0;
+        Array.from(selectEl.options).forEach(option => {
+            probe.textContent = mscSourceName(option.value);
+            longest = Math.max(longest, probe.getBoundingClientRect().width);
+        });
+        probe.remove();
+        const horizontalPadding = parseFloat(triggerStyles.paddingLeft) + parseFloat(triggerStyles.paddingRight);
+        const border = parseFloat(triggerStyles.borderLeftWidth) + parseFloat(triggerStyles.borderRightWidth);
+        const gap = parseFloat(triggerStyles.gap) || 0;
+        const caret = trigger.querySelector('.msc-caret');
+        const caretStyles = caret ? getComputedStyle(caret) : null;
+        const caretWidth = caret ? Math.max(
+            caret.getBoundingClientRect().width,
+            parseFloat(caretStyles.width) || 0,
+            parseFloat(caretStyles.fontSize) || 0
+        ) : 0;
+        /* +1px 余量：分数缩放（110%/125%/150%）下布局/绘制按设备像素对齐可能吃掉零头，
+           当前项恰为最长项时否则触发省略号 */
+        const desired = Math.ceil(longest + horizontalPadding + border + gap + caretWidth) + 1;
+        const vw = document.documentElement.clientWidth;
+        const maxWidth = Math.min(340, Math.max(0, vw - 24));
+        const minWidth = Math.min(128, maxWidth);
+        trigger.style.minWidth = minWidth + 'px';
+        trigger.style.width = Math.max(minWidth, Math.min(desired, maxWidth)) + 'px';
+    }
+
+    /* 常驻滚动条厚度不参与浏览器 max-content 固有宽度计算：把实测厚度 +1px 余量
+       写入 CSS 变量、补进 sizer 行右缘，list 内滚动条便不挤压最宽名称。
+       gBCR 为分数宽度且首次打开时面板仍带基础态 scale(0.97)，先除掉变换系数 */
+    function syncScrollbarAllowance() {
+        const panelTransform = getComputedStyle(panel).transform;
+        let sx = 1;
+        if (panelTransform && panelTransform !== 'none') {
+            const m = panelTransform.match(/matrix(?:3d)?\(([^)]+)\)/);
+            if (m) sx = Math.abs(parseFloat(m[1])) || 1;
+        }
+        const scrollbar = Math.ceil(Math.max(0, list.getBoundingClientRect().width / sx - list.clientWidth)) + 1;
+        panel.style.setProperty('--msc-scrollbar', scrollbar + 'px');
+    }
+
+    function positionPanel() {
+        if (isSheetLayout()) return;
+        let r = trigger.getBoundingClientRect();
+        /* clientWidth 不含滚动条，与 getBoundingClientRect 的 client 坐标系一致 */
+        const vw = document.documentElement.clientWidth;
+        const vh = window.innerHeight;
+        const dpr = window.devicePixelRatio || 1;
+        if (vw !== widthVw || dpr !== widthDpr) {
+            widthVw = vw;
+            widthDpr = dpr;
+            measureTriggerWidth();
+            r = trigger.getBoundingClientRect();
+            panel.style.minWidth = Math.round(r.width) + 'px';
+            /* 宽度上限由 CSS max-width: min(340px, 100vw-24px) 实时生效，不固化 inline */
+            syncScrollbarAllowance();
+        }
+        const spaceUp = r.top - 12;
+        const spaceDown = vh - r.bottom - 12;
+        const openUp = spaceUp >= spaceDown;
+        panel.style.maxHeight = Math.round(Math.min(vh * 0.65, Math.max(spaceUp, spaceDown))) + 'px';
+        panel.style.transformOrigin = openUp ? 'bottom right' : 'top right';
+        panel.style.right = Math.max(8, vw - r.right) + 'px';
+        if (openUp) {
+            panel.style.top = 'auto';
+            panel.style.bottom = (vh - r.top + 8) + 'px';
+        } else {
+            panel.style.bottom = 'auto';
+            panel.style.top = (r.bottom + 8) + 'px';
+        }
+    }
+
+    function onDocScroll(e) {
+        /* 面板内部滚动不触发重定位 */
+        if (panel.contains(e.target)) return;
+        positionPanel();
+    }
+
+    function openPanel() {
+        if (open) return;
+        open = true;
+        clearTimeout(closeTimer);
+        renderList('');
+        refresh();
+        /* 浏览器原生全屏（map.requestFullscreen）下只有全屏元素子树会渲染，
+           panel/scrim 必须挂进 fullscreenElement 才可见；非全屏时挂 body */
+        const mount = document.fullscreenElement || document.body;
+        mount.appendChild(scrim);
+        mount.appendChild(panel);
+        scrim.classList.add('msc-show');
+        panel.hidden = false;
+        panel.classList.remove('msc-leave');
+        if (!isSheetLayout()) {
+            positionPanel();
+            window.addEventListener('scroll', onDocScroll, { capture: true, passive: true });
+        } else {
+            document.body.classList.add('msc-locked');
+        }
+        openedAsSheet = isSheetLayout();
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            panel.classList.add('msc-open');
+            /* focus 必须等 msc-open 落地：基础态 visibility:hidden 下 focus() 会静默失败 */
+            input.focus({ preventScroll: true });
+        }));
+        trigger.setAttribute('aria-expanded', 'true');
+        input.value = '';
+        guardVw = document.documentElement.clientWidth;
+        guardVh = window.innerHeight;
+        guardDpr = window.devicePixelRatio || 1;
+        guardSy = window.scrollY;
+        if (guardTimer) clearInterval(guardTimer);
+        guardTimer = setInterval(guardLoop, 250);
+        document.addEventListener('pointerdown', onOutside, true);
+    }
+
+    /* 浏览器缩放（Ctrl +/-）会派发 resize 并改变 CSS 布局视口。面板必须跟随：
+       同一呈现模式下重新锚定（含宽度重测）；跨过移动断点（popover ↔ sheet）时
+       保持打开并重置内联样式，让 CSS 接管新呈现形态（scrim/滚动锁定同步切换） */
+    function onWinResize() {
+        if (!open) return;
+        const nowSheet = isSheetLayout();
+        if (nowSheet === openedAsSheet) {
+            if (!nowSheet) positionPanel();
+            return;
+        }
+        openedAsSheet = nowSheet;
+        widthVw = 0;
+        widthDpr = 0;
+        panel.style.width = '';
+        panel.style.minWidth = '';
+        panel.style.maxWidth = '';
+        trigger.style.width = '';
+        trigger.style.minWidth = '';
+        panel.style.top = '';
+        panel.style.bottom = '';
+        panel.style.right = '';
+        panel.style.maxHeight = '';
+        panel.style.transformOrigin = '';
+        if (nowSheet) {
+            document.body.classList.add('msc-locked');
+            scrim.classList.add('msc-show');
+        } else {
+            document.body.classList.remove('msc-locked');
+            scrim.classList.remove('msc-show');
+            window.removeEventListener('scroll', onDocScroll, { capture: true });
+            positionPanel();
+            window.addEventListener('scroll', onDocScroll, { capture: true, passive: true });
+        }
+    }
+
+    /* 视口守护：缩放/窗口调整不依赖 resize 事件派发（个别环境会漏），
+       滚动跟随也不依赖 scroll 事件（同上），统一轮询兜底。
+       用 setInterval 而非 rAF——后台标签页 rAF 会被暂停，interval 仍会触发；
+       前台 250ms 内跟随，后台被浏览器节流到 1s 亦无碍（开销为几次只读查询） */
+    let guardTimer = 0;
+    let guardVw = 0;
+    let guardVh = 0;
+    let guardDpr = 0;
+    let guardSy = 0;
+
+    function guardLoop() {
+        if (!open) return;
+        const vw = document.documentElement.clientWidth;
+        const vh = window.innerHeight;
+        const dpr = window.devicePixelRatio || 1;
+        const sy = window.scrollY;
+        if (vw !== guardVw || vh !== guardVh || dpr !== guardDpr || sy !== guardSy) {
+            guardVw = vw;
+            guardVh = vh;
+            guardDpr = dpr;
+            guardSy = sy;
+            onWinResize();
+        }
+    }
+
+    function closePanel() {
+        if (!open) return;
+        open = false;
+        if (guardTimer) { clearInterval(guardTimer); guardTimer = 0; }
+        panel.classList.remove('msc-open');
+        panel.classList.add('msc-leave');
+        scrim.classList.remove('msc-show');
+        document.body.classList.remove('msc-locked');
+        trigger.setAttribute('aria-expanded', 'false');
+        window.removeEventListener('scroll', onDocScroll, { capture: true });
+        document.removeEventListener('pointerdown', onOutside, true);
+        closeTimer = setTimeout(() => {
+            panel.hidden = true;
+            panel.classList.remove('msc-leave');
+            panel.style.right = '';
+            panel.style.bottom = '';
+            panel.style.left = '';
+            panel.style.top = '';
+            panel.style.width = '';
+            panel.style.minWidth = '';
+            panel.style.maxWidth = '';
+            panel.style.maxHeight = '';
+            panel.style.transformOrigin = '';
+            widthVw = 0;
+            widthDpr = 0;
+        }, 280);
+    }
+
+    function onOutside(e) {
+        if (panel.contains(e.target) || trigger.contains(e.target)) return;
+        closePanel();
+    }
+
+    function choose(key) {
+        recordRecentMapSource(key);
+        const mainSelect = document.getElementById('mapSourceSelect');
+        const target = (selectEl === mainSelect) ? selectEl : mainSelect;
+        if (target) {
+            target.value = key;
+            target.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        if (selectEl !== mainSelect && selectEl) selectEl.value = key;
+        refreshMapSourceComboboxes();
+        closePanel();
+        trigger.focus({ preventScroll: true });
+    }
+
+    const onAnyResize = () => {
+        /* resize 也可能只改变字体/缩放布局，不能仅依赖 viewport 数值变化 */
+        widthVw = 0;
+        widthDpr = 0;
+        if (open) onWinResize();
+        else measureTriggerWidth();
+    };
+    window.addEventListener('resize', onAnyResize);
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => {
+            widthVw = 0;
+            widthDpr = 0;
+            if (destroyed) return;
+            if (open) onWinResize();
+            else measureTriggerWidth();
+        });
+    }
+
+    trigger.addEventListener('click', () => (open ? closePanel() : openPanel()));
+    trigger.addEventListener('keydown', e => {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            openPanel();
+        }
+    });
+    scrim.addEventListener('click', closePanel);
+    input.addEventListener('input', () => renderList(input.value));
+    input.addEventListener('keydown', e => {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setActive(Math.min(visibleOptions.length - 1, activeIdx + 1));
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setActive(Math.max(0, activeIdx - 1));
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const opt = visibleOptions[activeIdx >= 0 ? activeIdx : 0];
+            if (opt) choose(opt.dataset.key);
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            e.stopPropagation();
+            closePanel();
+            trigger.focus({ preventScroll: true });
+        } else if (e.key === 'Tab') {
+            closePanel();
+        }
+    });
+
+    const destroy = () => {
+        const wasOpen = open;
+        const wasSheet = openedAsSheet;
+        destroyed = true;
+        open = false;
+        if (guardTimer) { clearInterval(guardTimer); guardTimer = 0; }
+        if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
+        window.removeEventListener('scroll', onDocScroll, { capture: true });
+        document.removeEventListener('pointerdown', onOutside, true);
+        if (wasOpen && wasSheet) document.body.classList.remove('msc-locked');
+        scrim.classList.remove('msc-show');
+        panel.classList.remove('msc-open', 'msc-leave');
+        panel.hidden = true;
+        trigger.setAttribute('aria-expanded', 'false');
+        window.removeEventListener('resize', onAnyResize);
+    };
+    MSC_INSTANCES.push({ selectEl, panel, scrim, refresh, destroy });
+    refresh();
+    measureTriggerWidth();
 }
 
 

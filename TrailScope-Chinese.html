@@ -14,7 +14,6 @@
     <script src="js/common/leaflet-custom-headers.js"></script>
     <script src="js/common/leaflet-tilelayer-colorfilter.min.js"></script>
     <link href="css/fonts.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/all.min.css">
     <link rel="stylesheet" href="css/custom.css" />
 </head>
 <body class="gradient-bg min-h-screen mountain-bg">
@@ -175,7 +174,7 @@
                             </div>
                         </div>
                         <button id="clearFileBtn" class="hidden text-trail-mid/60 hover:text-accent-red transition" title="移除已加载轨迹" aria-label="移除已加载轨迹">
-                            <i class="fa-regular fa-trash-can"></i>
+                            <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </div>
                 </div>
@@ -189,47 +188,47 @@
         <!-- Overview Stats -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div class="stat-card glass-card rounded-2xl p-5">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="w-10 h-10 rounded-xl bg-trail-moss/15 flex items-center justify-center">
+                <div class="stat-grid">
+                    <div class="w-10 h-10 rounded-xl bg-trail-moss/15 flex items-center justify-center text-sm">
                         <i class="fa-solid fa-route text-trail-moss"></i>
                     </div>
-                    <span class="text-xs font-medium text-trail-mid/50 uppercase tracking-wider">总距离</span>
+                    <span class="stat-name text-sm font-medium text-trail-mid/70 text-right">总距离</span>
+                    <p class="text-2xl font-semibold text-trail-dark num-font" id="statDistance">—</p>
+                    <p class="text-2xl font-semibold text-trail-dark text-right num-font">km</p>
                 </div>
-                <p class="text-2xl font-semibold text-trail-dark num-font" id="statDistance">—</p>
-                <p class="text-xs text-trail-mid/60 mt-1">公里</p>
             </div>
 
             <div class="stat-card glass-card rounded-2xl p-5">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="w-10 h-10 rounded-xl bg-accent-red/15 flex items-center justify-center">
+                <div class="stat-grid">
+                    <div class="w-10 h-10 rounded-xl bg-accent-red/15 flex items-center justify-center text-sm">
                         <i class="fa-solid fa-arrow-trend-up text-accent-red"></i>
                     </div>
-                    <span class="text-xs font-medium text-trail-mid/50 uppercase tracking-wider">累计爬升</span>
+                    <span class="stat-name text-sm font-medium text-trail-mid/70 text-right">累计爬升</span>
+                    <p class="text-2xl font-semibold text-trail-dark num-font" id="statAscent">—</p>
+                    <p class="text-2xl font-semibold text-trail-dark text-right num-font">m</p>
                 </div>
-                <p class="text-2xl font-semibold text-trail-dark num-font" id="statAscent">—</p>
-                <p class="text-xs text-trail-mid/60 mt-1">米</p>
             </div>
 
             <div class="stat-card glass-card rounded-2xl p-5">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="w-10 h-10 rounded-xl bg-accent-blue/15 flex items-center justify-center">
+                <div class="stat-grid">
+                    <div class="w-10 h-10 rounded-xl bg-accent-blue/15 flex items-center justify-center text-sm">
                         <i class="fa-solid fa-arrow-trend-down text-accent-blue"></i>
                     </div>
-                    <span class="text-xs font-medium text-trail-mid/50 uppercase tracking-wider">累计下降</span>
+                    <span class="stat-name text-sm font-medium text-trail-mid/70 text-right">累计下降</span>
+                    <p class="text-2xl font-semibold text-trail-dark num-font" id="statDescent">—</p>
+                    <p class="text-2xl font-semibold text-trail-dark text-right num-font">m</p>
                 </div>
-                <p class="text-2xl font-semibold text-trail-dark num-font" id="statDescent">—</p>
-                <p class="text-xs text-trail-mid/60 mt-1">米</p>
             </div>
 
             <div class="stat-card glass-card rounded-2xl p-5">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="w-10 h-10 rounded-xl bg-trail-earth/15 flex items-center justify-center">
+                <div class="stat-grid">
+                    <div class="w-10 h-10 rounded-xl bg-trail-earth/15 flex items-center justify-center text-sm">
                         <i class="fa-solid fa-mountain text-trail-earth"></i>
                     </div>
-                    <span class="text-xs font-medium text-trail-mid/50 uppercase tracking-wider">最高海拔</span>
+                    <span class="stat-name text-sm font-medium text-trail-mid/70 text-right">最高海拔</span>
+                    <p class="text-2xl font-semibold text-trail-dark num-font" id="statMaxElev">—</p>
+                    <p class="text-2xl font-semibold text-trail-dark text-right num-font">m</p>
                 </div>
-                <p class="text-2xl font-semibold text-trail-dark num-font" id="statMaxElev">—</p>
-                <p class="text-xs text-trail-mid/60 mt-1">米</p>
             </div>
         </div>
 
@@ -305,7 +304,7 @@
                     <div id="mapSourceControl" class="absolute bottom-3 right-3 z-10">
                         <select id="mapSourceSelect" class="map-source-select" title="切换图源">
 							<option value="tiandituluwang" selected>天地图路网图</option>
-							<option value="tiandituweixing">天地图卫星图</option>
+							<option value="tianditusatellite">天地图卫星图</option>
                             <option value="amaproad">高德路网图</option>
                             <option value="amapsatellite">高德卫星图</option>
                             <option value="gaode_hybrid">高德混合图</option>
@@ -364,7 +363,7 @@
                     </div>
                     <div id="elevationProfileControls" class="flex items-center gap-1.5 flex-wrap">
                         <button id="annotationBtn" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">
-                            <i class="fa-solid fa-eye"></i>
+                            <i class="fa-solid fa-eye-slash"></i>
                             <span id="annotationLabel">隐藏标注</span>
                         </button>
                         <!-- ★★★ 修改：单一按钮，三状态切换 ★★★ -->
@@ -474,7 +473,7 @@
 
                 <div id="difficultyContent">
                 <div class="text-center mb-5">
-                    <div class="inline-flex items-center justify-center w-28 h-28 rounded-full relative">
+                    <div class="flex mx-auto items-center justify-center w-28 h-28 rounded-full relative">
                         <svg class="progress-ring absolute inset-0" width="112" height="112">
                             <circle cx="56" cy="56" r="48" stroke="rgba(122,148,113,0.15)" stroke-width="8" fill="none"/>
                             <circle id="difficultyRing" cx="56" cy="56" r="48" stroke="url(#diffGradient)" stroke-width="8" fill="none"
@@ -493,7 +492,7 @@
                             <p class="text-xs text-trail-mid/60 num-font">/ 100</p>
                         </div>
                     </div>
-                    <div id="difficultyLabel" class="mt-3 inline-block px-4 py-1.5 rounded-full text-sm font-bold badge-glow">—</div>
+                    <div id="difficultyLabel" class="mt-3 inline-block w-28 px-2 py-2 rounded-full text-lg font-bold text-center whitespace-nowrap badge-glow">—</div>
                 </div>
 
                 <div class="space-y-3">
@@ -541,7 +540,6 @@
                     <div class="rounded-2xl bg-trail-sage/10 p-4">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-xs font-medium text-trail-mid/70 uppercase tracking-wider">预估总耗时</span>
-                            <i class="fa-solid fa-clock text-trail-earth text-sm"></i>
                         </div>
                         <p id="estTime" class="text-3xl font-semibold text-trail-dark">— <span class="text-base font-normal text-trail-mid/60">小时</span></p>
                         <div class="flex gap-4 mt-2 text-xs text-trail-mid/60">
@@ -564,10 +562,7 @@
                     </div>
 
                     <div class="rounded-2xl border border-trail-sage/20 p-4">
-                        <p class="text-xs font-medium text-trail-mid/70 mb-2 flex items-center gap-1.5">
-                            <i class="fa-solid fa-person-hiking text-trail-moss"></i>
-                            体能需求等级
-                        </p>
+                        <p class="text-xs font-medium text-trail-mid/70 mb-2">体能需求等级</p>
                         <div id="fitnessLevel" class="flex gap-1.5 mb-2">
                             <div class="fitness-dot h-2 flex-1 rounded-full bg-trail-sage/20"></div>
                             <div class="fitness-dot h-2 flex-1 rounded-full bg-trail-sage/20"></div>
@@ -874,7 +869,9 @@
     <script src="js/common/coords.js"></script>
     <script src="js/common/map-common.js"></script>
     <script src="js/common/waypoints.js"></script>
-    <script src="js/common/lucide-1.35.0.min.js"></script>
+    <!-- 图标：react-icons 数据（fa6/lu）+ 自渲染，替代 Font Awesome webfont 与 lucide 脚本 -->
+    <script src="js/common/icons-data.js"></script>
+    <script src="js/common/icons.js"></script>
     <script src="js/common/ui-common.js"></script>
     <script src="js/common/kmz.js"></script>
     <script src="js/cn/state.js"></script>

@@ -287,7 +287,7 @@ function generateEquipmentRecommendation(data, difficulty, risk) {
 
     const essential = [
         { icon: 'fa-shoe-prints', name: '徒步鞋', desc: '防滑耐磨，建议中高帮' },
-        { icon: 'lucide:backpack', name: '登山背包', desc: `${totalDistance > 15 ? '30-40 L' : '20-30 L'} 容量` },
+        { icon: 'bi:backpack', name: '登山背包', desc: `${totalDistance > 15 ? '30-40 L' : '20-30 L'} 容量` },
         { icon: 'fa-mobile-screen', name: '手机+充电宝', desc: '保持通讯畅通' },
         { icon: 'fa-id-card', name: '身份证件', desc: '随身携带' },
         { icon: 'fa-kit-medical', name: '急救包', desc: '含创可贴、消毒液、止痛药' }

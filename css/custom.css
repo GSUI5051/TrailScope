@@ -31,13 +31,13 @@
             --theme-amber: #d4a017;
             --theme-blue: #3a6b8a;
             --theme-clay: #cd762a;
-            /* 难度评级色阶（休闲→极具挑战） */
-            --diff-recreation: #5c7a52;
-            --diff-easy: #7a9471;
-            --diff-moderate: #d4a017;
-            --diff-hard: #cd762a;
-            --diff-expert: #c54b3c;
-            --diff-extreme: #ff0000;
+            /* 难度评级色阶（休闲→极具挑战）。badge 文字色，浅色模式整体压深保证 4.5:1 以上可读 */
+            --diff-recreation: #47603e;
+            --diff-easy: #4e6346;
+            --diff-moderate: #785b00;
+            --diff-hard: #8e4e18;
+            --diff-expert: #9c382c;
+            --diff-extreme: #b80000;
             /* 分段类型 badge（TYPE 列） */
             --seg-text-climb: #c54b3c;
             --seg-text-descent: #3a6b8a;
@@ -47,13 +47,18 @@
             --seg-bg-descent: rgba(58, 107, 138, 0.1);
             --seg-bg-mixed: rgba(139, 115, 85, 0.1);
             --seg-bg-flat: rgba(122, 148, 113, 0.1);
-            /* 风险提示三档 tint（文本色复用 --theme-red/amber/sage） */
-            --risk-high-bg: rgba(197, 75, 60, 0.1);
-            --risk-high-border: rgba(197, 75, 60, 0.2);
-            --risk-medium-bg: rgba(212, 160, 23, 0.1);
-            --risk-medium-border: rgba(212, 160, 23, 0.2);
-            --risk-low-bg: rgba(122, 148, 113, 0.1);
-            --risk-low-border: rgba(122, 148, 113, 0.2);
+            /* 风险提示三档 tint（文本色复用 --theme-red/amber/sage）；
+               浅色高对比：bg 0.12、border 0.50，三档色块在白卡上轮廓清晰 */
+            --risk-high-bg: rgba(197, 75, 60, 0.12);
+            --risk-high-border: rgba(197, 75, 60, 0.5);
+            --risk-medium-bg: rgba(212, 160, 23, 0.12);
+            --risk-medium-border: rgba(212, 160, 23, 0.5);
+            --risk-low-bg: rgba(122, 148, 113, 0.12);
+            --risk-low-border: rgba(122, 148, 113, 0.5);
+            /* 红卡静态 glow（仅深色启用，浅色 none；渲染层 boxShadow 引用） */
+            --risk-high-glow: none;
+            --risk-medium-glow: none;
+            --risk-low-glow: none;
             /* 气象 WBGT 分级色 */
             --wbgt-cold: #0a2463;
             --wbgt-cool: #4a90d9;
@@ -99,13 +104,13 @@
             --theme-amber: #e5b84f;
             --theme-blue: #74b0dc;
             --theme-clay: #d98045;
-            /* 难度评级色阶（深色提亮，与 fitness-lv 深色值同族） */
-            --diff-recreation: #91b184;
-            --diff-easy: #a1b799;
+            /* 难度评级色阶（深色提亮保证 4.5:1 以上可读，与 fitness-lv 深色值同族） */
+            --diff-recreation: #a0bf93;
+            --diff-easy: #aac2a1;
             --diff-moderate: #e5b84f;
-            --diff-hard: #d98045;
-            --diff-expert: #e27665;
-            --diff-extreme: #ff776f;
+            --diff-hard: #e8965f;
+            --diff-expert: #f08a80;
+            --diff-extreme: #ff8a82;
             /* 分段类型 badge（深色提亮，climb/descent 沿用原审定值） */
             --seg-text-climb: #e27665;
             --seg-text-descent: #6da0c4;
@@ -120,6 +125,17 @@
             --seg-glow-descent: rgba(109, 160, 196, 0.17);
             --seg-glow-mixed: rgba(192, 154, 114, 0.17);
             --seg-glow-flat: rgba(156, 184, 216, 0.17);
+            /* 风险提示三档深色覆盖：深色语义色提亮 tint（bg 0.18 / border 0.60），
+               红卡叠 #232323 卡面上图标 ≥4:1、标题 ≥8:1；红卡加静态双层 glow */
+            --risk-high-bg: rgba(226, 118, 101, 0.18);
+            --risk-high-border: rgba(226, 118, 101, 0.6);
+            --risk-medium-bg: rgba(229, 184, 79, 0.18);
+            --risk-medium-border: rgba(229, 184, 79, 0.6);
+            --risk-low-bg: rgba(156, 184, 216, 0.18);
+            --risk-low-border: rgba(156, 184, 216, 0.6);
+            --risk-high-glow: 0 0 20px rgba(226, 118, 101, 0.3), 0 0 4px rgba(226, 118, 101, 0.25);
+            --risk-medium-glow: none;
+            --risk-low-glow: none;
             /* 气象 WBGT 分级色（沿用原属性选择器覆盖的审定值） */
             --wbgt-cold: #8fbcff;
             --wbgt-cool: #8fbcff;
@@ -134,6 +150,12 @@
             --theme-surface-input: #262626;
             --theme-surface-button: #2e2e2e;
             --theme-surface-button-hover: #383838;
+        }
+
+        /* 视口级横向裁剪：剖面图 canvas 因“加宽右留白”超出容器、贴边标注溢出时，
+           不产生页面横向滚动（替代旧 .chart-wrapper 上的 overflow-x: clip） */
+        html {
+            overflow-x: clip;
         }
 
         body {
@@ -200,6 +222,37 @@
 
         .stat-card {
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Hallmark · component: stat-card 2×2（图标|名称 / 数值|单位） · genre: modern-minimal
+         * theme: TrailScope project tokens (preserved, zero new colors)
+         * 等高约束（用户定稿 2026-08-30）：名称行盒 40px = 图标方框（见 .stat-name）；
+         * 单位 text-2xl font-semibold text-trail-dark + num-font = 数值字体样式与颜色完全一致。
+         * 右列 auto 收窄至内容宽，text-right 使名称/单位共享右缘。网格放 custom.css：
+         * 预生成 Tailwind 无 grid-cols-[1fr_auto] 任意值类 */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            column-gap: 10px;
+            row-gap: 10px;
+        }
+
+        /* 名称行盒 40px = 图标方框（w-10 h-10）高度，文字垂直居中。uppercase 对中文是
+           no-op（汉字无大小写映射），双版本共用不影响中文显示。
+           英文名称：≥1152px（与导航/体验示例折叠断点一致）单行大写；<1152px 视口
+           （含手机双列与桌面四列挤压区）按空格折叠为两行，2 × 20px = 40px 仍与方框
+           同高——大写单行在窄视口会与数值碰撞，折叠消除之。单位不在 .stat-name 上，
+           保持小写 */
+        .stat-name {
+            line-height: 40px;
+            text-transform: uppercase;
+        }
+        @media (max-width: 1151.98px) {
+            .stat-name:lang(en) {
+                line-height: 20px;
+                width: min-content;
+            }
         }
 
         .stat-card:hover {
@@ -1414,7 +1467,9 @@
                 display: none;
             }
             .demo-ref-icon {
-                display: inline;
+                /* svg.fa-solid 的 display 已降到 :where(0,0,1)，此处 (0,1,0) 可正常生效；
+                   值取 inline-block 与转换后 svg 的默认形态一致 */
+                display: inline-block;
             }
         }
         @media (min-width: 992px) and (max-width: 1151.98px) {
@@ -1589,10 +1644,11 @@
             }
         }
 
+        /* 不再设 overflow-x: clip：标注/航路点遮罩层挂 wrapper 内部（与画布同滚同缩，
+           消除滚动拖尾），裁剪上移到视口层（html overflow-x: clip）——canvas 加宽出的
+           空白带与贴边标注可见窗口与旧方案一致，且不产生横向滚动 */
         .chart-wrapper {
             position: relative;
-            /* 表格加宽（右留白对齐按钮组）后裁掉超出部分，避免窄视口横向滚动 */
-            overflow-x: clip;
         }
 
         /* 移动端（lg 以下）：「路线地图 + 海拔剖面图」（lg:grid-cols-5）容器缺基础单列定义，
@@ -1829,11 +1885,11 @@
          * 覆盖：装备和补给建议 / 坡度分布与技术要点 / 难度评级 / 耗时与体能需求 / 路线概况；
          * 坡度分布与路线概况同色由本条保证。按图标精确限定，不误伤其他 .glass-card h3 标题
          *（如风险提示 text-accent-red、气象分析 text-trail-moss）。 */
-        html[data-theme="dark"] .glass-card h3 > i.fa-gauge-high,
-        html[data-theme="dark"] .glass-card h3 > i.fa-stopwatch,
-        html[data-theme="dark"] .glass-card h3 > i.fa-bag-shopping,
-        html[data-theme="dark"] .glass-card h3 > i.fa-chart-pie,
-        html[data-theme="dark"] .glass-card h3 > i.fa-circle-info {
+        html[data-theme="dark"] .glass-card h3 > .fa-gauge-high,
+        html[data-theme="dark"] .glass-card h3 > .fa-stopwatch,
+        html[data-theme="dark"] .glass-card h3 > .fa-bag-shopping,
+        html[data-theme="dark"] .glass-card h3 > .fa-chart-pie,
+        html[data-theme="dark"] .glass-card h3 > .fa-circle-info {
             color: #6da0c4 !important;
         }
 
@@ -2092,9 +2148,34 @@
             scrollbar-color: rgba(140, 147, 158, 0.42) rgba(140, 147, 158, 0.1);
         }
 
+        /* FA 图标已迁移至 react-icons 数据（icons.js 渲染为内联 svg，保留 fa-* 类）：
+         * 1em 随字号缩放、currentColor 着色、-0.125em 基线对齐，形态对齐 FA 官方 svg 版。
+         * display:inline-block 必须显式声明：Tailwind preflight 把 svg 重置为 block，
+         * 会让"图标+文本"行内组合断行（图标独占一行）。
+         * bi（Bootstrap Icons，实心）同为 fill 图标，与 FA 同规则。
+         * display 拆到 :where()（特异性 0,0,1）：<i> 转 svg 后类名原样保留，若用
+         * svg.fa-solid（0,1,1）硬声明，会压过所有类级显隐开关——.demo-ref-icon
+         * （emptyState 提示语在宽视口与文字同显，多出一个烧瓶）、Tailwind .hidden
+         * 等全部失效。(0,0,1) 按源序仍压过 preflight 的 svg{display:block}
+         * （本文件在其后加载），默认行内形态不变；类级开关则一律可覆盖。 */
+        svg.fa-solid,
+        svg.fa-regular,
+        svg.fa-brands,
+        svg.bi {
+            width: 1em;
+            height: 1em;
+            vertical-align: -0.125em;
+            flex-shrink: 0;
+        }
+        svg:where(.fa-solid, .fa-regular, .fa-brands, .bi) {
+            display: inline-block;
+        }
+
         /* lucide 图标：1em 随字号缩放、currentColor 着色，行为对齐 Font Awesome。
-         * 描边默认 2/24，比 FA 实心字形细一档，全局提到 2.5 拉近视觉重量。 */
+         * 描边默认 2/24，比 FA 实心字形细一档，全局提到 2.5 拉近视觉重量。
+         * display:inline-block 抵消 preflight 的 svg block 重置（同上）。 */
         svg.lucide {
+            display: inline-block;
             width: 1em;
             height: 1em;
             vertical-align: -0.125em;
@@ -2141,5 +2222,296 @@
             .pulse-dot,
             .fade-in {
                 animation: none !important;
+            }
+        }
+
+        /* Hallmark · component: combobox (map source picker) · genre: modern-minimal
+         * (desktop Fluent popover opening upward / mobile Material bottom sheet)
+         * theme: TrailScope project tokens (preserved, zero new colors)
+         * states: default / hover / focus-visible / active / open / selected / search-empty
+         * contrast: pass (group label moss 浅≈4.8:1/深≈6.2:1, option >=8:1, check >=4.9:1, both themes)
+         * revision 2026-08-30: group label 11px muted → 14px moss（用户定稿：大于 13px 选项名、moss 眉标）
+         * panel/scrim are mounted on body (fixed layout immune to transformed ancestors);
+         * z-index sits above the fullscreen toolbar (10001) */
+        .msc-trigger {
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            min-width: 128px;
+            font-family: inherit;
+        }
+
+        .msc-trigger-label {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .msc-caret {
+            font-size: 10px;
+            opacity: 0.7;
+        }
+
+        .msc-scrim {
+            display: none;
+        }
+
+        .msc-panel {
+            position: fixed;
+            z-index: 10100;
+            display: flex;
+            flex-direction: column;
+            /* 宽度由浏览器按内容（隐形 sizer 行，见 .msc-sizer-row）实时 max-content 求解，
+               与浏览器缩放/字体/DPI 变化天然同步，最长图源名称永不被 JS 固化宽度挤压；
+               min-width 由 JS positionPanel 对齐触发按钮（Fluent ComboBox 行为） */
+            width: max-content;
+            max-width: min(340px, calc(100vw - 24px));
+            max-height: 65vh;
+            background: var(--theme-surface-control);
+            border: 1px solid var(--theme-border);
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14), 0 0 2px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.97) translateY(6px);
+            transform-origin: bottom right;
+            transition: opacity 160ms ease-out, transform 160ms ease-out, visibility 0s linear 160ms;
+        }
+
+        /* hidden 属性必须显式生效：.msc-panel 的 display:flex 会覆盖 UA 的 [hidden] 规则 */
+        .msc-panel[hidden] {
+            display: none;
+        }
+
+        /* 深色：面板对齐卡片中性灰。--theme-surface-control（#22252b）带蓝调，与
+           --theme-surface-card（rgba(35,35,35,.97)）的无蓝调灰阶不一致；深色设计基线是
+           "顶栏/卡片/全屏面板均为无蓝调灰阶"，本面板属面板一族。行悬停/键控高亮同步
+           换中性灰（--theme-surface-button #2e2e2e，抬升幅度与原 #2a2e36 相当），
+           避免中性底上残留蓝调高亮 */
+        html[data-theme="dark"] .msc-panel {
+            background: var(--theme-surface-card);
+        }
+        html[data-theme="dark"] .msc-option:hover,
+        html[data-theme="dark"] .msc-option.msc-active {
+            background: var(--theme-surface-button);
+        }
+
+        .msc-panel.msc-open {
+            opacity: 1;
+            visibility: visible;
+            transform: none;
+            transition: opacity 160ms ease-out, transform 160ms ease-out;
+        }
+
+        .msc-panel.msc-leave {
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.97) translateY(6px);
+            transition: opacity 160ms ease-in, transform 160ms ease-in, visibility 0s linear 160ms;
+        }
+
+        .msc-handle {
+            display: none;
+        }
+
+        .msc-search {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--theme-border);
+            flex-shrink: 0;
+        }
+
+        .msc-search-icon {
+            font-size: 13px;
+            color: var(--theme-text-muted);
+        }
+
+        .msc-input {
+            flex: 1;
+            min-width: 0;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 13px;
+            color: var(--theme-text-primary);
+            padding: 0;
+        }
+
+        .msc-input::placeholder {
+            color: var(--theme-text-muted);
+        }
+
+        .msc-search:focus-within {
+            box-shadow: inset 0 -2px 0 0 var(--theme-moss);
+        }
+
+        .msc-list {
+            flex: 1;
+            min-height: 0;
+            /* 常驻滚动条：宽度参与面板 max-content 计算，避免最宽项被滚动条压截断 */
+            overflow-y: scroll;
+            overscroll-behavior: contain;
+            padding: 6px 0 8px;
+        }
+
+        .msc-group-label {
+            padding: 10px 14px 4px;
+            /* 分组眉标：14px（用户指定：须大于 13px 选项名，且不放大到与卡标题同级）
+               + moss 强调色 + 加宽字距，与对勾/聚焦下划线同色族，
+               深浅主题随令牌自动切换且对比度 ≥4.5:1 */
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            color: var(--theme-moss);
+        }
+
+        .msc-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 36px;
+            margin: 0 6px;
+            padding: 0 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--theme-text-secondary);
+            cursor: pointer;
+            transition: background-color 120ms ease, color 120ms ease;
+        }
+
+        .msc-option .msc-option-name {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .msc-option:hover,
+        .msc-option.msc-active {
+            background: var(--theme-surface-control-hover);
+            color: var(--theme-text-primary);
+        }
+
+        .msc-check {
+            color: var(--theme-moss);
+            visibility: hidden;
+        }
+
+        .msc-option[aria-selected="true"] .msc-check {
+            visibility: visible;
+        }
+
+        .msc-option[aria-selected="true"] .msc-option-name {
+            font-weight: 600;
+        }
+
+        .msc-empty {
+            padding: 24px 14px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--theme-text-muted);
+        }
+
+        /* 隐形宽度基准行：每个图源名一行（高度 0、不可见），只参与面板 max-content 计算。
+           600 字重对齐选中态最宽情况；右缘让出常驻滚动条厚度（--msc-scrollbar 由 JS 实测
+           写入），滚动条便不挤压最宽名称。搜索过滤不移除本行，宽度保持稳定 */
+        .msc-sizer-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 0;
+            overflow: hidden;
+            margin: 0 6px;
+            margin-right: calc(6px + var(--msc-scrollbar, 0px));
+            padding: 0 8px;
+            font-size: 13px;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .msc-sizer-row .msc-option-name {
+            font-weight: 600;
+        }
+
+        body.msc-locked {
+            overflow: hidden;
+        }
+
+        @media (max-width: 767px) {
+            .msc-scrim {
+                display: block;
+                position: fixed;
+                inset: 0;
+                z-index: 10090;
+                background: rgba(0, 0, 0, 0.4);
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 200ms ease-out;
+            }
+
+            .msc-scrim.msc-show {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .msc-panel {
+                left: 0;
+                right: 0;
+                bottom: 0;
+                top: auto;
+                width: auto;
+                max-width: none;
+                border-radius: 28px 28px 0 0;
+                border-bottom: none;
+                padding-bottom: env(safe-area-inset-bottom);
+                transform: translateY(100%);
+                transform-origin: bottom center;
+                transition: transform 260ms cubic-bezier(0.05, 0.7, 0.1, 1), visibility 0s linear 260ms;
+            }
+
+            .msc-panel.msc-open {
+                transform: none;
+                transition: transform 260ms cubic-bezier(0.05, 0.7, 0.1, 1);
+            }
+
+            .msc-panel.msc-leave {
+                transform: translateY(100%);
+                transition: transform 200ms cubic-bezier(0.3, 0, 0.8, 0.15), visibility 0s linear 200ms;
+            }
+
+            .msc-handle {
+                display: block;
+                width: 32px;
+                height: 4px;
+                border-radius: 2px;
+                background: var(--theme-border);
+                margin: 10px auto 2px;
+                flex-shrink: 0;
+            }
+
+            .msc-option {
+                height: 48px;
+                margin: 0 10px;
+                padding: 0 10px;
+                font-size: 14px;
+            }
+
+            .msc-trigger {
+                max-width: 140px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .msc-panel,
+            .msc-panel.msc-open,
+            .msc-panel.msc-leave,
+            .msc-scrim,
+            .msc-option {
+                transition: none !important;
             }
         }

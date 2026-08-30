@@ -228,6 +228,8 @@ function drawChart(options = {}) {
     canvas._themeVersion = chartThemeVersion;
     ensureChartHoverOverlay(canvas);
     refreshChartHoverOverlay();
+    // gpx.studio 模式：重绘后 tooltip 重新锚定到悬停点的新像素位置（interaction.js 注册）
+    if (canvas._positionAnchoredTooltip) canvas._positionAnchoredTooltip();
 
     // 标注/起终点/航路点绘制到遮罩层：z-index 低于 tooltip 卡片（z-2300 高于本层 2200）、
     // 低于顶栏（z-9998）；悬停时信息卡压在标注之上（2026-08-29 用户明确反转优先序），滚动不上浮导航栏；

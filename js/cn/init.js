@@ -3,6 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
     chartCanvas = document.getElementById('elevationChart');
     chartCtx = chartCanvas.getContext('2d');
 
+    buildMapSourceCombobox(document.getElementById('mapSourceSelect'));
+
     if (IS_MOBILE) {
         const chartWrapper = document.getElementById('chartWrapper');
         if (chartWrapper) {

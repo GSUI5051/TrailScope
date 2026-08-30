@@ -364,7 +364,7 @@ function generateEquipmentRecommendation(data, difficulty, risk) {
             desc: 'Good traction and durability; mid/high-cut footwear recommended for rough terrain.'
         },
         {
-            icon: 'lucide:backpack',
+            icon: 'bi:backpack',
             name: 'Hiking Backpack',
             desc: `${totalDistance > 15 ? '30–40 L' : '20–30 L'} capacity`
         },

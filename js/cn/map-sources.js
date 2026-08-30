@@ -64,14 +64,14 @@ const mapSources = {
         attribution: '<a href="https://github.com/sletuffe/OpenTopoMap">&copy; OpenTopoMap-R</a> <a href="https://openmaps.fr/donate">❤️ Donation</a> <a href="http://www.openstreetmap.org/copyright">&copy; OpenStreetMap</a>'
     },
     MapyOutdoor: {
-        name: 'Mapy Outdoor',
+        name: 'Mapy 户外地图',
         url: 'https://api.mapy.com/v1/maptiles/outdoor/256/{z}/{x}/{y}?apikey=dRyLZyNVqHzMf0pNCC4RGg7wrT9uNTbDQ3gJi98K1D4',
 		minZoom: 0,
         maxZoom: 19,
         attribution: '<a href="https://api.mapy.com/copyright" target="_blank">&copy; Seznam.cz a.s. a další</a>'
     },
     MapyAerial: {
-        name: 'Mapy Aerial',
+        name: 'Mapy 卫星图',
         url: 'https://api.mapy.com/v1/maptiles/aerial/256/{z}/{x}/{y}?apikey=dRyLZyNVqHzMf0pNCC4RGg7wrT9uNTbDQ3gJi98K1D4',
 		minZoom: 0,
         maxZoom: 19,
@@ -101,7 +101,7 @@ const mapSources = {
 		maxZoom: 18,
 		attribution: '© 天地图'
 	},
-	tiandituweixing: {
+	tianditusatellite: {
 		name: '天地图卫星图',
 		maxZoom: 18,
 		attribution: '© 天地图'
@@ -111,6 +111,19 @@ const mapSources = {
 		maxZoom: 18,
 		attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
 	}
+};
+
+/* 图源分组（combobox 渲染顺序与归类）；混合属性图源（卫星/混合）可同时出现在
+   卫星图与路网图两组，与原生 select 的 option 列表互不影响（select 仍是状态源） */
+const MAP_SOURCE_GROUPS = [
+    { label: '地形图', keys: ['openhikingmap', 'opentopomap', 'opencyclemap', 'cyclosm', 'MapyOutdoor', 'TFOutdoor', 'TFLandscape', 'ESRIWorldTopoMap'] },
+    { label: '卫星图', keys: ['tianditusatellite', 'amapsatellite', 'gaode_hybrid', 'MapyAerial', 'ESRIWorldImagery'] },
+    { label: '路网图', keys: ['osm', 'tiandituluwang', 'tianditusatellite', 'amaproad', 'gaode_hybrid', 'TFAtlas'] }
+];
+const MAP_SOURCE_COMBOBOX_STRINGS = {
+    searchPlaceholder: '搜索图源',
+    recentLabel: '最近选择',
+    emptyLabel: '无匹配图源'
 };
 
 

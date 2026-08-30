@@ -19,17 +19,44 @@ function setupChartInteraction() {
     let tooltipWidth = 0;
     let tooltipHeight = 0;
     let hoverDisplayMode = null;
-    function positionTooltip(clientX, clientY, rect, W) {
-        let tooltipX = clientX - rect.left + 12;
-        let tooltipY = clientY - rect.top - tooltipHeight - 12;
-        if (tooltipX + tooltipWidth > W) {
-            tooltipX = clientX - rect.left - tooltipWidth - 12;
-        }
-        if (tooltipY < 0) {
-            tooltipY = clientY - rect.top + 12;
-        }
-        tooltip.style.left = tooltipX + 'px';
-        tooltip.style.top = tooltipY + 'px';
+    // ★★★ gpx.studio operating mode (Chart.js tooltip anchored to data point): the tooltip is
+    // centered above the hovered point and moves in discrete steps with the nearest data point
+    // (never pixel-follows the mouse); it is kept inside the plot area horizontally; if it does
+    // not fit above the point (past the plot top edge) it flips below, then clamps to the bottom
+    // edge of the plot area ★★★
+    function setTooltipAnchored(px, py) {
+        const scale = canvas._scale;
+        if (!scale) return;
+        const plotLeft = scale.padding.left;
+        const plotRight = scale.W - scale.padding.right;
+        const plotBottom = scale.padding.top + scale.chartH;
+        let tx = px - tooltipWidth / 2;
+        if (tx + tooltipWidth > plotRight) tx = plotRight - tooltipWidth;
+        if (tx < plotLeft) tx = plotLeft;
+        let ty = py - tooltipHeight - 12;
+        if (ty < scale.padding.top) ty = py + 12;
+        if (ty + tooltipHeight > plotBottom) ty = Math.max(scale.padding.top, plotBottom - tooltipHeight);
+        tooltip.style.left = tx + 'px';
+        tooltip.style.top = ty + 'px';
+    }
+
+    // ★★★ Mobile vline-mode tooltip positioning: pinned near the top, tracking the indicator
+    // line horizontally. The right→left flip threshold uses the visible container width
+    // (W - padding.right): the canvas is wider than its container by padding.right ("widen to
+    // align right edge") and chart-wrapper's overflow-x: clip cuts anything past the container's
+    // right edge — thresholding on the raw canvas width W let the tooltip's right half get
+    // clipped ("folded") before flipping when swiping toward the right edge ★★★
+    function positionMobileTooltip(pt) {
+        const scale = canvas._scale;
+        if (!scale) return;
+        const vlineX = (pt.distance - scale.viewStart) / (scale.viewEnd - scale.viewStart) * scale.chartW + scale.padding.left;
+        const visibleW = scale.W - scale.padding.right;
+        let tx = vlineX + 12;
+        let ty = tooltipHeight + 12;
+        if (tx + tooltipWidth > visibleW) tx = vlineX - tooltipWidth - 12;
+        if (tx < 0) tx = 4;
+        tooltip.style.left = tx + 'px';
+        tooltip.style.top = ty + 'px';
     }
 
     function updateDesktopHover(clientX, clientY) {
@@ -38,9 +65,11 @@ function setupChartInteraction() {
         const rect = canvas.getBoundingClientRect();
         const x = clientX - rect.left;
         const y = clientY - rect.top;
-        const { padding, chartW, chartH, W, viewStart, viewEnd } = canvas._scale;
+        const { padding, chartW, chartH, W, viewStart, viewEnd, xScale, yScale } = canvas._scale;
 
         if (isDragging) {
+            // gpx.studio mode: hide the tooltip while drag-panning; it returns on the next mouse move
+            tooltip.classList.remove('visible');
             const dx = x - dragStartX;
             const visibleRange = dragStartViewEnd - dragStartViewStart;
             const distShift = -(dx / chartW) * visibleRange;
@@ -100,9 +129,9 @@ function setupChartInteraction() {
             tooltipHeight = tooltipRect.height;
             updateMapCurrentPoint(nearestIdx);
             refreshChartHoverOverlay();
+            // gpx.studio mode: anchor the tooltip above the hovered point (not at the mouse cursor)
+            setTooltipAnchored(xScale(pt.distance), yScale(pt.ele));
         }
-
-        positionTooltip(clientX, clientY, rect, W);
     }
 
     canvas.addEventListener('mousemove', function(e) {
@@ -184,6 +213,8 @@ function setupChartInteraction() {
     canvas.addEventListener('mouseup', function() {
         if (IS_MOBILE) return;
         isDragging = false;
+        // Force the next mouse move to rebuild content and re-anchor the tooltip after drag-panning
+        hoverDisplayMode = null;
         canvas.style.cursor = 'crosshair';
     });
 
@@ -481,13 +512,7 @@ function setupChartInteraction() {
 
         const pt = points[nearestIdx];
         if (!pointChanged) {
-            const vlineX = (pt.distance - viewStart) / (viewEnd - viewStart) * chartW + padding.left;
-            let tx = vlineX + 12;
-            let ty = tooltipHeight + 12;
-            if (tx + tooltipWidth > W) tx = vlineX - tooltipWidth - 12;
-            if (tx < 0) tx = 4;
-            tooltip.style.left = tx + 'px';
-            tooltip.style.top = ty + 'px';
+            positionMobileTooltip(pt);
             return;
         }
         lastMobileVlineIdx = nearestIdx;
@@ -515,16 +540,9 @@ function setupChartInteraction() {
         }
 
         tooltip.classList.add('visible');
-
-        const vlineX = (pt.distance - viewStart) / (viewEnd - viewStart) * chartW + padding.left;
         tooltipWidth = tooltip.offsetWidth;
         tooltipHeight = tooltip.offsetHeight;
-        let tx = vlineX + 12;
-        let ty = tooltipHeight + 12;
-        if (tx + tooltipWidth > W) tx = vlineX - tooltipWidth - 12;
-        if (tx < 0) tx = 4;
-        tooltip.style.left = tx + 'px';
-        tooltip.style.top = ty + 'px';
+        positionMobileTooltip(pt);
 
         updateMapCurrentPoint(nearestIdx);
         refreshChartHoverOverlay();
@@ -546,6 +564,19 @@ function setupChartInteraction() {
     }
 
     canvas._clearMobileVLine = clearMobileVLine;
+    // ★★★ gpx.studio mode: after any chart redraw (wheel zoom, resize, theme or color-mode
+    // switch), re-anchor the tooltip to the hovered point's new pixel position; called at the
+    // end of drawChart ★★★
+    canvas._positionAnchoredTooltip = () => {
+        if (IS_MOBILE) return;
+        if (!tooltip.classList.contains('visible')) return;
+        if (!trackData || !canvas._scale) return;
+        if (hoveredPointIdx < 0 || hoveredPointIdx >= trackData.points.length) return;
+        const { xScale, yScale, viewStart, viewEnd } = canvas._scale;
+        const pt = trackData.points[hoveredPointIdx];
+        if (pt.distance < viewStart || pt.distance > viewEnd) return;
+        setTooltipAnchored(xScale(pt.distance), yScale(pt.ele));
+    };
     canvas._destroyChartInteraction = () => {
         if (hoverFrame) cancelAnimationFrame(hoverFrame);
         if (touchFrame) cancelAnimationFrame(touchFrame);

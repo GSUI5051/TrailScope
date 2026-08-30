@@ -2,7 +2,7 @@
 // ★★★ 深色模式地图滤镜（Leaflet.TileLayer.ColorFilter）★★★ 键名对应 mapSources 中的图源
 const DARK_TILE_FILTERS = {
     // 卫星/高德图
-    tiandituweixing: ['grayscale:100%', 'invert:100%', 'brightness:50%', 'contrast:94%'],
+    tianditusatellite: ['grayscale:100%', 'invert:100%', 'brightness:50%', 'contrast:94%'],
     amapsatellite: ['grayscale:100%', 'invert:100%', 'brightness:50%', 'contrast:94%'],
     MapyAerial: ['grayscale:100%', 'invert:100%', 'brightness:50%', 'contrast:94%'],
     ESRIWorldImagery: ['grayscale:100%', 'invert:100%', 'brightness:50%', 'contrast:94%'],
@@ -102,7 +102,7 @@ function changeMapSource(source, skipTrackDraw = false) {
         group.addTo(leafletMap);
         currentTileLayer = group;
         currentFilteredTileLayers = [roadLayer, satelliteLayer];
-    } else if (source === 'tiandituweixing') {
+    } else if (source === 'tianditusatellite') {
 		const tiandituroadLayer = L.tileLayer(
             'http://t{s}.tianditu.gov.cn/cia_w/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=50fdf5d2464091ca4951c7c2d7e017c4',
 			{ subdomains: ['0', '1', '2', '3', '4', '5', '6', '7'],
@@ -196,6 +196,7 @@ function changeMapSource(source, skipTrackDraw = false) {
     document.getElementById('mapSourceSelect').value = source;
     const fsMapSource = document.getElementById('fullscreenMapSourceSelect');
     if (fsMapSource) fsMapSource.value = source;
+    if (typeof refreshMapSourceComboboxes === 'function') refreshMapSourceComboboxes();
 
     if (trackData && !skipTrackDraw && coordinateModeChanged) drawMap(true);
 }

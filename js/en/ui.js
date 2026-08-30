@@ -150,7 +150,7 @@ function updateUI() {
     const diff = assessDifficulty(trackData);
     document.getElementById('difficultyScore').textContent = diff.overall;
     document.getElementById('difficultyLabel').textContent = diff.label;
-    document.getElementById('difficultyLabel').style.background = `color-mix(in srgb, ${diff.color} 13%, transparent)`;
+    document.getElementById('difficultyLabel').style.background = `color-mix(in srgb, ${diff.color} 18%, transparent)`;
     document.getElementById('difficultyLabel').style.color = diff.color;
 
     const circumference = 2 * Math.PI * 48;
@@ -213,9 +213,9 @@ function updateUI() {
     } else {
         risk.risks.forEach(r => {
             const colors = {
-                high: { bg: 'var(--risk-high-bg)', text: 'var(--theme-red)', border: 'var(--risk-high-border)' },
-                medium: { bg: 'var(--risk-medium-bg)', text: 'var(--theme-amber)', border: 'var(--risk-medium-border)' },
-                low: { bg: 'var(--risk-low-bg)', text: 'var(--theme-sage)', border: 'var(--risk-low-border)' }
+                high: { bg: 'var(--risk-high-bg)', text: 'var(--theme-red)', border: 'var(--risk-high-border)', glow: 'var(--risk-high-glow)' },
+                medium: { bg: 'var(--risk-medium-bg)', text: 'var(--theme-amber)', border: 'var(--risk-medium-border)', glow: 'var(--risk-medium-glow)' },
+                low: { bg: 'var(--risk-low-bg)', text: 'var(--theme-sage)', border: 'var(--risk-low-border)', glow: 'var(--risk-low-glow)' }
             };
             const c = colors[r.level];
 
@@ -223,6 +223,7 @@ function updateUI() {
             item.className = 'flex items-start gap-3 p-3 rounded-xl';
             item.style.background = c.bg;
             item.style.border = `1px solid ${c.border}`;
+            item.style.boxShadow = c.glow;
             item.innerHTML = `
                     <i class="fa-solid ${r.icon} mt-0.5 w-5 text-center flex-shrink-0" style="color: ${c.text}"></i>
                     <div class="flex-1">
@@ -381,6 +382,13 @@ function updateUI() {
             </div>
             `).join('');
 }
+// Segment duration as HH:MM: ceiling to the minute — any sub-minute fractional
+// remainder rounds up; the 1e-7 minute (~6us) epsilon only absorbs float noise
+function formatSegmentDuration(hours) {
+    const totalMinutes = Math.max(0, Math.ceil(hours * 60 - 1e-7));
+    return String(Math.floor(totalMinutes / 60)).padStart(2, '0') + ':' +
+        String(totalMinutes % 60).padStart(2, '0');
+}
 function updateSegments() {
     const missingElevation = !trackData.hasValidElevation;
     const gradeUnavailable = missingElevation && segmentMode === 'auto';
@@ -438,7 +446,7 @@ function updateSegments() {
         const downhillAvgDisplay = missingElevation ? 'N/A' : `-${seg.downhillAvg.toFixed(1)}%`;
         const maxUphillDisplay = missingElevation ? 'N/A' : `+${seg.maxUphillGrad.toFixed(1)}%`;
         const maxDownhillDisplay = missingElevation ? 'N/A' : `${seg.maxDownhillGrad.toFixed(1)}%`;
-        const durationDisplay = missingElevation ? 'N/A' : `${seg.time.toFixed(1)} h`;
+        const durationDisplay = missingElevation ? 'N/A' : formatSegmentDuration(seg.time);
         const ratingDisplay = missingElevation ? 'N/A' : `
                     <div class="inline-flex items-center gap-2">
                         <div class="w-12 h-1.5 rounded-full bg-trail-sage/15 overflow-hidden">
@@ -468,6 +476,11 @@ function updateSegments() {
 
         tbody.appendChild(row);
     });
+
+    /* Render row icons synchronously instead of waiting for the observer's
+       rAF fallback: on long tracks the rAF lands behind the drawChart long
+       task, so icons would pop in a few hundred ms late (66 rows ≈ 1-2 ms). */
+    if (typeof renderTrailIcons === 'function') renderTrailIcons(tbody);
 
     setupSegmentNumberTooltips();
 
@@ -628,6 +641,7 @@ function toggleAnnotations() {
     document.getElementById('annotationLabel').textContent = showAnnotations ? 'Hide Annotations' : 'Show Annotations';
     const fullLabel = document.getElementById('fullscreenAnnotationLabel');
     if (fullLabel) fullLabel.textContent = showAnnotations ? 'Hide Annotations' : 'Show Annotations';
+    updateAnnotationToggleIcon(showAnnotations);
     drawChart();
 }
 function exportChart() {
@@ -795,7 +809,7 @@ function enterMapFullscreen() {
                         <option value="gradient">Grade</option>
                         <option value="elevation">Elevation</option>
                     </select>` : ''}
-                    <select id="fullscreenMapSourceSelect" class="map-source-select" title="Map Source" onchange="document.getElementById('mapSourceSelect').value=this.value; changeMapSource();"></select>
+                    <select id="fullscreenMapSourceSelect" class="hidden" title="Map Source"></select>
                 </div>
             </div>
             `;
@@ -804,6 +818,7 @@ function enterMapFullscreen() {
     // ★★★ Fullscreen map-source options are cloned from the main HTML dropdown,
     // so the main list is the single source of truth ★★★
     syncFullscreenMapSourceSelect();
+    buildMapSourceCombobox(document.getElementById('fullscreenMapSourceSelect'));
 
     if (!hasElevation) {
         document.getElementById('fullscreenMapSourceSelect').value = currentMapSource;
@@ -834,7 +849,7 @@ function enterMapFullscreen() {
                 <div id="fullscreenProfileLegend" class="flex-1"></div>
                 <div class="flex items-center gap-2 flex-shrink-0 fs-fullscreen-btns">
                     <button onclick="toggleAnnotations()" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">
-                        <i class="fa-solid fa-eye"></i> <span id="fullscreenAnnotationLabel">${showAnnotations ? 'Hide Annotations' : 'Show Annotations'}</span>
+                        <i class="fa-solid ${showAnnotations ? 'fa-eye-slash' : 'fa-eye'}"></i> <span id="fullscreenAnnotationLabel">${showAnnotations ? 'Hide Annotations' : 'Show Annotations'}</span>
                     </button>
                     <!-- ★★★ 全屏模式三状态按钮 ★★★ -->
                     <button onclick="toggleWaypointDisplay()" id="fullscreenWaypointToggleBtn" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">

@@ -113,7 +113,7 @@ function updateUI() {
     const diff = assessDifficulty(trackData);
     document.getElementById('difficultyScore').textContent = diff.overall;
     document.getElementById('difficultyLabel').textContent = diff.label;
-    document.getElementById('difficultyLabel').style.background = `color-mix(in srgb, ${diff.color} 13%, transparent)`;
+    document.getElementById('difficultyLabel').style.background = `color-mix(in srgb, ${diff.color} 18%, transparent)`;
     document.getElementById('difficultyLabel').style.color = diff.color;
 
     const circumference = 2 * Math.PI * 48;
@@ -174,9 +174,9 @@ function updateUI() {
     } else {
         risk.risks.forEach(r => {
             const colors = {
-                high: { bg: 'var(--risk-high-bg)', text: 'var(--theme-red)', border: 'var(--risk-high-border)' },
-                medium: { bg: 'var(--risk-medium-bg)', text: 'var(--theme-amber)', border: 'var(--risk-medium-border)' },
-                low: { bg: 'var(--risk-low-bg)', text: 'var(--theme-sage)', border: 'var(--risk-low-border)' }
+                high: { bg: 'var(--risk-high-bg)', text: 'var(--theme-red)', border: 'var(--risk-high-border)', glow: 'var(--risk-high-glow)' },
+                medium: { bg: 'var(--risk-medium-bg)', text: 'var(--theme-amber)', border: 'var(--risk-medium-border)', glow: 'var(--risk-medium-glow)' },
+                low: { bg: 'var(--risk-low-bg)', text: 'var(--theme-sage)', border: 'var(--risk-low-border)', glow: 'var(--risk-low-glow)' }
             };
             const c = colors[r.level];
 
@@ -184,6 +184,7 @@ function updateUI() {
             item.className = 'flex items-start gap-3 p-3 rounded-xl';
             item.style.background = c.bg;
             item.style.border = `1px solid ${c.border}`;
+            item.style.boxShadow = c.glow;
             item.innerHTML = `
                       <i class="fa-solid ${r.icon} mt-0.5 w-5 text-center flex-shrink-0" style="color: ${c.text}"></i>
                       <div class="flex-1">
@@ -334,6 +335,13 @@ function updateUI() {
         `).join('');
     }
 }
+// 分段耗时 HH:MM 显示：分钟强制进一法——只要不满 1 分钟的秒级尾数就进到下一分钟；
+// 1e-7 分钟（约 6 微秒）容差只抵消浮点噪声，真实亚秒尾数仍会进一
+function formatSegmentDuration(hours) {
+    const totalMinutes = Math.max(0, Math.ceil(hours * 60 - 1e-7));
+    return String(Math.floor(totalMinutes / 60)).padStart(2, '0') + ':' +
+        String(totalMinutes % 60).padStart(2, '0');
+}
 function updateSegments() {
     const hasElevation = trackData.hasValidElevation !== false;
     const isAutoWithoutElevation = !hasElevation && segmentMode === 'auto';
@@ -414,7 +422,7 @@ function updateSegments() {
             <td class="py-3 px-2 text-center font-medium num-font" style="color: ${getDownhillColor(Math.min(0, seg.downhillAvg))};">-${seg.downhillAvg.toFixed(1)}%</td>
             <td class="py-3 px-2 text-center font-medium num-font" style="color: ${getUphillColor(Math.max(0, seg.maxUphillGrad))};">+${seg.maxUphillGrad.toFixed(1)}%</td>
             <td class="py-3 px-2 text-center font-medium num-font" style="color: ${getDownhillColor(Math.min(0, seg.maxDownhillGrad))};">${seg.maxDownhillGrad.toFixed(1)}%</td>
-            <td class="py-3 px-2 text-center font-medium text-trail-dark num-font">${seg.time.toFixed(1)} h</td>
+            <td class="py-3 px-2 text-center font-medium text-trail-dark num-font">${formatSegmentDuration(seg.time)}</td>
             <td class="py-3 px-2 text-center">
               <div class="inline-flex items-center gap-2">
                 <div class="w-12 h-1.5 rounded-full bg-trail-sage/15 overflow-hidden">
@@ -447,6 +455,10 @@ function updateSegments() {
 
         tbody.appendChild(row);
     });
+
+    /* 行内 TYPE 图标同步渲染：不等 Observer 的 rAF 兜底（大轨迹上 rAF 排在
+       drawChart 长任务之后，图标会晚几百毫秒出现），66 行同步转换约 1~2ms */
+    if (typeof renderTrailIcons === 'function') renderTrailIcons(tbody);
 
     setupSegmentNumberTooltips();
 
@@ -611,6 +623,7 @@ function toggleAnnotations() {
     document.getElementById('annotationLabel').textContent = showAnnotations ? '隐藏标注' : '显示标注';
     const fullLabel = document.getElementById('fullscreenAnnotationLabel');
     if (fullLabel) fullLabel.textContent = showAnnotations ? '隐藏标注' : '显示标注';
+    updateAnnotationToggleIcon(showAnnotations);
     drawChart();
 }
 function exportChart() {
@@ -784,13 +797,13 @@ function enterMapFullscreen() {
                 <option value="gradient">坡度分析</option>
                 <option value="elevation">海拔分析</option>
               </select>
-              <select id="fullscreenMapSourceSelect" class="map-source-select" title="切换图源" onchange="document.getElementById('mapSourceSelect').value=this.value; changeMapSource();"></select>
+              <select id="fullscreenMapSourceSelect" class="hidden" title="切换图源"></select>
             </div>
           </div>
         ` : `
           <div class="flex items-center gap-2 justify-between w-full">
             <div class="flex items-center gap-2 ml-auto">
-              <select id="fullscreenMapSourceSelect" class="map-source-select" title="切换图源" onchange="document.getElementById('mapSourceSelect').value=this.value; changeMapSource();"></select>
+              <select id="fullscreenMapSourceSelect" class="hidden" title="切换图源"></select>
             </div>
           </div>
         `;
@@ -798,6 +811,7 @@ function enterMapFullscreen() {
 
     // ★★★ 全屏图源下拉选项与主下拉（HTML 静态列表）保持一致，只需维护主下拉 ★★★
     syncFullscreenMapSourceSelect();
+    buildMapSourceCombobox(document.getElementById('fullscreenMapSourceSelect'));
 
     if (!hasElevation) {
         document.getElementById('fullscreenMapSourceSelect').value = currentMapSource;
@@ -829,7 +843,7 @@ function enterMapFullscreen() {
             <div id="fullscreenProfileLegend" class="flex-1"></div>
             <div class="flex items-center gap-2 flex-shrink-0 fs-fullscreen-btns">
               <button onclick="toggleAnnotations()" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">
-                <i class="fa-solid fa-eye"></i> <span id="fullscreenAnnotationLabel">${showAnnotations ? '隐藏标注' : '显示标注'}</span>
+                <i class="fa-solid ${showAnnotations ? 'fa-eye-slash' : 'fa-eye'}"></i> <span id="fullscreenAnnotationLabel">${showAnnotations ? '隐藏标注' : '显示标注'}</span>
               </button>
               <!-- ★★★ 全屏模式下的三状态按钮 ★★★ -->
               <button onclick="toggleWaypointDisplay()" id="fullscreenWaypointToggleBtn" class="btn-sm-uniform bg-trail-dark text-trail-cream hover:bg-trail-mid">

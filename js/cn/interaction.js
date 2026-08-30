@@ -19,17 +19,40 @@ function setupChartInteraction() {
     let tooltipWidth = 0;
     let tooltipHeight = 0;
     let hoverDisplayMode = null;
-    function positionTooltip(clientX, clientY, rect, W) {
-        let tooltipX = clientX - rect.left + 12;
-        let tooltipY = clientY - rect.top - tooltipHeight - 12;
-        if (tooltipX + tooltipWidth > W) {
-            tooltipX = clientX - rect.left - tooltipWidth - 12;
-        }
-        if (tooltipY < 0) {
-            tooltipY = clientY - rect.top + 12;
-        }
-        tooltip.style.left = tooltipX + 'px';
-        tooltip.style.top = tooltipY + 'px';
+    // ★★★ gpx.studio 运作模式（Chart.js tooltip 锚定数据点）：tooltip 居中于悬停点上方、
+    // 随最近数据点离散步进移动（不逐像素跟随鼠标）；水平方向整体收拢在绘图区内；
+    // 点上方放不下（越过绘图区顶缘）时翻到点下方，下方越界再收进绘图区底缘 ★★★
+    function setTooltipAnchored(px, py) {
+        const scale = canvas._scale;
+        if (!scale) return;
+        const plotLeft = scale.padding.left;
+        const plotRight = scale.W - scale.padding.right;
+        const plotBottom = scale.padding.top + scale.chartH;
+        let tx = px - tooltipWidth / 2;
+        if (tx + tooltipWidth > plotRight) tx = plotRight - tooltipWidth;
+        if (tx < plotLeft) tx = plotLeft;
+        let ty = py - tooltipHeight - 12;
+        if (ty < scale.padding.top) ty = py + 12;
+        if (ty + tooltipHeight > plotBottom) ty = Math.max(scale.padding.top, plotBottom - tooltipHeight);
+        tooltip.style.left = tx + 'px';
+        tooltip.style.top = ty + 'px';
+    }
+
+    // ★★★ 移动端 vline 模式 tooltip 定位：钉在图表上部、横向跟随指示线。
+    // 右侧→左侧翻转阈值按容器可视宽度（W - padding.right）计算：canvas 因“加宽右留白”
+    // 比容器宽 padding.right，且 chart-wrapper overflow-x: clip 会裁掉超出容器右缘的部分——
+    // 若按画布宽 W 判定，手指右滑贴边时 tooltip 右半先被裁掉（用户报告的“折叠”），后才翻转 ★★★
+    function positionMobileTooltip(pt) {
+        const scale = canvas._scale;
+        if (!scale) return;
+        const vlineX = (pt.distance - scale.viewStart) / (scale.viewEnd - scale.viewStart) * scale.chartW + scale.padding.left;
+        const visibleW = scale.W - scale.padding.right;
+        let tx = vlineX + 12;
+        let ty = tooltipHeight + 12;
+        if (tx + tooltipWidth > visibleW) tx = vlineX - tooltipWidth - 12;
+        if (tx < 0) tx = 4;
+        tooltip.style.left = tx + 'px';
+        tooltip.style.top = ty + 'px';
     }
 
     function updateDesktopHover(clientX, clientY) {
@@ -38,9 +61,11 @@ function setupChartInteraction() {
         const rect = canvas.getBoundingClientRect();
         const x = clientX - rect.left;
         const y = clientY - rect.top;
-        const { padding, chartW, chartH, W, viewStart, viewEnd } = canvas._scale;
+        const { padding, chartW, chartH, W, viewStart, viewEnd, xScale, yScale } = canvas._scale;
 
         if (isDragging) {
+            // gpx.studio 模式：拖拽平移期间 tooltip 隐藏，松开后下一次鼠标移动恢复
+            tooltip.classList.remove('visible');
             const dx = x - dragStartX;
             const visibleRange = dragStartViewEnd - dragStartViewStart;
             const distShift = -(dx / chartW) * visibleRange;
@@ -100,9 +125,9 @@ function setupChartInteraction() {
             tooltipHeight = tooltipRect.height;
             updateMapCurrentPoint(nearestIdx);
             refreshChartHoverOverlay();
+            // gpx.studio 模式：tooltip 锚定在悬停点上方（非鼠标光标位置）
+            setTooltipAnchored(xScale(pt.distance), yScale(pt.ele));
         }
-
-        positionTooltip(clientX, clientY, rect, W);
     }
 
     canvas.addEventListener('mousemove', function(e) {
@@ -184,6 +209,8 @@ function setupChartInteraction() {
     canvas.addEventListener('mouseup', function() {
         if (IS_MOBILE) return;
         isDragging = false;
+        // 拖拽平移结束后强制下一次鼠标移动重设内容并重新锚定 tooltip
+        hoverDisplayMode = null;
         canvas.style.cursor = 'crosshair';
     });
 
@@ -482,13 +509,7 @@ function setupChartInteraction() {
 
         const pt = points[nearestIdx];
         if (!pointChanged) {
-            const vlineX = (pt.distance - viewStart) / (viewEnd - viewStart) * chartW + padding.left;
-            let tx = vlineX + 12;
-            let ty = tooltipHeight + 12;
-            if (tx + tooltipWidth > W) tx = vlineX - tooltipWidth - 12;
-            if (tx < 0) tx = 4;
-            tooltip.style.left = tx + 'px';
-            tooltip.style.top = ty + 'px';
+            positionMobileTooltip(pt);
             return;
         }
         lastMobileVlineIdx = nearestIdx;
@@ -515,16 +536,9 @@ function setupChartInteraction() {
         }
 
         tooltip.classList.add('visible');
-
-        const vlineX = (pt.distance - viewStart) / (viewEnd - viewStart) * chartW + padding.left;
         tooltipWidth = tooltip.offsetWidth;
         tooltipHeight = tooltip.offsetHeight;
-        let tx = vlineX + 12;
-        let ty = tooltipHeight + 12;
-        if (tx + tooltipWidth > W) tx = vlineX - tooltipWidth - 12;
-        if (tx < 0) tx = 4;
-        tooltip.style.left = tx + 'px';
-        tooltip.style.top = ty + 'px';
+        positionMobileTooltip(pt);
 
         updateMapCurrentPoint(nearestIdx);
         refreshChartHoverOverlay();
@@ -546,6 +560,18 @@ function setupChartInteraction() {
     }
 
     canvas._clearMobileVLine = clearMobileVLine;
+    // ★★★ gpx.studio 模式：图表重绘（滚轮缩放/窗口尺寸/主题/配色等）后，
+    // tooltip 重新锚定到当前悬停点的新像素位置；drawChart 重绘末尾调用 ★★★
+    canvas._positionAnchoredTooltip = () => {
+        if (IS_MOBILE) return;
+        if (!tooltip.classList.contains('visible')) return;
+        if (!trackData || !canvas._scale) return;
+        if (hoveredPointIdx < 0 || hoveredPointIdx >= trackData.points.length) return;
+        const { xScale, yScale, viewStart, viewEnd } = canvas._scale;
+        const pt = trackData.points[hoveredPointIdx];
+        if (pt.distance < viewStart || pt.distance > viewEnd) return;
+        setTooltipAnchored(xScale(pt.distance), yScale(pt.ele));
+    };
     canvas._destroyChartInteraction = () => {
         if (hoverFrame) cancelAnimationFrame(hoverFrame);
         if (touchFrame) cancelAnimationFrame(touchFrame);

@@ -150,6 +150,7 @@ function changeMapSource(source, skipTrackDraw = false) {
     document.getElementById('mapSourceSelect').value = source;
     const fsMapSource = document.getElementById('fullscreenMapSourceSelect');
     if (fsMapSource) fsMapSource.value = source;
+    if (typeof refreshMapSourceComboboxes === 'function') refreshMapSourceComboboxes();
 
     if (trackData && !skipTrackDraw && coordinateModeChanged) drawMap(true);
 }

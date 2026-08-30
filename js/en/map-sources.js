@@ -29,21 +29,21 @@ const mapSources = {
         attribution: '© Thunderforest'
     },
     TFOutdoor: {
-        name: '户外徒步路线图',
+        name: 'Hiking Trail Map',
         url: 'https://api.thunderforest.com/outdoors/{z}/{x}/{y}{r}.png?apikey=8008601e01cf4f2aaf9a8ad4a3867e4a',
         subdomains: '',
         maxZoom: 18,
         attribution: '© Thunderforest'
     },
     TFLandscape: {
-        name: '户外等高线地图',
+        name: 'Landscape Map',
         url: 'https://api.thunderforest.com/landscape/{z}/{x}/{y}{r}.png?apikey=8008601e01cf4f2aaf9a8ad4a3867e4a',
         subdomains: '',
         maxZoom: 18,
         attribution: '© Thunderforest'
     },
     TFAtlas: {
-        name: '全球地图',
+        name: 'Global Atlas',
         url: 'https://api.thunderforest.com/atlas/{z}/{x}/{y}{r}.png?apikey=8008601e01cf4f2aaf9a8ad4a3867e4a',
         subdomains: '',
         maxZoom: 18,
@@ -97,7 +97,7 @@ const mapSources = {
         attribution: '© Amap',
     },
 	ESRIWorldTopoMap: {
-		name: 'ESRI-WorldTopoMap',
+		name: 'ESRI World Topo Map',
 		maxZoom: 18,
 		attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
 	},
@@ -109,6 +109,20 @@ const mapSources = {
         maxZoom: 18,
         attribution: '© 天地图'
     },
+};
+
+/* Map source groups (combobox rendering order and categorisation); hybrid sources
+   (satellite/hybrid) may appear in both SATELLITE and STREET groups, mirroring the
+   native select's option list (the select remains the state source) */
+const MAP_SOURCE_GROUPS = [
+    { label: 'TOPOGRAPHIC', keys: ['openhikingmap', 'opentopomap', 'opencyclemap', 'cyclosm', 'MapyOutdoor', 'TFOutdoor', 'TFLandscape', 'ESRIWorldTopoMap'] },
+    { label: 'SATELLITE', keys: ['tianditusatellite', 'MapyAerial', 'amapsatellite', 'gaode_hybrid', 'ESRIWorldImagery'] },
+    { label: 'STREET', keys: ['osm', 'TFAtlas', 'tianditusatellite', 'amaproad', 'gaode_hybrid'] }
+];
+const MAP_SOURCE_COMBOBOX_STRINGS = {
+    searchPlaceholder: 'Search map source',
+    recentLabel: 'RECENT',
+    emptyLabel: 'No matching map source'
 };
 
 
